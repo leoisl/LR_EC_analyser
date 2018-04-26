@@ -1,0 +1,3 @@
+[console_scripts]
+seq-tools = seqtools.cli.cli_front:main
+
