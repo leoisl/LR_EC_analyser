@@ -1,0 +1,71 @@
+# How to execute the sample test - we will simulate long reads from the Mus Musculus chrom 19
+#unpack
+tar -zxvf sample_test.tar.gz
+
+# Run the analyser
+python run_LR_EC_analyser.py --genome sample_data/Mus_musculus.GRCm38.dna.chromosome.19.fa.gz --gtf sample_data/Mus_musculus.GRCm38.91.chr19.gtf.gz -t 4 -o sample_data/output --raw sample_data/gmap_CB_1Donly_to_GRCm38_chr19.bam sample_data
+
+
+
+
+
+#-----THIS EXAMPLE IS FROM THE SIMULATOR------#
+#What was done to get the data:
+#We got the 100k first reads from the raw 1D_only reads from mouse RNA produced by Genoscope in the ASTER project (these runs were on ngs-provisoire):
+cd /data2/ASTER/error_correction/raw_1D_only_data_no_mito_no_rDNA
+head -n 400000 BYK_CB_ONT_1_FAF04998_A_1Donly.no_mito.no_rDNA.fastq > BYK_CB_ONT_1_FAF04998_A_1Donly.no_mito.no_rDNA.100k.fastq
+mv BYK_CB_ONT_1_FAF04998_A_1Donly.no_mito.no_rDNA.100k.fastq /data2/leandro/RNA_simulator/
+cd /data2/leandro/RNA_simulator/
+
+#we ran gmap on this subsample:
+gmap -D /data2/ASTER/nanopore_mouse/Our_mapping_to_mRNA_only/gmap_genome/ -d GRCm38 -n 10 -t 8 -f samse BYK_CB_ONT_1_FAF04998_A_1Donly.no_mito.no_rDNA.100k.fastq > gmap_CB_1Donly_to_GRCm38_100k.sam
+
+#we filtered the reads that mapped only on the chrom 19 (~4k reads):
+awk '{split($1, chars, ""); if(chars[1]=="@" || $3==19){print $0}}' gmap_CB_1Donly_to_GRCm38_100k.sam > gmap_CB_1Donly_to_GRCm38_chr19.sam
+
+#we get the bam and the bai
+samtools view -b -S gmap_CB_1Donly_to_GRCm38_chr19.sam > gmap_CB_1Donly_to_GRCm38_chr19.bam
+samtools sort -o gmap_CB_1Donly_to_GRCm38_chr19.sorted.bam gmap_CB_1Donly_to_GRCm38_chr19.bam
+samtools index gmap_CB_1Donly_to_GRCm38_chr19.sorted.bam
+rm gmap_CB_1Donly_to_GRCm38_100k.sam
+rm gmap_CB_1Donly_to_GRCm38_chr19.sam
+rm gmap_CB_1Donly_to_GRCm38_chr19.bam
+
+
+#we get the chr19 genome reference
+wget ftp://ftp.ensembl.org/pub/release-91/fasta/mus_musculus/dna/Mus_musculus.GRCm38.dna.chromosome.19.fa.gz
+gunzip Mus_musculus.GRCm38.dna.chromosome.19.fa.gz
+
+#we get the annotations only from chrom 19
+wget ftp://ftp.ensembl.org/pub/release-91/gtf/mus_musculus/Mus_musculus.GRCm38.91.gtf.gz
+gunzip Mus_musculus.GRCm38.91.gtf.gz
+awk '$1==19' Mus_musculus.GRCm38.91.gtf | cat <(head -n 5 Mus_musculus.GRCm38.91.gtf) - > Mus_musculus.GRCm38.91.chr19.gtf
+rm Mus_musculus.GRCm38.91.gtf
+
+#we compact the files to put it in git
+env GZIP=-9 tar cvzf sample_test.tar.gz *19*
+
+
+
+
+#----NOW WE SIMULATE 3 LR ERROR CORRECTORS, WORST THAN THE RAW READS------
+#we get the reads in the bam
+samtools view gmap_CB_1Donly_to_GRCm38_chr19.sorted.bam | awk '{print $10}' | sort | uniq | awk 'BEGIN{rn=0; OFS=""}{print ">",rn,"\n",$0; rn+=1}' > reads_from_bam.fa
+
+#"simulate" 3 Error Correctors
+python pretty_bad_simulator.py reads_from_bam.fa 0.3 0.01 0.01 0.01 > good_EC_but_remove_too_many_reads.fa
+python pretty_bad_simulator.py reads_from_bam.fa 0.9 0.01 0.2 0.2 > bad_too_much_indels.fa
+python pretty_bad_simulator.py reads_from_bam.fa 0.6 0.3 0.01 0.01 > bad_too_much_subs.fa
+
+#aligning with gmap and getting the bams:
+gmap -D /data2/ASTER/nanopore_mouse/Our_mapping_to_mRNA_only/gmap_genome -d GRCm38 -n 10 -t 4 -f samse good_EC_but_remove_too_many_reads.fa >  good_EC_but_remove_too_many_reads.gmap.sam
+samtools view -S -o good_EC_but_remove_too_many_reads.gmap.bam good_EC_but_remove_too_many_reads.gmap.sam
+rm good_EC_but_remove_too_many_reads.gmap.sam
+
+gmap -D /data2/ASTER/nanopore_mouse/Our_mapping_to_mRNA_only/gmap_genome -d GRCm38 -n 10 -t 4 -f samse bad_too_much_subs.fa >  bad_too_much_subs.gmap.sam
+samtools view -S -o bad_too_much_subs.gmap.bam bad_too_much_subs.gmap.sam
+rm bad_too_much_subs.gmap.sam
+
+gmap -D /data2/ASTER/nanopore_mouse/Our_mapping_to_mRNA_only/gmap_genome -d GRCm38 -n 10 -t 4 -f samse bad_too_much_indels.fa >  bad_too_much_indels.gmap.sam
+samtools view -S -o bad_too_much_indels.gmap.bam bad_too_much_indels.gmap.sam
+rm bad_too_much_indels.gmap.sam
