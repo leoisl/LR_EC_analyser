@@ -142,16 +142,17 @@ def parseGTFToGetGenes(gtf):
     genes=[]
     with gzip.open(gtf) as gtfFile:
         for line in gtfFile:
-            lineSplit = line.rstrip().split()
-            if lineSplit[2]=="gene":
-                genes.append(Gene(lineSplit[lineSplit.index("gene_id")+1][1:-2],
-                    lineSplit[0], int(lineSplit[3]), int(lineSplit[4]), lineSplit[6]))
+            if line[0]!="#":
+                lineSplit = line.rstrip().split()
+                if lineSplit[2]=="gene":
+                    genes.append(Gene(lineSplit[lineSplit.index("gene_id")+1][1:-2],
+                        lineSplit[0], int(lineSplit[3]), int(lineSplit[4]), lineSplit[6]))
     print "Parsing %s - Done!" % gtf
     return genes
 
-def processBam(bam):
+def processBam(bam, threads):
     print "Sorting and indexing %s..." % bam
-    commandLine = "bash %s/processBam.sh %s"%(scriptDir, bam)
+    commandLine = "bash %s/processBam.sh %s %d"%(scriptDir, bam, threads)
     print "Running %s"%commandLine
     subprocess.check_call(commandLine.split())
     print "Sorting and indexing %s - Done!" % bam
@@ -266,7 +267,7 @@ def main():
 
     #sort and index bam
     for bam in bams:
-        processBam(bam)
+        processBam(bam, args.threads)
 
     #update the bam files
     sortedBams = [bamfile+".sorted.bam" for bamfile in bams]

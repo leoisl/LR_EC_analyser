@@ -5,7 +5,7 @@ tar -zxvf sample_data.tar.gz
 cd..
 
 # Run the analyser
-python run_LR_EC_analyser.py --genome sample_data/Mus_musculus.GRCm38.dna.chromosome.19.fa.gz --gtf sample_data/Mus_musculus.GRCm38.91.chr19.gtf.gz -t 4 -o sample_data/output --raw sample_data/gmap_CB_1Donly_to_GRCm38_chr19.bam sample_data
+python run_LR_EC_analyser.py --genome sample_data/Mus_musculus.GRCm38.dna.chromosome.19.fa.gz --gtf sample_data/Mus_musculus.GRCm38.91.chr19.gtf.gz -t 4 -o sample_data/output --raw sample_data/gmap_CB_1Donly_to_GRCm38_chr19.bam sample_data/good_EC_but_remove_too_many_reads.gmap.bam sample_data/bad_too_much_indels.gmap.bam sample_data/bad_too_much_subs.gmap.bam
 
 
 
