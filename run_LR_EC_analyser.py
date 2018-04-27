@@ -9,6 +9,24 @@ import gzip
 
 
 """
+#How we built the index
+gmap_build -D /data2/ASTER/nanopore_mouse/Our_mapping_to_mRNA_only/gmap_genome -d GRCm38 /data2/ASTER/nanopore_mouse/genomic_data/Mus_musculus.GRCm38.dna.primary_assembly.fa
+
+#mapping
+GMAP_GENOME_DIR=/data2/ASTER/nanopore_mouse/Our_mapping_to_mRNA_only/gmap_genome
+GMAP_GENOME_NAME=GRCm38
+gmap -D $GMAP_GENOME_DIR -d $GMAP_GENOME_NAME -n 10 -t $THREADS -f samse $RAW_READS_FILE >  ${OUTPUT_PREFIX}.gmap.sam
+
+#from sam to bam
+samtools view -S -o ${OUTPUT_PREFIX}.gmap.bam ${OUTPUT_PREFIX}.gmap.sam
+rm ${OUTPUT_PREFIX}.gmap.sam
+
+
+
+
+
+
+
 Input:
 python run_LR_EC_analyser.py -g <genome> -gtf <transcriptome> raw_reads.bam LoRDEC.bam LoRMA.bam PBCR.bam ...
 
@@ -39,10 +57,13 @@ python run_LR_EC_analyser --view <path_to_results>
     This will start a ftp server on <path_to_results>
     Then will open a browser to view <path_to_results>
 
-"""
 
 
-"""
+
+
+
+
+
 annotbest.txt is the AlignQC file that contains the best mapping of the ANNOTATED READS (reads that we were able to align and that AlignQC was able to assign to a transcript) 
 annotbest.txt format:
 columns:
@@ -91,11 +112,11 @@ def parseGTFToGetGenes(gtf):
     return genes
 
 def getOnlyBestHitsFromBam(bam):
-    print "Getting only the best hits from %s..." % bam
-    commandLine = "bash %s/getOnlyBestHitsFromBam.sh %s"%(scriptDir, bam)
+    print "Getting only the best hits, sorting and indexing %s..." % bam
+    commandLine = "bash %s/processBam.sh %s"%(scriptDir, bam)
     print "Running %s"%commandLine
     subprocess.check_call(commandLine.split())
-    print "Getting only the best hits from %s - Done!" % bam
+    print "Getting only the best hits, sorting and indexing %s - Done!" % bam
 
 def runAlignQC(bam, genome, gtf, threads):
     print "Running AlignQC for %s..." % bam
@@ -123,7 +144,7 @@ def main():
         getOnlyBestHitsFromBam(bam)
 
     #update the bam files
-    bestHitsBams = [bamfile+".best_hits.bam" for bamfile in args.bams]
+    bestHitsBams = [bamfile+".best_hits.sorted.bam" for bamfile in args.bams]
 
     #Run AlignQC on the bestHitsBams
     for bam in bestHitsBams:
