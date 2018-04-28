@@ -1,11 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+#TODO:
+#Dependencies:
+#python 2.7
+#virtualenv
+#samtools
+
+
+#TODO: pass .gz genome and transcriptome to AlignQC
+#TODO: samtools faidx Mus_musculus.GRCm38.dna.chromosome.19.fa
+#TODO: for IGV, better convert gtf -> bed and index the bed (or ask for a bed, or use the gtf without being indexed)
+
 import argparse
 import sys
 import subprocess
 import os
 import gzip
+import urllib
 
 
 """
@@ -81,6 +93,12 @@ class Gene:
     def __repr__(self):
         return str(self.__dict__)
 
+    def getLocusInIGVJSFormat(self):
+        return "'%s:%d-%d'"%(self.chromosome, self.begin, self.end)
+
+    def getGeneASArrayForHOT(self):
+        return ["'%s'"%self.geneId, self.getLocusInIGVJSFormat(), "'%s'"%self.strand]
+
 #TODO: we should add more data here...
 class Profile:
     """
@@ -88,47 +106,57 @@ class Profile:
     """
     def __init__(self, tools):
         # TODO: we should add more data here...
+        self.toolsOrder = tools #will remember the tools' order
         self.tool2NbOfMappedReads = {tool: 0 for tool in tools}
 
     def computeLargestDiscrepancy(self):
         """
         :return: the largest value between raw_reads and a tool
         """
-        nbOfMappedRawReads = self.tool2NbOfMappedReads["raw"]
+        nbOfMappedRawReads = self.tool2NbOfMappedReads["raw.bam"]
         return max([abs(nbOfMappedRawReads-self.tool2NbOfMappedReads[tool]) for tool in self.tool2NbOfMappedReads] )
+
+    def getProfileAsArrayForHot(self):
+        return [str(self.tool2NbOfMappedReads[tool]) for tool in self.toolsOrder] + [str(self.computeLargestDiscrepancy())]
+
+    def isExpressedInAnyTool(self):
+        return sum(self.tool2NbOfMappedReads.values())>0
 
 
 class GeneProfiler:
     """
     Represents all genes and their profiles
     """
-    def __init__(self, genes, tools):
+    def __init__(self, genes, tools, tool2Bam):
         self.geneId2Gene={gene.geneId:gene for gene in genes}
         self.geneId2Profile={gene.geneId:Profile(tools) for gene in genes}
+        self.tools=tools
+        self.tool2Bam = tool2Bam
 
     def populateFromAnnotbest(self, tool):
         """
         Reads the annotbest.txt.gz file from AlignQC and populates this profiler
         annotbest.txt is the AlignQC file that contains the best mapping of the ANNOTATED READS (reads that we were able to align and that AlignQC was able to assign to a transcript)
-    annotbest.txt format:
-    columns:
-    0: id of the line (?)
-    1: read name
-    2: gene name
-    3: transcript name
-    4: partial or full (if it mapped partially or fully in the genome according to AlignQC)
-    5: # ?
-    6: # most consecutive exons in read
-    7: # exons in read
-    8: # exons in the transcript
-    9: overlap size between read and transcript
-    10: read length
-    11: transcript length
-    12: alignment coordinates
-    13: transcript coordinates
 
-    Example:
-    5	m150117_043342_42142_c100769800150000001823165407071580_s1_p0/144819/ccs	ENSG00000274276.4	ENST00000624934.3	partial	15	11	16	18	1747	3884	1992	chr21:6446736-6467516	chr21:6445433-6467532	2454
+        annotbest.txt format:
+        columns:
+        0: id of the line (?)
+        1: read name
+        2: gene name
+        3: transcript name
+        4: partial or full (if it mapped partially or fully in the genome according to AlignQC)
+        5: # ?
+        6: # most consecutive exons in read
+        7: # exons in read
+        8: # exons in the transcript
+        9: overlap size between read and transcript
+        10: read length
+        11: transcript length
+        12: alignment coordinates
+        13: transcript coordinates
+
+        Example:
+        5	m150117_043342_42142_c100769800150000001823165407071580_s1_p0/144819/ccs	ENSG00000274276.4	ENST00000624934.3	partial	15	11	16	18	1747	3884	1992	chr21:6446736-6467516	chr21:6445433-6467532	2454
         """
         dataFolder = "alignqc_out_on_%s/data"%tool
         with gzip.open(dataFolder+"/annotbest.txt.gz") as file:
@@ -136,11 +164,38 @@ class GeneProfiler:
                 lineSplit = line.rstrip().split()
                 self.geneId2Profile[lineSplit[2]].tool2NbOfMappedReads[tool] += 1
 
+    def buildIGVInfo(self, gene, genome, gtf):
+        igvInfo = {}
+        igvInfo["fastaURL"]=genome
+        igvInfo["locus"] = self.geneId2Gene[gene].getLocusInIGVJSFormat()[1:-1]
+        igvInfo["annotationURL"] = gtf
+        for i, tool in enumerate(self.tools):
+            igvInfo["tool_%d"%i]=tool
+            igvInfo["bam_%d"%i]=self.tool2Bam[tool]
+
+        listOfKeyValues=["%s=%s"%(key,value) for key,value in igvInfo.items()]
+        return ["'" + urllib.quote("&".join(listOfKeyValues), safe='') + "'"]
+
+    def toJSArrayForHOT(self, genome, gtf):
+        """
+        Transforms this object in a format to JSArray to be put in a Hands-on table
+        :return: a string like:
+        [ [list with first gene infos], [list with second gene infos] ... ]
+        """
+        stringList=[]
+        for gene in self.geneId2Gene:
+            if self.geneId2Profile[gene].isExpressedInAnyTool():
+                stringList.append("[" + ",".join(self.geneId2Gene[gene].getGeneASArrayForHOT() +
+                                                 self.geneId2Profile[gene].getProfileAsArrayForHot() +
+                                                 self.buildIGVInfo(gene, genome, gtf)) + "]")
+        return "[" + ",".join(stringList) + "]"
+
+
 
 def parseGTFToGetGenes(gtf):
     print "Parsing %s..."%gtf
     genes=[]
-    with gzip.open(gtf) as gtfFile:
+    with open(gtf) as gtfFile:
         for line in gtfFile:
             if line[0]!="#":
                 lineSplit = line.rstrip().split()
@@ -245,36 +300,43 @@ def main():
     parser = argparse.ArgumentParser(description='Long read error corrector analyser.')
     parser.add_argument('bams', metavar='<file.bam>', type=str, nargs='+',
                         help='BAM files of the Fastas output by the correctors')
-    parser.add_argument("--genome", dest="genome", help="The genome in gzipped fasta file (this file needs to be a .gz)")
-    parser.add_argument("--gtf", dest="gtf", help="The transcriptome as gzipped GTF file (this file needs to be a .gz)")
+    parser.add_argument("--genome", dest="genome", help="The genome in fasta file")
+    parser.add_argument("--gtf", dest="gtf", help="The transcriptome as GTF file")
     parser.add_argument("--raw", dest="rawBam", help="The BAM file of the raw reads (i.e. the uncorrected long reads file)")
     parser.add_argument("-o", dest="output", help="output file name prefix", default="output")
     parser.add_argument("-t", dest="threads", type=int, help="Number of threads to use")
+    parser.add_argument("--skip_bam_process", dest="skip_bam", action="store_true", help="Skips bam processing - assume we had already done this.")
+    parser.add_argument("--skip_alignqc", dest="skip_alignqc", action="store_true",
+                        help="Skips AlignQC calls - assume we had already done this.")
     args=parser.parse_args()
 
+    #get some useful vars
     bams = [args.rawBam] + args.bams
+    tools = ["raw.bam"] + [os.path.basename(bam) for bam in args.bams]
+    tool2Bam={tool:bam for tool,bam in zip(tools, bams)}
 
-    #get the tools names
-    tools = ["raw"] + [os.path.basename(bam) for bam in args.bams]
 
     #get genes from gtf
     genes = parseGTFToGetGenes(args.gtf)
 
+
     #create the gene profiler
-    geneProfiler = GeneProfiler(genes, tools)
+    geneProfiler = GeneProfiler(genes, tools, tool2Bam)
 
     #TODO: walk the bam with pysam and get the read lengths to compute mean length of the aligned reads
 
     #sort and index bam
-    for bam in bams:
-        processBam(bam, args.threads)
+    if not args.skip_bam:
+        for bam in bams:
+            processBam(bam, args.threads)
 
     #update the bam files
     sortedBams = [bamfile+".sorted.bam" for bamfile in bams]
 
     #run AlignQC on the bams
-    for tool, bam in zip(tools, sortedBams):
-        runAlignQC(tool, bam, args.genome, args.gtf, args.threads)
+    if not args.skip_alignqc:
+        for tool, bam in zip(tools, sortedBams):
+            runAlignQC(tool, bam, args.genome, args.gtf, args.threads)
 
     #create the output by parsing AlignQC results
     tool2Stats={tool:parseAlignQCOutput(tool) for tool in tools}
@@ -283,10 +345,16 @@ def main():
     for tool in tools:
         geneProfiler.populateFromAnnotbest(tool)
 
-    #with open(args.output+".html", "w") as htmlOutput:
+    with open("index_template.html") as indexTemplateFile:
+        indexTemplateLines = indexTemplateFile.readlines()
+        for i, line in enumerate(indexTemplateLines):
+            line=line.replace("<geneProfiler.toJSArrayForHOT()>", geneProfiler.toJSArrayForHOT(args.genome, args.gtf))
+            line=line.replace("<tools>", str(tools))
+            indexTemplateLines[i]=line
 
-
-
+    with open("index_test.html", "w") as indexOutFile:
+        for line in indexTemplateLines:
+            indexOutFile.write(line)
 
 
 

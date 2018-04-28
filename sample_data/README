@@ -5,7 +5,7 @@ tar -zxvf sample_data.tar.gz
 cd..
 
 # Run the analyser
-python run_LR_EC_analyser.py --genome sample_data/Mus_musculus.GRCm38.dna.chromosome.19.fa.gz --gtf sample_data/Mus_musculus.GRCm38.91.chr19.gtf.gz -t 4 -o sample_data/output --raw sample_data/gmap_CB_1Donly_to_GRCm38_chr19.bam sample_data/good_EC_but_remove_too_many_reads.gmap.bam sample_data/bad_too_much_indels.gmap.bam sample_data/bad_too_much_subs.gmap.bam
+python run_LR_EC_analyser.py --genome sample_data/Mus_musculus.GRCm38.dna.chromosome.19.fa.gz --gtf sample_data/Mus_musculus.GRCm38.91.chr19.gtf.gz -t 4 -o sample_data/output --raw sample_data/gmap_CB_1Donly_to_GRCm38_chr19.bam sample_data/good_EC_but_remove_too_many_reads.gmap.chr19.bam sample_data/bad_too_much_indels.gmap.chr19.bam sample_data/bad_too_much_subs.gmap.chr19.bam
 
 
 
@@ -55,14 +55,24 @@ env GZIP=-9 tar cvzf sample_test.tar.gz *19*
 samtools view gmap_CB_1Donly_to_GRCm38_chr19.sorted.bam | awk '{print $10}' | sort | uniq | awk 'BEGIN{rn=0; OFS=""}{print ">",rn,"\n",$0; rn+=1}' > reads_from_bam.fa
 
 #"simulate" 3 Error Correctors
-python pretty_bad_simulator.py reads_from_bam.fa 0.3 0.01 0.01 0.01 > good_EC_but_remove_too_many_reads.fa
-python pretty_bad_simulator.py reads_from_bam.fa 0.9 0.01 0.2 0.2 > bad_too_much_indels.fa
-python pretty_bad_simulator.py reads_from_bam.fa 0.6 0.3 0.01 0.01 > bad_too_much_subs.fa
+simulate(){
+prefix=$5
+python pretty_bad_simulator.py reads_from_bam.fa $1 $2 $3 $4 > ${prefix}.fa
+gmap -D /data2/ASTER/nanopore_mouse/Our_mapping_to_mRNA_only/gmap_genome -d GRCm38 -n 10 -t 4 -f samse ${prefix}.fa >  ${prefix}.gmap.sam
+awk '{split($1, chars, ""); if(chars[1]=="@" || $3==19){print $0}}' ${prefix}.gmap.sam > ${prefix}.gmap.chr19.sam
+rm ${prefix}.gmap.sam
+samtools view -S -o ${prefix}.gmap.chr19.bam ${prefix}.gmap.chr19.sam
+rm ${prefix}.gmap.chr19.sam
+}
 
-#aligning with gmap and getting the bams:
-gmap -D /data2/ASTER/nanopore_mouse/Our_mapping_to_mRNA_only/gmap_genome -d GRCm38 -n 10 -t 4 -f samse good_EC_but_remove_too_many_reads.fa >  good_EC_but_remove_too_many_reads.gmap.sam
-samtools view -S -o good_EC_but_remove_too_many_reads.gmap.bam good_EC_but_remove_too_many_reads.gmap.sam
-rm good_EC_but_remove_too_many_reads.gmap.sam
+
+simulate 0.3 0.01 0.01 0.01 good_EC_but_remove_too_many_reads
+simulate 0.9 0.01 0.2 0.2 bad_too_much_indels
+simulate 0.6 0.3 0.01 0.01 bad_too_much_subs
+
+
+
+
 
 gmap -D /data2/ASTER/nanopore_mouse/Our_mapping_to_mRNA_only/gmap_genome -d GRCm38 -n 10 -t 4 -f samse bad_too_much_subs.fa >  bad_too_much_subs.gmap.sam
 samtools view -S -o bad_too_much_subs.gmap.bam bad_too_much_subs.gmap.sam

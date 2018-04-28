@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Long Read Error Corrector Analyser</title>
+    <link href="handsontable.full.min.css" rel="stylesheet" type="text/css" />
+    <script src="jquery.min.js"></script>
+    <script src="handsontable.full.min.js"></script>
+    <script src="js.js"></script>
+    <script>
+        $(function(){ // on dom ready
+            //fillGeneTable([ ["gene", "chr1", "+", 1, 2, 3, 4, 3], ["gene", "chr1", "+", 1, 2, 3, 4, 3] ], ["t1", "t2", "t3", "t4"]);
+            fillGeneTable(<geneProfiler.toJSArrayForHOT()>, <tools>);
+        })
+    </script>
+</head>
+<body>
+<!-- Div for the main table -->
+<div id="LR_EC_main_table"></div>
+
+<!-- Div for the gene table -->
+<div id="LR_EC_gene_table"></div>
+</body>
+</html>
