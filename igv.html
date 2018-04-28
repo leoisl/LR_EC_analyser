@@ -31,6 +31,20 @@
 
     <!-- IGV JS-->
     <script type="text/javascript" src="https://igv.org/web/release/1.0.9/igv-1.0.9.js"></script>
+    <script type="text/javascript" src="js.js"></script>
+
+    <script type="text/javascript">
+    serverURL="http://localhost:8080/"
+    isSiteOnline(serverURL,function(found){
+        if(found) {
+            setUpIGV(serverURL, "igvDiv")
+        }
+        else {
+            alert(serverURL+ " is not reachable")
+        }
+    })
+
+    </script>
 </head>
 
 <body>
@@ -38,45 +52,6 @@
 
 <div class="container-fluid" id="igvDiv" style="padding:5px; border:1px solid lightgray"></div>
 
-
-<script type="text/javascript">
-    decodedURI = decodeURIComponent(window.location.search)
-    console.log(decodedURI)
-    parsedQuery = querystring.parse(decodedURI)
-
-    $(document).ready(function () {
-        trackLists=[]
-        trackLists.push({
-                name: "Genes",
-                type: "annotation",
-                sourceType: "file",
-                url: "http://localhost:8080/"+parsedQuery.annotationURL,
-                //TODO
-                //indexURL: "https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/refGene.hg19.bed.gz.tbi",
-                indexed: false, //TODO: check this
-                order: Number.MAX_VALUE,
-                visibilityWindow: 300000000,
-                displayMode: "EXPANDED"
-        })
-
-
-
-        var div = $("#igvDiv")[0],
-                options = {
-                    showNavigation: true,
-                    showRuler: true,
-                    reference: {
-                        fastaURL: "http://localhost:8080/"+parsedQuery.fastaURL
-                    },
-                    locus: parsedQuery.locus,
-                    tracks: trackLists
-                };
-
-        igv.createBrowser(div, options);
-
-    });
-
-</script>
 
 </body>
 

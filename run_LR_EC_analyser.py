@@ -11,6 +11,7 @@
 #TODO: pass .gz genome and transcriptome to AlignQC
 #TODO: samtools faidx Mus_musculus.GRCm38.dna.chromosome.19.fa
 #TODO: for IGV, better convert gtf -> bed and index the bed (or ask for a bed, or use the gtf without being indexed)
+#TODO: the main table
 
 import argparse
 import sys
@@ -313,15 +314,10 @@ def main():
     #get some useful vars
     bams = [args.rawBam] + args.bams
     tools = ["raw.bam"] + [os.path.basename(bam) for bam in args.bams]
-    tool2Bam={tool:bam for tool,bam in zip(tools, bams)}
 
 
     #get genes from gtf
     genes = parseGTFToGetGenes(args.gtf)
-
-
-    #create the gene profiler
-    geneProfiler = GeneProfiler(genes, tools, tool2Bam)
 
     #TODO: walk the bam with pysam and get the read lengths to compute mean length of the aligned reads
 
@@ -332,6 +328,7 @@ def main():
 
     #update the bam files
     sortedBams = [bamfile+".sorted.bam" for bamfile in bams]
+    tool2Bam = {tool: bam for tool, bam in zip(tools, sortedBams)}
 
     #run AlignQC on the bams
     if not args.skip_alignqc:
@@ -340,6 +337,10 @@ def main():
 
     #create the output by parsing AlignQC results
     tool2Stats={tool:parseAlignQCOutput(tool) for tool in tools}
+
+    #create the gene profiler
+    geneProfiler = GeneProfiler(genes, tools, tool2Bam)
+
 
     #populate the gene profiler
     for tool in tools:
