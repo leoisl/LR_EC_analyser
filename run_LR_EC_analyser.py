@@ -192,6 +192,67 @@ class GeneProfiler:
         return "[" + ",".join(stringList) + "]"
 
 
+class StatProfiler:
+    def parseAlignQCOutput(self, tool):
+        dataFolder = "alignqc_out_on_%s/data" % tool
+        statsDic = {}
+
+        '''
+        Added the following fields:
+        TOTAL_READS	1282
+        UNALIGNED_READS	200
+        ALIGNED_READS	1082
+        SINGLE_ALIGN_READS	996
+        GAPPED_ALIGN_READS	73
+        CHIMERA_ALIGN_READS	13
+        TRANSCHIMERA_ALIGN_READS	0
+        SELFCHIMERA_ALIGN_READS	13
+        TOTAL_BASES	4561236
+        UNALIGNED_BASES	2257927
+        ALIGNED_BASES	2303309
+        SINGLE_ALIGN_BASES	2222158
+        GAPPED_ALIGN_BASES	58561
+        CHIMERA_ALIGN_BASES	22590
+        TRANSCHIMERA_ALIGN_BASES	0
+        SELFCHIMERA_ALIGN_BASES	22590
+        '''
+        statsDic.update(readFileComposedOfPairStringIntToDict(dataFolder + "/alignment_stats.txt"))
+
+        '''
+        Added the following fields:
+        ALIGNMENT_COUNT	501
+        ALIGNMENT_BASES	1097266
+        ANY_ERROR	118039
+        MISMATCHES	40866
+        ANY_DELETION	28083
+        COMPLETE_DELETION	13374
+        HOMOPOLYMER_DELETION	14709
+        ANY_INSERTION	49090
+        COMPLETE_INSERTION	28668
+        HOMOPOLYMER_INSERTION	20422
+        '''
+        statsDic.update(readFileComposedOfPairStringIntToDict(dataFolder + "/error_stats.txt"))
+
+        statsDic["GENES_DETECTED_ANY_MATCH"] = processRarefractionFile(dataFolder + "/gene_rarefraction.txt",
+                                                                       statsDic["TOTAL_READS"])
+        statsDic["GENES_DETECTED_FULL_MATCH"] = processRarefractionFile(dataFolder + "/gene_full_rarefraction.txt",
+                                                                        statsDic["TOTAL_READS"])
+
+        return statsDic
+
+    def __init__(self, tools):
+        self.tools = tools
+        self.tool2Stats = {tool: self.parseAlignQCOutput(tool) for tool in tools}
+
+    def toJSArrayForHOT(self):
+        jsArray=[]
+        for feature in self.tool2Stats[self.tools[0]]:
+            line=["'%s'"%feature]
+            for tool in self.tools:
+                line.append(str(self.tool2Stats[tool][feature]))
+            jsArray.append("[" + ",".join(line) + "]")
+        return "[" + ",".join(jsArray) + "]"
+
 
 def parseGTFToGetGenes(gtf):
     print "Parsing %s..."%gtf
@@ -250,52 +311,6 @@ def processRarefractionFile(filename, totalReads):
         raise Exception("Rarefraction processing error!")
 
 
-def parseAlignQCOutput(tool):
-    dataFolder = "alignqc_out_on_%s/data"%tool
-    statsDic = {}
-
-    '''
-    Added the following fields:
-    TOTAL_READS	1282
-    UNALIGNED_READS	200
-    ALIGNED_READS	1082
-    SINGLE_ALIGN_READS	996
-    GAPPED_ALIGN_READS	73
-    CHIMERA_ALIGN_READS	13
-    TRANSCHIMERA_ALIGN_READS	0
-    SELFCHIMERA_ALIGN_READS	13
-    TOTAL_BASES	4561236
-    UNALIGNED_BASES	2257927
-    ALIGNED_BASES	2303309
-    SINGLE_ALIGN_BASES	2222158
-    GAPPED_ALIGN_BASES	58561
-    CHIMERA_ALIGN_BASES	22590
-    TRANSCHIMERA_ALIGN_BASES	0
-    SELFCHIMERA_ALIGN_BASES	22590
-    '''
-    statsDic.update(readFileComposedOfPairStringIntToDict(dataFolder+"/alignment_stats.txt"))
-
-    '''
-    Added the following fields:
-    ALIGNMENT_COUNT	501
-    ALIGNMENT_BASES	1097266
-    ANY_ERROR	118039
-    MISMATCHES	40866
-    ANY_DELETION	28083
-    COMPLETE_DELETION	13374
-    HOMOPOLYMER_DELETION	14709
-    ANY_INSERTION	49090
-    COMPLETE_INSERTION	28668
-    HOMOPOLYMER_INSERTION	20422
-    '''
-    statsDic.update(readFileComposedOfPairStringIntToDict(dataFolder + "/error_stats.txt"))
-
-
-    statsDic["GENES_DETECTED_ANY_MATCH"] = processRarefractionFile(dataFolder+"/gene_rarefraction.txt", statsDic["TOTAL_READS"])
-    statsDic["GENES_DETECTED_FULL_MATCH"] = processRarefractionFile(dataFolder + "/gene_full_rarefraction.txt", statsDic["TOTAL_READS"])
-
-    return statsDic
-
 
 def main():
     parser = argparse.ArgumentParser(description='Long read error corrector analyser.')
@@ -336,7 +351,7 @@ def main():
             runAlignQC(tool, bam, args.genome, args.gtf, args.threads)
 
     #create the output by parsing AlignQC results
-    tool2Stats={tool:parseAlignQCOutput(tool) for tool in tools}
+    statProfiler = StatProfiler(tools)
 
     #create the gene profiler
     geneProfiler = GeneProfiler(genes, tools, tool2Bam)
@@ -349,6 +364,7 @@ def main():
     with open("index_template.html") as indexTemplateFile:
         indexTemplateLines = indexTemplateFile.readlines()
         for i, line in enumerate(indexTemplateLines):
+            line = line.replace("<tool2Stats.toJSArrayForHOT()>", statProfiler.toJSArrayForHOT())
             line=line.replace("<geneProfiler.toJSArrayForHOT()>", geneProfiler.toJSArrayForHOT(args.genome, args.gtf))
             line=line.replace("<tools>", str(tools))
             indexTemplateLines[i]=line

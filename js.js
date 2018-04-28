@@ -42,7 +42,6 @@ function fillGeneTable(rawData, tools) {
         tableToolsTypeColumns.push({type: 'numeric'}) //largest discrepancy
         tableToolsTypeColumns.push({renderer: IGVRenderer}) //the IGV renderer
         var tableColumns = table3FirstTypeColumns.concat(tableToolsTypeColumns)
-        console.log(tableColumns)
 
         var tableColHeaders = [
             'Gene',
@@ -75,6 +74,41 @@ function fillGeneTable(rawData, tools) {
     var geneTableContainer = document.getElementById('LR_EC_gene_table');
     geneTable = new Handsontable(geneTableContainer, geneTableSettings);
     geneTable.sort(tableColHeaders.length-1, false); //change this
+}
+
+function fillMainTable(rawData, tools) {
+
+    var tableColumns=[{type: 'text'}]
+    for (var i = 0; i < tools.length; i++)
+      tableColumns.push({type: 'numeric'})
+
+    var tableColHeaders = ['Metric'].concat(tools)
+
+
+    var mainTableSettings = {
+        data: rawData,
+        columns: tableColumns,
+        colHeaders: tableColHeaders,
+        //colWidths: [300, 50],
+        copyColsLimit: 1000000,
+        copyRowsLimitNumber: 1000000,
+        readOnly: true,
+        stretchH: 'all',
+        wordWrap: false,
+        allowInsertColumn: false,
+        allowInsertRow: false,
+        allowRemoveColumn: false,
+        allowRemoveRow: false,
+        autoColumnSize: {useHeaders: true},
+        autoWrapCol: true,
+        autoWrapRow: true,
+        manualColumnResize: true,
+        columnSorting: true,
+        sortIndicator: true
+    };
+    var mainTableContainer = document.getElementById('LR_EC_main_table');
+    mainTable = new Handsontable(mainTableContainer, mainTableSettings);
+    mainTable.sort(0, true); //change this
 }
 
 

@@ -9,16 +9,19 @@
     <script src="js.js"></script>
     <script>
         $(function(){ // on dom ready
-            //fillGeneTable([ ["gene", "chr1", "+", 1, 2, 3, 4, 3], ["gene", "chr1", "+", 1, 2, 3, 4, 3] ], ["t1", "t2", "t3", "t4"]);
+            fillMainTable(<tool2Stats.toJSArrayForHOT()>, <tools>);
             fillGeneTable(<geneProfiler.toJSArrayForHOT()>, <tools>);
         })
     </script>
 </head>
 <body>
 <!-- Div for the main table -->
+<h1>Main stats</h1>
 <div id="LR_EC_main_table"></div>
 
 <!-- Div for the gene table -->
+<br/><br/>
+<h1>Gene stats</h1>
 <div id="LR_EC_gene_table"></div>
 </body>
 </html>
