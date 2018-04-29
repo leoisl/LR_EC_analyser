@@ -20,7 +20,7 @@ samtools
 ### Viewing IGV plots (Gene stats):
     1/ Install https://www.npmjs.com/package/http-server
     2/ Go to the output folder
-    3/ http-server --cors
+    3/ http-server --cors -p 19974
 
 
 # Installing
