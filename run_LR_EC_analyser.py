@@ -1,16 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#TODO:
-#Dependencies:
-#python 2.7
-#virtualenv
-#samtools
-
-
-#TODO: pass .gz genome and transcriptome to AlignQC
-#TODO: for IGV, better convert gtf -> bed and index the bed (or ask for a bed, or use the gtf without being indexed)
-
 import argparse
 import sys
 import subprocess

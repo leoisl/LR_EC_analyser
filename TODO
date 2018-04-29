@@ -1,0 +1,3 @@
+IGV performance:
+    for IGV, better convert gtf -> bed and index the bed (or ask for a bed, or use the gtf without being indexed)
+        or index the gtf directly (did not find how to do this)
