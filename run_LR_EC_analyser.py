@@ -9,9 +9,7 @@
 
 
 #TODO: pass .gz genome and transcriptome to AlignQC
-#TODO: samtools faidx Mus_musculus.GRCm38.dna.chromosome.19.fa
 #TODO: for IGV, better convert gtf -> bed and index the bed (or ask for a bed, or use the gtf without being indexed)
-#TODO: the main table
 
 import argparse
 import sys
@@ -19,6 +17,7 @@ import subprocess
 import os
 import gzip
 import urllib
+import shutil
 
 
 """
@@ -134,7 +133,7 @@ class GeneProfiler:
         self.tools=tools
         self.tool2Bam = tool2Bam
 
-    def populateFromAnnotbest(self, tool):
+    def populateFromAnnotbest(self, tool, outputFolder):
         """
         Reads the annotbest.txt.gz file from AlignQC and populates this profiler
         annotbest.txt is the AlignQC file that contains the best mapping of the ANNOTATED READS (reads that we were able to align and that AlignQC was able to assign to a transcript)
@@ -159,7 +158,7 @@ class GeneProfiler:
         Example:
         5	m150117_043342_42142_c100769800150000001823165407071580_s1_p0/144819/ccs	ENSG00000274276.4	ENST00000624934.3	partial	15	11	16	18	1747	3884	1992	chr21:6446736-6467516	chr21:6445433-6467532	2454
         """
-        dataFolder = "alignqc_out_on_%s/data"%tool
+        dataFolder = outputFolder+"/alignqc_out_on_%s/data"%tool
         with gzip.open(dataFolder+"/annotbest.txt.gz") as file:
             for line in file:
                 lineSplit = line.rstrip().split()
@@ -193,8 +192,8 @@ class GeneProfiler:
 
 
 class StatProfiler:
-    def parseAlignQCOutput(self, tool):
-        dataFolder = "alignqc_out_on_%s/data" % tool
+    def parseAlignQCOutput(self, tool, outputFolder):
+        dataFolder = outputFolder+"/alignqc_out_on_%s/data" % tool
         statsDic = {}
 
         '''
@@ -240,9 +239,9 @@ class StatProfiler:
 
         return statsDic
 
-    def __init__(self, tools):
+    def __init__(self, tools, outputFolder):
         self.tools = tools
-        self.tool2Stats = {tool: self.parseAlignQCOutput(tool) for tool in tools}
+        self.tool2Stats = {tool: self.parseAlignQCOutput(tool, outputFolder) for tool in tools}
 
     def toJSArrayForHOT(self):
         jsArray=[]
@@ -252,6 +251,21 @@ class StatProfiler:
                 line.append(str(self.tool2Stats[tool][feature]))
             jsArray.append("[" + ",".join(line) + "]")
         return "[" + ",".join(jsArray) + "]"
+
+def indexGenome(filepath):
+    print "Indexing %s..."%filepath
+    commandLine = "samtools faidx %s" % filepath
+    print "Running %s"%commandLine
+    subprocess.check_call(commandLine.split())
+    print "Indexing %s - Done!" % filepath
+
+def gzipFile(file):
+    print "Gzipping %s..."%file
+    commandLine = "gzip -k %s" % file
+    print "Running %s"%commandLine
+    subprocess.check_call(commandLine.split())
+    print "Gzipping %s - Done!" % file
+
 
 
 def parseGTFToGetGenes(gtf):
@@ -267,18 +281,20 @@ def parseGTFToGetGenes(gtf):
     print "Parsing %s - Done!" % gtf
     return genes
 
-def processBam(bam, threads):
+def processBam(bam, outputBam, threads):
     print "Sorting and indexing %s..." % bam
-    commandLine = "bash %s/processBam.sh %s %d"%(scriptDir, bam, threads)
+    commandLine = "bash %s/processBam.sh %s %s %d"%(scriptDir, bam, outputBam, threads)
     print "Running %s"%commandLine
     subprocess.check_call(commandLine.split())
     print "Sorting and indexing %s - Done!" % bam
 
 
-def runAlignQC(tool, bam, genome, gtf, threads):
+def runAlignQC(tool, bam, genome, gtf, outputFolder, threads):
     print "Running AlignQC for %s..." % bam
-    commandLine = "alignqc analyze %s -g %s -t %s --output_folder alignqc_out_on_%s --threads %d" % \
-                            (bam, genome, gtf, tool, threads)
+
+
+    commandLine = "alignqc analyze %s -g %s -t %s --output_folder %s/alignqc_out_on_%s --threads %d" % \
+                            (bam, genome, gtf, outputFolder, tool, threads)
     print "Running %s" % commandLine
     subprocess.check_call(commandLine.split())
     print "Running AlignQC for %s - Done!" % bam
@@ -311,7 +327,6 @@ def processRarefractionFile(filename, totalReads):
         raise Exception("Rarefraction processing error!")
 
 
-
 def main():
     parser = argparse.ArgumentParser(description='Long read error corrector analyser.')
     parser.add_argument('bams', metavar='<file.bam>', type=str, nargs='+',
@@ -319,39 +334,58 @@ def main():
     parser.add_argument("--genome", dest="genome", help="The genome in fasta file")
     parser.add_argument("--gtf", dest="gtf", help="The transcriptome as GTF file")
     parser.add_argument("--raw", dest="rawBam", help="The BAM file of the raw reads (i.e. the uncorrected long reads file)")
-    parser.add_argument("-o", dest="output", help="output file name prefix", default="output")
+    parser.add_argument("-o", dest="output", help="output folder", default="output/")
     parser.add_argument("-t", dest="threads", type=int, help="Number of threads to use")
     parser.add_argument("--skip_bam_process", dest="skip_bam", action="store_true", help="Skips bam processing - assume we had already done this.")
     parser.add_argument("--skip_alignqc", dest="skip_alignqc", action="store_true",
                         help="Skips AlignQC calls - assume we had already done this.")
     args=parser.parse_args()
 
+    #create output dir
+    if not os.path.exists(args.output):
+        os.makedirs(args.output)
+
+
     #get some useful vars
     bams = [args.rawBam] + args.bams
     tools = ["raw.bam"] + [os.path.basename(bam) for bam in args.bams]
 
+    #copy genome to output and index it
+    shutil.copy(args.genome, args.output)
+    genome=args.output+"/"+os.path.basename(args.genome)
+    indexGenome(genome)
 
     #get genes from gtf
     genes = parseGTFToGetGenes(args.gtf)
 
+    #copy gtf to output
+    shutil.copy(args.gtf, args.output)
+    gtf = args.output+"/"+os.path.basename(args.gtf)
+
     #TODO: walk the bam with pysam and get the read lengths to compute mean length of the aligned reads
 
     #sort and index bam
-    if not args.skip_bam:
-        for bam in bams:
-            processBam(bam, args.threads)
+    sortedBams = []
+    for bam in bams:
+        sortedBam = args.output+"/"+os.path.basename((bam)+".sorted.bam")
+        sortedBams.append(sortedBam)
+        if not args.skip_bam:
+            processBam(bam, sortedBam, args.threads)
 
-    #update the bam files
-    sortedBams = [bamfile+".sorted.bam" for bamfile in bams]
-    tool2Bam = {tool: bam for tool, bam in zip(tools, sortedBams)}
+
+
+    tool2Bam = {tool: os.path.basename(bam) for tool, bam in zip(tools, sortedBams)}
 
     #run AlignQC on the bams
+    #AlignQC require the genome and gtf gzipped
+    gzipFile(genome)
+    gzipFile(gtf)
     if not args.skip_alignqc:
         for tool, bam in zip(tools, sortedBams):
-            runAlignQC(tool, bam, args.genome, args.gtf, args.threads)
+            runAlignQC(tool, bam, genome+".gz", gtf+".gz", args.output, args.threads)
 
     #create the output by parsing AlignQC results
-    statProfiler = StatProfiler(tools)
+    statProfiler = StatProfiler(tools, args.output)
 
     #create the gene profiler
     geneProfiler = GeneProfiler(genes, tools, tool2Bam)
@@ -359,20 +393,22 @@ def main():
 
     #populate the gene profiler
     for tool in tools:
-        geneProfiler.populateFromAnnotbest(tool)
+        geneProfiler.populateFromAnnotbest(tool, args.output)
 
-    with open("index_template.html") as indexTemplateFile:
+    with open("lib/html/index_template.html") as indexTemplateFile:
         indexTemplateLines = indexTemplateFile.readlines()
         for i, line in enumerate(indexTemplateLines):
             line = line.replace("<tool2Stats.toJSArrayForHOT()>", statProfiler.toJSArrayForHOT())
-            line=line.replace("<geneProfiler.toJSArrayForHOT()>", geneProfiler.toJSArrayForHOT(args.genome, args.gtf))
+            line=line.replace("<geneProfiler.toJSArrayForHOT()>", geneProfiler.toJSArrayForHOT(os.path.basename(genome), os.path.basename(gtf)))
             line=line.replace("<tools>", str(tools))
             indexTemplateLines[i]=line
 
-    with open("index_test.html", "w") as indexOutFile:
+    with open(args.output+"/report.html", "w") as indexOutFile:
         for line in indexTemplateLines:
             indexOutFile.write(line)
 
+    #copy lib to the output
+    shutil.copytree("lib", args.output+"/lib")
 
 
 
