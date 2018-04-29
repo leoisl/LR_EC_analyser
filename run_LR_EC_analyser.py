@@ -261,6 +261,8 @@ def indexGenome(filepath):
 
 def gzipFile(file):
     print "Gzipping %s..."%file
+    if os.path.exists(file+".gz"):
+        os.remove(file+".gz")
     commandLine = "gzip -k %s" % file
     print "Running %s"%commandLine
     subprocess.check_call(commandLine.split())
@@ -365,6 +367,9 @@ def main():
     #TODO: walk the bam with pysam and get the read lengths to compute mean length of the aligned reads
 
     #sort and index bam
+    if args.skip_bam:
+        print "Skipping bam processing..."
+
     sortedBams = []
     for bam in bams:
         sortedBam = args.output+"/"+os.path.basename((bam)+".sorted.bam")
@@ -383,12 +388,18 @@ def main():
     if not args.skip_alignqc:
         for tool, bam in zip(tools, sortedBams):
             runAlignQC(tool, bam, genome+".gz", gtf+".gz", args.output, args.threads)
+    else:
+        print "Skipping AlignQC runs../"
 
     #create the output by parsing AlignQC results
+    print "Running Stat profiler..."
     statProfiler = StatProfiler(tools, args.output)
+    print "Running Stat profiler - Done!"
 
     #create the gene profiler
+    print "Running Gene profiler..."
     geneProfiler = GeneProfiler(genes, tools, tool2Bam)
+    print "Running Gene profiler - Done!"
 
 
     #populate the gene profiler
@@ -408,6 +419,8 @@ def main():
             indexOutFile.write(line)
 
     #copy lib to the output
+    if os.path.exists(args.output+"/lib"):
+        shutil.rmtree(args.output+"/lib")
     shutil.copytree("lib", args.output+"/lib")
 
 
