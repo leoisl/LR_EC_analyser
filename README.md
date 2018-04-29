@@ -31,7 +31,6 @@ git clone --recursive https://gitlab.com/leoisl/LR_EC_analyser
 # Running on a sample example
 
 ```
-source venv/bin/activate
 python run_LR_EC_analyser.py --genome sample_data/Mus_musculus.GRCm38.dna.chromosome.19.fa --gtf sample_data/Mus_musculus.GRCm38.91.chr19.gtf -t 4 -o sample_data/output --raw sample_data/gmap_CB_1Donly_to_GRCm38_chr19.bam sample_data/good.gmap.chr19.bam sample_data/indels.gmap.chr19.bam sample_data/subs.gmap.chr19.bam
 ```
 
