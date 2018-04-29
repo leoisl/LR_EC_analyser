@@ -7,11 +7,11 @@ makes use of IGV.js (https://github.com/igvteam/igv.js) for an in-depth gene and
 
 # Requirements
 
-## For running the script
+## For running the script, please have installed
 ```
+AlignQC (https://github.com/jason-weirather/AlignQC)
+samtools (v1.8+ http://www.htslib.org/download/)
 python 2.7
-virtualenv
-samtools
 ```
 
 ## For viewing the results
@@ -65,3 +65,4 @@ optional arguments:
 3. handsontable (https://handsontable.com/)
 4. jQuery (http://jquery.com/)
 5. querystring (https://github.com/jgallen23/querystring)
+6. samtools (http://www.htslib.org)
