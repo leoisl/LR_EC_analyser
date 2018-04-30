@@ -3,7 +3,6 @@
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np
 import mpld3
 from decimal import Decimal
@@ -161,9 +160,9 @@ class Plotter:
             # populate tool2RelativeTranscriptOfLostTranscriptCategories
             for gene in geneID2gene.values():
                 if gene.profile.isExpressedInAnyTool():
-                    for transcript in gene.transcriptId2Transcript.values():
-                        if transcript.profile.isExpressedInAnyTool():
-                            for tool in self.toolsNoRaw:
+                    for tool in self.toolsNoRaw:
+                        if gene.profile.isExpressedInTool("raw.bam") and gene.profile.isExpressedInTool(tool): #the gene must be expressed in the raw and in the tool - otherwise we are not looking at the lost transcript, but rather at lost genes
+                            for transcript in gene.transcriptId2Transcript.values():
                                 if transcript.profile.isExpressedInTool("raw.bam") and not transcript.profile.isExpressedInTool(tool):
                                     #if the transcript is in raw, but it is not in the tool, then this transcript "disappeared"
                                     #add the relative transcript coverage in raw dataset

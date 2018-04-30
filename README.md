@@ -70,4 +70,5 @@ optional arguments:
 4. jQuery (http://jquery.com/)
 5. querystring (https://github.com/jgallen23/querystring)
 6. samtools (http://www.htslib.org)
-7. mpld3 (http://mpld3.github.io/)
+7. matplotlib (https://matplotlib.org/)
+8. mpld3 (http://mpld3.github.io/)
