@@ -145,21 +145,23 @@ def main():
     #create the gene profiler
     print "Running Gene profiler..."
     geneProfiler = FeatureProfiler(geneID2gene, tools, tool2Bam)
-    print "Running Gene profiler - Done!"
-
-
     #populate the gene profiler
     for tool in tools:
         geneProfiler.populateFromAnnotbest(tool, args.output)
+    print "Running Gene profiler - Done!"
 
 
     #create the Plotter and the plots
+    print "Computing the plots..."
     plotter = Plotter(tools)
     htmlDifferenceOnTheNumberOfIsoformsPlot = plotter.makeDifferenceOnTheNumberOfIsoformsPlot(geneID2gene, -3, 3)
     htmlLostTranscriptInGenesWSP2Plot = plotter.makeLostTranscriptInGenesWSP2Plot(geneID2gene)
+    print "Computing the plots - Done!"
 
 
-    #create the html report
+
+    print "Creating HTML report..."
+    # create the html report
     with open("lib/html/index_template.html") as indexTemplateFile:
         indexTemplateLines = indexTemplateFile.readlines()
         for i, line in enumerate(indexTemplateLines):
@@ -180,9 +182,11 @@ def main():
     if os.path.exists(args.output+"/lib"):
         shutil.rmtree(args.output+"/lib")
     shutil.copytree("lib", args.output+"/lib")
+    print "Creating HTML report... - Done!"
 
 
 
+    print "We are finished!"
 
 
 if __name__=="__main__":

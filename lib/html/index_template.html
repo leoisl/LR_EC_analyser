@@ -22,11 +22,13 @@
 <h2>Corretion towards major isoform plots</h2>
 
 <h3>Difference on the number of isoforms of a gene before and after correction</h3>
-<h4>The genes taken into account here must be expressed in either the raw or the tool taken into consideration</h4>
+<p>The genes taken into account here must be expressed in either the raw or the tool taken into consideration.</p>
+<p>Negative values: isoforms were lost. Positive values: isoforms were gained.</p>
 <htmlDifferenceOnTheNumberOfIsoformsPlot>
 
 <h3>Lost transcripts in genes with Splicing Complexity 2+</h3>
-<h4>The genes taken into account here must be expressed in BOTH the raw or the tool taken into consideration (otherwise we could account for lost genes, not only lost transcripts)</h4>
+<p>The genes taken into account here must be expressed in BOTH the raw AND the tool taken into consideration.</p>
+<p>Otherwise we could account for while lost genes, and these would inflate the high relative transcript coverage bins (which is not true, since here we are investigating isoforms that were lost, not genes)</p>
 <htmlLostTranscriptInGenesWSP2Plot>
 
 <!-- Div for the gene table -->

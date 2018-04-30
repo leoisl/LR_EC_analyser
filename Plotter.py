@@ -127,9 +127,9 @@ class Plotter:
             nbOfIsoformsExpressedInTool = gene.getNbOfIsoformsExpressedInTool(tool)
             if nbOfIsoformsExpressedInRaw > 0 or nbOfIsoformsExpressedInTool > 0:
                 # if there is any expression in raw or tool, we add it!
-                tool2DifferencesCategories[tool].addDataPoint(nbOfIsoformsExpressedInRaw - nbOfIsoformsExpressedInTool)
+                tool2DifferencesCategories[tool].addDataPoint(nbOfIsoformsExpressedInTool - nbOfIsoformsExpressedInRaw)
 
-        #builds tool2DifferencesCategories - for each tool, we have an array with (raw.expression - tool.expression) for each gene and transcript
+        #builds tool2DifferencesCategories - for each tool, we have an array with (tool.expression - raw.expression) for each gene and transcript
         def get_tool2DifferenceCategories():
             tool2DifferenceCategories={tool:Category(lowestCategory, highestCategory+1, step) for tool in self.toolsNoRaw}
 
