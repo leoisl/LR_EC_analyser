@@ -6,6 +6,7 @@ import shutil
 from Profiler import *
 from ExternalTools import *
 from Parsers import *
+from Plotter import *
 import sys
 
 
@@ -75,6 +76,8 @@ def main():
     parser.add_argument("--skip_bam_process", dest="skip_bam", action="store_true", help="Skips bam processing - assume we had already done this.")
     parser.add_argument("--skip_alignqc", dest="skip_alignqc", action="store_true",
                         help="Skips AlignQC calls - assume we had already done this.")
+    parser.add_argument("--skip_copying", dest="skip_copying", action="store_true",
+                        help="Skips copying genome and transcriptome to the output folder.")
     args=parser.parse_args()
 
     #create output dir
@@ -87,16 +90,23 @@ def main():
     tools = ["raw.bam"] + [os.path.basename(bam) for bam in args.bams]
 
     #copy genome to output and index it
-    shutil.copy(args.genome, args.output)
-    genome=args.output+"/"+os.path.basename(args.genome)
-    indexGenome(genome)
+    genome = args.output + "/" + os.path.basename(args.genome)
+    if not args.skip_copying:
+        shutil.copy(args.genome, args.output)
+        indexGenome(genome)
+    else:
+        print "Skipping genome copying and indexing..."
 
     #get genes from gtf
     geneID2gene = parseGTFToGetGenes(args.gtf, tools)
 
-    #copy gtf to output
-    shutil.copy(args.gtf, args.output)
-    gtf = args.output+"/"+os.path.basename(args.gtf)
+    # copy gtf to output
+    gtf = args.output + "/" + os.path.basename(args.gtf)
+    if not args.skip_copying:
+        shutil.copy(args.gtf, args.output)
+    else:
+        print "Skipping transcriptome copying..."
+
 
     #TODO: walk the bam with pysam and get the read lengths to compute mean length of the aligned reads
 
@@ -116,10 +126,12 @@ def main():
     tool2Bam = {tool: os.path.basename(bam) for tool, bam in zip(tools, sortedBams)}
 
     #run AlignQC on the bams
-    #AlignQC require the genome and gtf gzipped
-    gzipFile(genome)
-    gzipFile(gtf)
     if not args.skip_alignqc:
+        # AlignQC require the genome and gtf gzipped
+        gzipFile(genome)
+        gzipFile(gtf)
+
+        #run alignQC in each tool
         for tool, bam in zip(tools, sortedBams):
             runAlignQC(tool, bam, genome+".gz", gtf+".gz", args.output, args.threads)
     else:
@@ -140,14 +152,26 @@ def main():
     for tool in tools:
         geneProfiler.populateFromAnnotbest(tool, args.output)
 
+
+    #create the Plotter and the plots
+    plotter = Plotter(tools)
+    htmlDifferenceOnTheNumberOfIsoformsPlot = plotter.makeDifferenceOnTheNumberOfIsoformsPlot(geneID2gene, -1, 1)
+    htmlLostTranscriptInGenesWSP2Plot = plotter.makeLostTranscriptInGenesWSP2Plot(geneID2gene)
+
+
+    #create the html report
     with open("lib/html/index_template.html") as indexTemplateFile:
         indexTemplateLines = indexTemplateFile.readlines()
         for i, line in enumerate(indexTemplateLines):
             line = line.replace("<tool2Stats.toJSArrayForHOT()>", statProfiler.toJSArrayForHOT())
             line=line.replace("<geneProfiler.toJSArrayForHOT()>", geneProfiler.toJSArrayForHOT(os.path.basename(genome), os.path.basename(gtf)))
             line=line.replace("<tools>", str(tools))
+            line=line.replace("<htmlDifferenceOnTheNumberOfIsoformsPlot>", htmlDifferenceOnTheNumberOfIsoformsPlot)
+            line = line.replace("<htmlLostTranscriptInGenesWSP2Plot>", htmlLostTranscriptInGenesWSP2Plot)
             indexTemplateLines[i]=line
 
+
+    #save the html report
     with open(args.output+"/report.html", "w") as indexOutFile:
         for line in indexTemplateLines:
             indexOutFile.write(line)
