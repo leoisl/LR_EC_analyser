@@ -42,3 +42,6 @@ def getBamInCoordinates(inputBam, coordinate, outputBam):
     commandLine = 'samtools view -b %s %s -o %s'%(inputBam, coordinate, outputBam)
     print "Running %s" % commandLine
     subprocess.check_call(commandLine.split())
+    commandLine = 'samtools index %s' % outputBam
+    print "Running %s" % commandLine
+    subprocess.check_call(commandLine.split())

@@ -162,20 +162,29 @@ def main():
 
 
 
-    print "Creating HTML report..."
     # create the html report
+    print "Creating HTML report..."
     with open("lib/html/index_template.html") as indexTemplateFile:
         indexTemplateLines = indexTemplateFile.readlines()
+
         for i, line in enumerate(indexTemplateLines):
-            line = line.replace("<statProfiler.getReadStatsAsJSArrayForHOT()>", statProfiler.getReadStatsAsJSArrayForHOT())
-            line = line.replace("<statProfiler.getBaseStatsAsJSArrayForHOT()>", statProfiler.getBaseStatsAsJSArrayForHOT())
-            line = line.replace("<statProfiler.getErrorStatsAsJSArrayForHOT()>", statProfiler.getErrorStatsAsJSArrayForHOT())
-            line=line.replace("<geneProfiler.geneProfileToJSArrayForHOT()>", geneProfiler.geneProfileToJSArrayForHOT(os.path.basename(genome), os.path.basename(gtf), args.output))
-            line = line.replace("<geneProfiler.transcriptProfileToJSArrayForHOT()>", geneProfiler.transcriptProfileToJSArrayForHOT(os.path.basename(genome), os.path.basename(gtf), args.output))
-            line=line.replace("<tools>", str(tools))
-            line=line.replace("<htmlDifferenceOnTheNumberOfIsoformsPlot>", htmlDifferenceOnTheNumberOfIsoformsPlot)
-            line = line.replace("<htmlLostTranscriptInGenesWSP2Plot>", htmlLostTranscriptInGenesWSP2Plot)
-            indexTemplateLines[i]=line
+            if "<statProfiler.getReadStatsAsJSArrayForHOT()>" in line:
+                line = line.replace("<statProfiler.getReadStatsAsJSArrayForHOT()>", statProfiler.getReadStatsAsJSArrayForHOT())
+            if "<statProfiler.getBaseStatsAsJSArrayForHOT()>" in line:
+                line = line.replace("<statProfiler.getBaseStatsAsJSArrayForHOT()>", statProfiler.getBaseStatsAsJSArrayForHOT())
+            if "<statProfiler.getErrorStatsAsJSArrayForHOT()>" in line:
+                line = line.replace("<statProfiler.getErrorStatsAsJSArrayForHOT()>", statProfiler.getErrorStatsAsJSArrayForHOT())
+            if "<geneProfiler.geneProfileToJSArrayForHOT()>" in line:
+                line = line.replace("<geneProfiler.geneProfileToJSArrayForHOT()>", geneProfiler.geneProfileToJSArrayForHOT(os.path.basename(genome), os.path.basename(gtf), args.output))
+            if "<geneProfiler.transcriptProfileToJSArrayForHOT()>" in line:
+                line = line.replace("<geneProfiler.transcriptProfileToJSArrayForHOT()>", geneProfiler.transcriptProfileToJSArrayForHOT(os.path.basename(genome), os.path.basename(gtf), args.output))
+            if "<tools>" in line:
+                line = line.replace("<tools>", str(tools))
+            if "<htmlDifferenceOnTheNumberOfIsoformsPlot>" in line:
+                line = line.replace("<htmlDifferenceOnTheNumberOfIsoformsPlot>", htmlDifferenceOnTheNumberOfIsoformsPlot)
+            if "<htmlLostTranscriptInGenesWSP2Plot>" in line:
+                line = line.replace("<htmlLostTranscriptInGenesWSP2Plot>", htmlLostTranscriptInGenesWSP2Plot)
+            indexTemplateLines[i] = line
 
 
     #save the html report

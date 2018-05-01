@@ -58,7 +58,9 @@ class FeatureProfiler:
         for i, tool in enumerate(self.tools):
             igvInfo["tool_%d"%i]=tool
             #igvInfo["bam_%d"%i]=self.tool2Bam[tool]
-            getBamInCoordinates(self.tool2Bam[tool], igvInfo["locus"], outputFolder+"/bams/%s_%s.bam"%(tool, feature.id))
+            outputFile = outputFolder+"/bams/%s_%s.bam"%(tool, feature.id)
+            getBamInCoordinates(self.tool2Bam[tool], igvInfo["locus"], outputFile)
+
             igvInfo["bam_%d" % i] = "bams/%s_%s.bam"%(tool, feature.id)
 
         listOfKeyValues=["%s=%s"%(key,value) for key,value in igvInfo.items()]
