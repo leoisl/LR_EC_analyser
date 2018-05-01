@@ -15,9 +15,9 @@ def parseGTFToGetGenes(gtf, tools):
                 begin = int(lineSplit[3])
                 end = int(lineSplit[4])
                 strand = lineSplit[6]
+                geneId = lineSplit[lineSplit.index("gene_id") + 1][1:-2]
 
                 if feature=="gene":
-                    geneId = lineSplit[lineSplit.index("gene_id") + 1][1:-2]
                     geneID2gene[geneId] = Gene(geneId, chromosome, begin, end, strand, tools)
                 elif feature=="transcript":
                     transcriptId = lineSplit[lineSplit.index("transcript_id") + 1][1:-2]

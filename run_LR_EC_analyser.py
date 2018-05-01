@@ -83,6 +83,8 @@ def main():
     #create output dir
     if not os.path.exists(args.output):
         os.makedirs(args.output)
+    if not os.path.exists(args.output+"/bams"):
+        os.makedirs(args.output+"/bams")
 
 
     #get some useful vars
@@ -123,7 +125,7 @@ def main():
 
 
 
-    tool2Bam = {tool: os.path.basename(bam) for tool, bam in zip(tools, sortedBams)}
+    tool2Bam = {tool: bam for tool, bam in zip(tools, sortedBams)}
 
     #run AlignQC on the bams
     if not args.skip_alignqc:
@@ -168,8 +170,8 @@ def main():
             line = line.replace("<statProfiler.getReadStatsAsJSArrayForHOT()>", statProfiler.getReadStatsAsJSArrayForHOT())
             line = line.replace("<statProfiler.getBaseStatsAsJSArrayForHOT()>", statProfiler.getBaseStatsAsJSArrayForHOT())
             line = line.replace("<statProfiler.getErrorStatsAsJSArrayForHOT()>", statProfiler.getErrorStatsAsJSArrayForHOT())
-            line=line.replace("<geneProfiler.geneProfileToJSArrayForHOT()>", geneProfiler.geneProfileToJSArrayForHOT(os.path.basename(genome), os.path.basename(gtf)))
-            line = line.replace("<geneProfiler.transcriptProfileToJSArrayForHOT()>", geneProfiler.transcriptProfileToJSArrayForHOT(os.path.basename(genome), os.path.basename(gtf)))
+            line=line.replace("<geneProfiler.geneProfileToJSArrayForHOT()>", geneProfiler.geneProfileToJSArrayForHOT(os.path.basename(genome), os.path.basename(gtf), args.output))
+            line = line.replace("<geneProfiler.transcriptProfileToJSArrayForHOT()>", geneProfiler.transcriptProfileToJSArrayForHOT(os.path.basename(genome), os.path.basename(gtf), args.output))
             line=line.replace("<tools>", str(tools))
             line=line.replace("<htmlDifferenceOnTheNumberOfIsoformsPlot>", htmlDifferenceOnTheNumberOfIsoformsPlot)
             line = line.replace("<htmlLostTranscriptInGenesWSP2Plot>", htmlLostTranscriptInGenesWSP2Plot)

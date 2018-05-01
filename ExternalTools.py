@@ -32,10 +32,13 @@ def processBam(bam, outputBam, threads):
 
 def runAlignQC(tool, bam, genome, gtf, outputFolder, threads):
     print "Running AlignQC for %s..." % bam
-
-
     commandLine = "alignqc analyze %s -g %s -t %s --output_folder %s/alignqc_out_on_%s --threads %d" % \
                             (bam, genome, gtf, outputFolder, tool, threads)
     print "Running %s" % commandLine
     subprocess.check_call(commandLine.split())
     print "Running AlignQC for %s - Done!" % bam
+
+def getBamInCoordinates(inputBam, coordinate, outputBam):
+    commandLine = 'samtools view -b %s %s -o %s'%(inputBam, coordinate, outputBam)
+    print "Running %s" % commandLine
+    subprocess.check_call(commandLine.split())

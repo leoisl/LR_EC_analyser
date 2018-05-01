@@ -3,7 +3,7 @@
 
 import gzip
 import urllib
-
+from ExternalTools import *
 
 class FeatureProfiler:
     """
@@ -50,19 +50,21 @@ class FeatureProfiler:
                 self.geneId2Gene[geneId].transcriptId2Transcript[transcriptId].profile.tool2NbOfMappedReads[tool] += 1
 
 
-    def buildIGVInfo(self, gene, genome, gtf):
+    def buildIGVInfo(self, feature, genome, gtf, outputFolder):
         igvInfo = {}
         igvInfo["fastaURL"] = genome
-        igvInfo["locus"] = gene.getLocusInIGVJSFormat()[1:-1]
+        igvInfo["locus"] = feature.getLocusInIGVJSFormat()[1:-1]
         igvInfo["annotationURL"] = gtf
         for i, tool in enumerate(self.tools):
             igvInfo["tool_%d"%i]=tool
-            igvInfo["bam_%d"%i]=self.tool2Bam[tool]
+            #igvInfo["bam_%d"%i]=self.tool2Bam[tool]
+            getBamInCoordinates(self.tool2Bam[tool], igvInfo["locus"], outputFolder+"/bams/%s_%s.bam"%(tool, feature.id))
+            igvInfo["bam_%d" % i] = "bams/%s_%s.bam"%(tool, feature.id)
 
         listOfKeyValues=["%s=%s"%(key,value) for key,value in igvInfo.items()]
         return ["'" + urllib.quote("&".join(listOfKeyValues), safe='') + "'"]
 
-    def geneProfileToJSArrayForHOT(self, genome, gtf):
+    def geneProfileToJSArrayForHOT(self, genome, gtf, outputFolder):
         """
         Transforms this object in a format to JSArray to be put in a Hands-on table
         :return: a string like:
@@ -72,10 +74,10 @@ class FeatureProfiler:
         for gene in self.geneId2Gene.values():
             if gene.profile.isExpressedInAnyTool():
                 stringList.append("[" + ",".join(gene.getASArrayForHOT() +
-                                                 self.buildIGVInfo(gene, genome, gtf)) + "]")
+                                                 self.buildIGVInfo(gene, genome, gtf, outputFolder)) + "]")
         return "[" + ",".join(stringList) + "]"
 
-    def transcriptProfileToJSArrayForHOT(self, genome, gtf):
+    def transcriptProfileToJSArrayForHOT(self, genome, gtf, outputFolder):
         """
         Transforms this object in a format to JSArray to be put in a Hands-on table
         :return: a string like:
@@ -86,7 +88,7 @@ class FeatureProfiler:
             if gene.profile.isExpressedInAnyTool():
                 for transcript in gene.transcriptId2Transcript.values():
                     if transcript.profile.isExpressedInAnyTool():
-                        stringList.append("[" + ",".join(transcript.getASArrayForHOT() + self.buildIGVInfo(transcript, genome, gtf)) + "]")
+                        stringList.append("[" + ",".join(transcript.getASArrayForHOT() + self.buildIGVInfo(transcript, genome, gtf, outputFolder)) + "]")
         return "[" + ",".join(stringList) + "]"
 
 
