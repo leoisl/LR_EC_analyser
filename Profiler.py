@@ -4,6 +4,7 @@
 import gzip
 import urllib
 
+
 class FeatureProfiler:
     """
     Represents all features and their profiles
@@ -61,21 +62,40 @@ class FeatureProfiler:
         listOfKeyValues=["%s=%s"%(key,value) for key,value in igvInfo.items()]
         return ["'" + urllib.quote("&".join(listOfKeyValues), safe='') + "'"]
 
-    def toJSArrayForHOT(self, genome, gtf):
+    def geneProfileToJSArrayForHOT(self, genome, gtf):
         """
         Transforms this object in a format to JSArray to be put in a Hands-on table
         :return: a string like:
         [ [list with first gene infos], [list with second gene infos] ... ]
         """
         stringList=[]
-        for gene in self.geneId2Gene:
-            if self.geneId2Gene[gene].profile.isExpressedInAnyTool():
-                stringList.append("[" + ",".join(self.geneId2Gene[gene].getASArrayForHOT() +
-                                                 self.buildIGVInfo(self.geneId2Gene[gene], genome, gtf)) + "]")
+        for gene in self.geneId2Gene.values():
+            if gene.profile.isExpressedInAnyTool():
+                stringList.append("[" + ",".join(gene.getASArrayForHOT() +
+                                                 self.buildIGVInfo(gene, genome, gtf)) + "]")
+        return "[" + ",".join(stringList) + "]"
+
+    def transcriptProfileToJSArrayForHOT(self, genome, gtf):
+        """
+        Transforms this object in a format to JSArray to be put in a Hands-on table
+        :return: a string like:
+        [ [list with first gene infos], [list with second gene infos] ... ]
+        """
+        stringList=[]
+        for gene in self.geneId2Gene.values():
+            if gene.profile.isExpressedInAnyTool():
+                for transcript in gene.transcriptId2Transcript.values():
+                    if transcript.profile.isExpressedInAnyTool():
+                        stringList.append("[" + ",".join(transcript.getASArrayForHOT() + self.buildIGVInfo(transcript, genome, gtf)) + "]")
         return "[" + ",".join(stringList) + "]"
 
 
+
 class StatProfiler:
+    def __init__(self, tools, outputFolder):
+        self.tools = tools
+        self.tool2Stats = {tool: self.parseAlignQCOutput(tool, outputFolder) for tool in tools}
+
     @staticmethod
     def readFileComposedOfPairStringIntToDict(filename):
         stats = {}
@@ -152,15 +172,26 @@ class StatProfiler:
 
         return statsDic
 
-    def __init__(self, tools, outputFolder):
-        self.tools = tools
-        self.tool2Stats = {tool: self.parseAlignQCOutput(tool, outputFolder) for tool in tools}
 
-    def toJSArrayForHOT(self):
+    def __toJSArrayForHOT(self, features):
         jsArray=[]
-        for feature in self.tool2Stats[self.tools[0]]:
+        for feature in features:
             line=["'%s'"%feature]
             for tool in self.tools:
                 line.append(str(self.tool2Stats[tool][feature]))
             jsArray.append("[" + ",".join(line) + "]")
         return "[" + ",".join(jsArray) + "]"
+
+    def getReadStatsAsJSArrayForHOT(self):
+        readStatsFeatures = ["TOTAL_READS", "UNALIGNED_READS", "ALIGNED_READS", "SINGLE_ALIGN_READS", "GAPPED_ALIGN_READS", "CHIMERA_ALIGN_READS", "TRANSCHIMERA_ALIGN_READS", "SELFCHIMERA_ALIGN_READS"]
+        return self.__toJSArrayForHOT(readStatsFeatures)
+
+    def getBaseStatsAsJSArrayForHOT(self):
+        baseStatsFeatures = ["TOTAL_BASES", "UNALIGNED_BASES", "ALIGNED_BASES", "SINGLE_ALIGN_BASES", "GAPPED_ALIGN_BASES", "CHIMERA_ALIGN_BASES", "TRANSCHIMERA_ALIGN_BASES", "SELFCHIMERA_ALIGN_BASES"]
+        return self.__toJSArrayForHOT(baseStatsFeatures)
+
+    def getErrorStatsAsJSArrayForHOT(self):
+        errorStatsFeatures = ["ANY_ERROR", "MISMATCHES", "ANY_DELETION", "ANY_INSERTION", "COMPLETE_DELETION", "HOMOPOLYMER_DELETION", "COMPLETE_INSERTION", "HOMOPOLYMER_INSERTION"]
+        return self.__toJSArrayForHOT(errorStatsFeatures)
+
+

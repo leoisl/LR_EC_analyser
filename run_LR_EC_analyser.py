@@ -165,8 +165,11 @@ def main():
     with open("lib/html/index_template.html") as indexTemplateFile:
         indexTemplateLines = indexTemplateFile.readlines()
         for i, line in enumerate(indexTemplateLines):
-            line = line.replace("<tool2Stats.toJSArrayForHOT()>", statProfiler.toJSArrayForHOT())
-            line=line.replace("<geneProfiler.toJSArrayForHOT()>", geneProfiler.toJSArrayForHOT(os.path.basename(genome), os.path.basename(gtf)))
+            line = line.replace("<statProfiler.getReadStatsAsJSArrayForHOT()>", statProfiler.getReadStatsAsJSArrayForHOT())
+            line = line.replace("<statProfiler.getBaseStatsAsJSArrayForHOT()>", statProfiler.getBaseStatsAsJSArrayForHOT())
+            line = line.replace("<statProfiler.getErrorStatsAsJSArrayForHOT()>", statProfiler.getErrorStatsAsJSArrayForHOT())
+            line=line.replace("<geneProfiler.geneProfileToJSArrayForHOT()>", geneProfiler.geneProfileToJSArrayForHOT(os.path.basename(genome), os.path.basename(gtf)))
+            line = line.replace("<geneProfiler.transcriptProfileToJSArrayForHOT()>", geneProfiler.transcriptProfileToJSArrayForHOT(os.path.basename(genome), os.path.basename(gtf)))
             line=line.replace("<tools>", str(tools))
             line=line.replace("<htmlDifferenceOnTheNumberOfIsoformsPlot>", htmlDifferenceOnTheNumberOfIsoformsPlot)
             line = line.replace("<htmlLostTranscriptInGenesWSP2Plot>", htmlLostTranscriptInGenesWSP2Plot)

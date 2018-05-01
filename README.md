@@ -72,3 +72,4 @@ optional arguments:
 6. samtools (http://www.htslib.org)
 7. matplotlib (https://matplotlib.org/)
 8. mpld3 (http://mpld3.github.io/)
+9. colour (https://pypi.org/project/colour/)

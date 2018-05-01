@@ -4,36 +4,52 @@
     <meta charset="UTF-8">
     <title>Long Read Error Corrector Analyser</title>
     <link href="lib/css/handsontable.full.min.css" rel="stylesheet" type="text/css" />
+    <link href="lib/css/style.css" rel="stylesheet" type="text/css" />
     <script src="lib/js/jquery.min.js"></script>
     <script src="lib/js/handsontable.full.min.js"></script>
     <script src="lib/js/js.js"></script>
     <script>
         $(function(){ // on dom ready
-            fillMainTable(<tool2Stats.toJSArrayForHOT()>, <tools>);
-            fillGeneTable(<geneProfiler.toJSArrayForHOT()>, <tools>);
+            fillMainSubtable('LR_EC_read_stats_table', <statProfiler.getReadStatsAsJSArrayForHOT()>, <tools>);
+            fillMainSubtable('LR_EC_base_stats_table', <statProfiler.getBaseStatsAsJSArrayForHOT()>, <tools>);
+            fillMainSubtable('LR_EC_error_stats_table', <statProfiler.getErrorStatsAsJSArrayForHOT()>, <tools>);
+            fillFeatureTable('Gene', 'LR_EC_gene_table', <geneProfiler.geneProfileToJSArrayForHOT()>, <tools>);
+            fillFeatureTable('Transcript', 'LR_EC_transcript_table', <geneProfiler.transcriptProfileToJSArrayForHOT()>, <tools>);
         })
     </script>
 </head>
 <body>
 <!-- Div for the main table -->
 <h1>Main stats</h1>
-<div id="LR_EC_main_table"></div>
+<h2>Read stats (compilation from AlignQC reports)</h2>
+<div id="LR_EC_read_stats_table"></div>
 
-<h2>Corretion towards major isoform plots</h2>
+<h2>Base stats (compilation from AlignQC reports)</h2>
+<div id="LR_EC_base_stats_table"></div>
 
-<h3>Difference on the number of isoforms of a gene before and after correction</h3>
+
+<h2>Error stats (compilation from AlignQC reports)</h2>
+<div id="LR_EC_error_stats_table"></div>
+
+<br/><br/>
+<h1>Corretion towards major isoform plots</h1>
+
+<h2>Difference on the number of isoforms of a gene before and after correction</h2>
 <p>The genes taken into account here must be expressed in either the raw or the tool taken into consideration.</p>
 <p>Negative values: isoforms were lost. Positive values: isoforms were gained.</p>
 <htmlDifferenceOnTheNumberOfIsoformsPlot>
 
-<h3>Lost transcripts in genes with Splicing Complexity 2+</h3>
+<h2>Lost transcripts in genes with Splicing Complexity 2+</h2>
 <p>The genes taken into account here must be expressed in BOTH the raw AND the tool taken into consideration.</p>
 <p>Otherwise we could account for while lost genes, and these would inflate the high relative transcript coverage bins (which is not true, since here we are investigating isoforms that were lost, not genes)</p>
 <htmlLostTranscriptInGenesWSP2Plot>
 
-<!-- Div for the gene table -->
 <br/><br/>
 <h1>Gene stats</h1>
-<div id="LR_EC_gene_table"></div>
+<div id="LR_EC_gene_table" class="scrollableTable"></div>
+
+<br/><br/>
+<h1>Transcript stats</h1>
+<div id="LR_EC_transcript_table" class="scrollableTable"></div>
 </body>
 </html>
