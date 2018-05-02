@@ -22,8 +22,10 @@ R
 ### Viewing the html page:
     Firefox or Safari for the moment (bugged on Chrome for the moment)
 ### Viewing IGV plots (Gene stats and Transcript stats):
+In order to serve the bams for the browser, you need to:
 ```
 cd LR_EC_analyser
+source venv/bin/activate
 python serve_files.py --output <output_folder>
 ```
 
@@ -39,6 +41,8 @@ indels artificially inserted as error-corrected reads. It is just for a proof of
 were ran in these reads. To run the tool on this sample example, do:
 
 ```
+cd LR_EC_analyser
+source venv/bin/activate
 python run_LR_EC_analyser.py --genome sample_data/Mus_musculus.GRCm38.dna.chromosome.19.fa --gtf sample_data/Mus_musculus.GRCm38.91.chr19.gtf -t 4 -o sample_data/output --raw sample_data/gmap_CB_1Donly_to_GRCm38_chr19.bam sample_data/good.gmap.chr19.bam sample_data/indels.gmap.chr19.bam sample_data/subs.gmap.chr19.bam
 ```
 
