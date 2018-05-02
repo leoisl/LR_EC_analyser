@@ -21,6 +21,6 @@ def parseGTFToGetGenes(gtf, tools):
                     geneID2gene[geneId] = Gene(geneId, chromosome, begin, end, strand, tools)
                 elif feature=="transcript":
                     transcriptId = lineSplit[lineSplit.index("transcript_id") + 1][1:-2]
-                    geneID2gene[geneId].transcriptId2Transcript[transcriptId]=Feature(transcriptId, chromosome, begin, end, strand, tools)
+                    geneID2gene[geneId].transcriptId2Transcript[transcriptId]=Feature(transcriptId, chromosome, begin, end, strand, tools, geneID2gene[geneId])
     print "Parsing %s - Done!" % gtf
     return geneID2gene

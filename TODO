@@ -7,6 +7,11 @@ IGV performance:
 Presentation:
     -Coloring, ranking and percentage filter
 
+mpld3 should use local files
+
+ENSMUSG00000025200 in the sample data gives an error because the bam files in some tools are empty
+    Check it to not give errors anymore
+
 Add the other plots from the paper
 
 Add new plots

@@ -80,7 +80,7 @@ class Plotter:
         self.toolsNoRaw=list(tools)
         self.toolsNoRaw.remove("raw.bam")
 
-    def __producePlotAsHTML(self, tool2DifferenceCategories, blankSpace, xlabel, ylabel, displayInterval=False):
+    def __producePlotAsHTML(self, tool2Categories, blankSpace, xlabel, ylabel, displayInterval=False):
         # produce the plot
         # fig = plt.figure(figsize=(10, 5))
         fig = plt.figure()
@@ -90,17 +90,17 @@ class Plotter:
         plt.ylabel(ylabel)
 
         #compute the indexes and bar widths
-        xAxisIndexes = np.arange(len(tool2DifferenceCategories[self.toolsNoRaw[0]]))
+        xAxisIndexes = np.arange(len(tool2Categories[self.toolsNoRaw[0]]))
         barWidth = 1.0 / len(self.toolsNoRaw) - blankSpace
 
         #add each bar
         for index, tool in enumerate(self.toolsNoRaw):
-            plt.bar(xAxisIndexes + (index * barWidth), tool2DifferenceCategories[tool].getIntervalCount(),
+            plt.bar(xAxisIndexes + (index * barWidth), tool2Categories[tool].getIntervalCount(),
                     width=barWidth, label=tool)
 
         #add the x labels
         plt.xticks(xAxisIndexes + (len(self.toolsNoRaw) / 2.0 * barWidth - barWidth / 2.0),
-                   tool2DifferenceCategories[self.toolsNoRaw[0]].getCategoriesAsString(displayInterval))
+                   tool2Categories[self.toolsNoRaw[0]].getCategoriesAsString(displayInterval))
 
         #add the tool labels
         plt.legend()
@@ -166,7 +166,7 @@ class Plotter:
                                 if transcript.profile.isExpressedInTool("raw.bam") and not transcript.profile.isExpressedInTool(tool):
                                     #if the transcript is in raw, but it is not in the tool, then this transcript "disappeared"
                                     #add the relative transcript coverage in raw dataset
-                                    tool2RelativeTranscriptOfLostTranscriptCategories[tool].addDataPoint( float(transcript.profile.tool2NbOfMappedReads["raw.bam"]) / float(gene.profile.tool2NbOfMappedReads["raw.bam"]))
+                                    tool2RelativeTranscriptOfLostTranscriptCategories[tool].addDataPoint(transcript.computeRelativeExpression("raw.bam"))
 
 
             return tool2RelativeTranscriptOfLostTranscriptCategories
@@ -176,3 +176,22 @@ class Plotter:
         '''
         tool2RelativeTranscriptOfLostTranscriptCategories =get_tool2RelativeTranscriptOfLostTranscriptCategories()
         return self.__producePlotAsHTML(tool2RelativeTranscriptOfLostTranscriptCategories, blankSpace, "Relative transcript coverage in relation to gene coverage", "Number of transcripts", True)
+
+    def makeDifferencesInRelativeExpressionsBoxPlot(self, geneID2gene, blankSpace=0.1):
+        def get_tool2DifferencesInRelativeExpressions():
+            tool2DifferencesInRelativeExpressions={tool:[] for tool in self.toolsNoRaw}
+            for gene in geneID2gene.values():
+                if gene.profile.isExpressedInAnyTool():
+                    for tool in self.toolsNoRaw:
+                        if gene.profile.isExpressedInTool("raw.bam") or gene.profile.isExpressedInTool(tool):  # the gene must be expressed in the raw or in the tool
+                            for transcript in gene.transcriptId2Transcript.values():
+                                relativeExpressionBefore = transcript.computeRelativeExpression("raw.bam")
+                                relativeExpressionAfter = transcript.computeRelativeExpression(tool)
+                                differenceInRelativeExpressions = abs(relativeExpressionBefore-relativeExpressionAfter)
+                                tool2DifferencesInRelativeExpressions[tool].append(differenceInRelativeExpressions)
+            return tool2DifferencesInRelativeExpressions
+
+        tool2DifferencesInRelativeExpressions = get_tool2DifferencesInRelativeExpressions()
+
+        #TODO: finish boxplot
+        print "Boxplot comes here..."

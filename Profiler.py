@@ -9,10 +9,14 @@ class FeatureProfiler:
     """
     Represents all features and their profiles
     """
-    def __init__(self, geneID2gene, tools, tool2Bam):
+    def __init__(self, geneID2gene, tools, tool2Bam, genome, gtf, outputFolder, skip_splitting_bam):
         self.geneId2Gene = geneID2gene
         self.tools=tools
         self.tool2Bam = tool2Bam
+        self.genome = genome
+        self.gtf = gtf
+        self.outputFolder = outputFolder
+        self.skip_splitting_bam = skip_splitting_bam
 
     def populateFromAnnotbest(self, tool, outputFolder):
         """
@@ -50,23 +54,25 @@ class FeatureProfiler:
                 self.geneId2Gene[geneId].transcriptId2Transcript[transcriptId].profile.tool2NbOfMappedReads[tool] += 1
 
 
-    def buildIGVInfo(self, feature, genome, gtf, outputFolder):
+    def __buildIGVInfo(self, feature):
         igvInfo = {}
-        igvInfo["fastaURL"] = genome
+        igvInfo["fastaURL"] = self.genome
         igvInfo["locus"] = feature.getLocusInIGVJSFormat()[1:-1]
-        igvInfo["annotationURL"] = gtf
+        igvInfo["annotationURL"] = self.gtf
         for i, tool in enumerate(self.tools):
             igvInfo["tool_%d"%i]=tool
             #igvInfo["bam_%d"%i]=self.tool2Bam[tool]
-            outputFile = outputFolder+"/bams/%s_%s.bam"%(tool, feature.id)
-            getBamInCoordinates(self.tool2Bam[tool], igvInfo["locus"], outputFile)
+            outputFile = self.outputFolder+"/bams/%s_%s.bam"%(tool, feature.id)
+
+            if not self.skip_splitting_bam:
+                getBamInCoordinates(self.tool2Bam[tool], igvInfo["locus"], outputFile)
 
             igvInfo["bam_%d" % i] = "bams/%s_%s.bam"%(tool, feature.id)
 
         listOfKeyValues=["%s=%s"%(key,value) for key,value in igvInfo.items()]
         return ["'" + urllib.quote("&".join(listOfKeyValues), safe='') + "'"]
 
-    def geneProfileToJSArrayForHOT(self, genome, gtf, outputFolder):
+    def geneProfileToJSArrayForHOT(self):
         """
         Transforms this object in a format to JSArray to be put in a Hands-on table
         :return: a string like:
@@ -76,10 +82,10 @@ class FeatureProfiler:
         for gene in self.geneId2Gene.values():
             if gene.profile.isExpressedInAnyTool():
                 stringList.append("[" + ",".join(gene.getASArrayForHOT() +
-                                                 self.buildIGVInfo(gene, genome, gtf, outputFolder)) + "]")
+                                                 self.__buildIGVInfo(gene)) + "]")
         return "[" + ",".join(stringList) + "]"
 
-    def transcriptProfileToJSArrayForHOT(self, genome, gtf, outputFolder):
+    def transcriptProfileToJSArrayForHOT(self):
         """
         Transforms this object in a format to JSArray to be put in a Hands-on table
         :return: a string like:
@@ -90,7 +96,7 @@ class FeatureProfiler:
             if gene.profile.isExpressedInAnyTool():
                 for transcript in gene.transcriptId2Transcript.values():
                     if transcript.profile.isExpressedInAnyTool():
-                        stringList.append("[" + ",".join(transcript.getASArrayForHOT() + self.buildIGVInfo(transcript, genome, gtf, outputFolder)) + "]")
+                        stringList.append("[" + ",".join(transcript.getASArrayForHOT() + self.__buildIGVInfo(transcript)) + "]")
         return "[" + ",".join(stringList) + "]"
 
 

@@ -33,13 +33,14 @@ class Feature:
     """
     Represents a Feature (gene, transcript, exon, intron, etc)
     """
-    def __init__ (self, id, chromosome, begin, end, strand, tools):
+    def __init__ (self, id, chromosome, begin, end, strand, tools, parent=None):
         self.id=id
         self.chromosome=chromosome
         self.begin=begin
         self.end=end
         self.strand=strand
         self.profile = Profile(tools)
+        self.parent=parent
 
     def __str__(self):
         return str(self.__dict__)
@@ -52,6 +53,18 @@ class Feature:
 
     def getASArrayForHOT(self):
         return ["'%s'"%self.id, self.getLocusInIGVJSFormat(), "'%s'"%self.strand] + self.profile.getProfileAsArrayForHot()
+
+    def computeRelativeExpression(self, tool):
+        """
+        Computes the relative expression of this feature in relation to its parent in a given tool
+        :return: the relative expression (float)
+        """
+        parentExpression = self.parent.profile.tool2NbOfMappedReads[tool]
+        featureExpression = self.profile.tool2NbOfMappedReads[tool]
+        if parentExpression == 0:
+            return 0.0
+        else:
+            return float(featureExpression)/float(parentExpression)
 
 
 

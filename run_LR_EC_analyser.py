@@ -78,6 +78,8 @@ def main():
                         help="Skips AlignQC calls - assume we had already done this.")
     parser.add_argument("--skip_copying", dest="skip_copying", action="store_true",
                         help="Skips copying genome and transcriptome to the output folder.")
+    parser.add_argument("--skip_splitting_bam", dest="skip_splitting_bam", action="store_true",
+                        help="Skips splitting the bams by genes and transcripts.")
     args=parser.parse_args()
 
     #create output dir
@@ -146,7 +148,7 @@ def main():
 
     #create the gene profiler
     print "Running Gene profiler..."
-    geneProfiler = FeatureProfiler(geneID2gene, tools, tool2Bam)
+    geneProfiler = FeatureProfiler(geneID2gene, tools, tool2Bam, os.path.basename(genome), os.path.basename(gtf), args.output, args.skip_splitting_bam)
     #populate the gene profiler
     for tool in tools:
         geneProfiler.populateFromAnnotbest(tool, args.output)
@@ -158,6 +160,7 @@ def main():
     plotter = Plotter(tools)
     htmlDifferenceOnTheNumberOfIsoformsPlot = plotter.makeDifferenceOnTheNumberOfIsoformsPlot(geneID2gene, -3, 3)
     htmlLostTranscriptInGenesWSP2Plot = plotter.makeLostTranscriptInGenesWSP2Plot(geneID2gene)
+    htmlDifferencesInRelativeExpressionsBoxPlot = plotter.makeDifferencesInRelativeExpressionsBoxPlot(geneID2gene)
     print "Computing the plots - Done!"
 
 
@@ -175,9 +178,9 @@ def main():
             if "<statProfiler.getErrorStatsAsJSArrayForHOT()>" in line:
                 line = line.replace("<statProfiler.getErrorStatsAsJSArrayForHOT()>", statProfiler.getErrorStatsAsJSArrayForHOT())
             if "<geneProfiler.geneProfileToJSArrayForHOT()>" in line:
-                line = line.replace("<geneProfiler.geneProfileToJSArrayForHOT()>", geneProfiler.geneProfileToJSArrayForHOT(os.path.basename(genome), os.path.basename(gtf), args.output))
+                line = line.replace("<geneProfiler.geneProfileToJSArrayForHOT()>", geneProfiler.geneProfileToJSArrayForHOT())
             if "<geneProfiler.transcriptProfileToJSArrayForHOT()>" in line:
-                line = line.replace("<geneProfiler.transcriptProfileToJSArrayForHOT()>", geneProfiler.transcriptProfileToJSArrayForHOT(os.path.basename(genome), os.path.basename(gtf), args.output))
+                line = line.replace("<geneProfiler.transcriptProfileToJSArrayForHOT()>", geneProfiler.transcriptProfileToJSArrayForHOT())
             if "<tools>" in line:
                 line = line.replace("<tools>", str(tools))
             if "<htmlDifferenceOnTheNumberOfIsoformsPlot>" in line:
