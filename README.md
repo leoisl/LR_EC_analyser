@@ -9,8 +9,8 @@ makes use of IGV.js (https://github.com/igvteam/igv.js) for an in-depth gene and
 
 ## For running the script, please have installed
 ```
-AlignQC (https://github.com/jason-weirather/AlignQC)
 samtools (v1.8+ http://www.htslib.org/download/)
+R
 python 2.7
 ```
 
@@ -43,24 +43,29 @@ The output can be found here: https://www.dropbox.com/s/phdsty29yszn47j/output_s
 ```
 usage: run_LR_EC_analyser.py [-h] [--genome GENOME] [--gtf GTF] [--raw RAWBAM]
                              [-o OUTPUT] [-t THREADS] [--skip_bam_process]
-                             [--skip_alignqc]
+                             [--skip_alignqc] [--skip_copying]
+                             [--skip_splitting_bam]
                              <file.bam> [<file.bam> ...]
 
 Long read error corrector analyser.
 
 positional arguments:
-  <file.bam>          BAM files of the Fastas output by the correctors
+  <file.bam>            BAM files of the Fastas output by the correctors
 
 optional arguments:
-  -h, --help          show this help message and exit
-  --genome GENOME     The genome in fasta file
-  --gtf GTF           The transcriptome as GTF file
-  --raw RAWBAM        The BAM file of the raw reads (i.e. the uncorrected long
-                      reads file)
-  -o OUTPUT           output folder
-  -t THREADS          Number of threads to use
-  --skip_bam_process  Skips bam processing - assume we had already done this.
-  --skip_alignqc      Skips AlignQC calls - assume we had already done this.
+  -h, --help            show this help message and exit
+  --genome GENOME       The genome in fasta file
+  --gtf GTF             The transcriptome as GTF file
+  --raw RAWBAM          The BAM file of the raw reads (i.e. the uncorrected
+                        long reads file)
+  -o OUTPUT             output folder
+  -t THREADS            Number of threads to use
+  --skip_bam_process    Skips bam processing - assume we had already done
+                        this.
+  --skip_alignqc        Skips AlignQC calls - assume we had already done this.
+  --skip_copying        Skips copying genome and transcriptome to the output
+                        folder.
+  --skip_splitting_bam  Skips splitting the bams by genes and transcripts.
 ```
 
 # Thirdparties
