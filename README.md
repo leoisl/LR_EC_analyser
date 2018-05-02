@@ -5,22 +5,27 @@ running AlignQC (https://github.com/jason-weirather/AlignQC) on the BAMs built b
 tools to a reference genome and parsing its output, then putting all the relevant information in a HTML report. It also
 makes use of IGV.js (https://github.com/igvteam/igv.js) for an in-depth gene and transcript analysis.
 
+# WARNING
+Use Firefox or Safari to view the reports for the moment.
+
 # Requirements
 
 ## For running the script, please have installed
 ```
+python 2.7
+virtualenv
 samtools (v1.8+ http://www.htslib.org/download/)
 R
-python 2.7
 ```
 
 ## For viewing the results
 ### Viewing the html page:
-    Any browser
-### Viewing IGV plots (Gene stats):
-    1/ Install https://www.npmjs.com/package/http-server
-    2/ Go to the output folder
-    3/ http-server --cors -p 19974
+    Firefox or Safari for the moment (bugged on Chrome for the moment)
+### Viewing IGV plots (Gene stats and Transcript stats):
+```
+cd LR_EC_analyser
+python serve_files.py --output <output_folder>
+```
 
 
 # Installing
@@ -71,10 +76,10 @@ optional arguments:
 # Thirdparties
 1. AlignQC (https://github.com/jason-weirather/AlignQC)
 2. IGV.js (https://github.com/igvteam/igv.js)
-3. handsontable (https://handsontable.com/)
-4. jQuery (http://jquery.com/)
-5. querystring (https://github.com/jgallen23/querystring)
-6. samtools (http://www.htslib.org)
-7. matplotlib (https://matplotlib.org/)
-8. mpld3 (http://mpld3.github.io/)
-9. colour (https://pypi.org/project/colour/)
+3. samtools (http://www.htslib.org)
+4. handsontable (https://handsontable.com/)
+5.matplotlib (https://matplotlib.org/)
+6. mpld3 (http://mpld3.github.io/)
+7. Twisted (https://twistedmatrix.com/trac/)
+8. querystring (https://github.com/jgallen23/querystring)
+9. jQuery (http://jquery.com/)

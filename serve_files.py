@@ -1,27 +1,38 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-#from https://stackoverflow.com/a/21957017/5264075
-#and  https://stackoverflow.com/questions/16583827/cors-with-python-basehttpserver-501-unsupported-method-options-in-chrome/32501309
-from SimpleHTTPServer import SimpleHTTPRequestHandler
-import BaseHTTPServer
+"""
+Creates a HTTP file server accepting CORS and POST
+99% Based on https://gist.github.com/jlesquembre/3922805 (all I did was refactoring it a little bit)
+"""
 
-class CORSRequestHandler (SimpleHTTPRequestHandler):
-    """
-    def do_OPTIONS(self):
-        self.send_response(200, "ok")
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS')
-        self.send_header("Access-Control-Allow-Headers", "X-Requested-With")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
-        self.end_headers()
+from twisted.web.server import Site
+from twisted.web.static import File
+from twisted.internet import reactor
+import argparse
 
-    def do_GET(self):
-        self.processRequest()
-    """
-    def end_headers (self):
-        self.send_header('Access-Control-Allow-Origin', '*')
-        SimpleHTTPRequestHandler.end_headers(self)
+class ResponseFile(File):
+    def render(self, request):
+        print request
+        request.setHeader('Access-Control-Allow-Origin', '*')
+        request.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+        request.setHeader('Access-Control-Allow-Credentials', 'true')
+        request.setHeader('Access-Control-Allow-Headers', 'origin, x-requested-with, accept, content-type, range')
+
+        return File.render(self, request)
+
+    def render_OPTIONS(self, request):
+        return self.render_GET(request)
 
 
-if __name__ == '__main__':
-    BaseHTTPServer.test(CORSRequestHandler, BaseHTTPServer.HTTPServer)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Serve files rooted at the output parameter. Accepts CORS and POST.')
+    parser.add_argument("--output", help="Output folder served.", required=True)
+    parser.add_argument("--port", type=int, help="The port to use", default=19974)
+    args=parser.parse_args()
+
+    root = ResponseFile(args.root)
+    reactor.listenTCP(args.port, Site(root))
+    reactor.run()
+
+
