@@ -31,8 +31,10 @@ if __name__ == "__main__":
     parser.add_argument("--port", type=int, help="The port to use", default=19974)
     args=parser.parse_args()
 
-    root = ResponseFile(args.root)
+    root = ResponseFile(args.output)
     reactor.listenTCP(args.port, Site(root))
+    print "Server is starting, now you can see the IGV plots"
     reactor.run()
+
 
 
