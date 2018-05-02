@@ -106,7 +106,7 @@ class Plotter:
         plt.legend()
 
         # save plot to html
-        return mpld3.fig_to_html(fig)
+        return mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")
 
     def makeDifferenceOnTheNumberOfIsoformsPlot(self, geneID2gene, lowestCategory=-3, highestCategory=3, step=1, blankSpace=0.1):
         """
