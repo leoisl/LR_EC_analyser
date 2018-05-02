@@ -20,9 +20,9 @@ R
 
 ## For viewing the results
 ### Viewing the html page:
-    Firefox or Safari for the moment (bugged on Chrome for the moment)
+    Firefox or Safari (bugged on Chrome for the moment)
 ### Viewing IGV plots (Gene stats and Transcript stats):
-In order to serve the bams for the browser, you need to:
+In order to serve the bams for the browser, you need to start a web server to serve the required files:
 ```
 cd LR_EC_analyser
 source venv/bin/activate
