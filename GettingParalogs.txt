@@ -1,0 +1,15 @@
+1/ http://dec2016.archive.ensembl.org/biomart
+2/ Database: Ensembl Genes 87
+3/ Dataset: Mouse genes (GRCm38.p5)
+4/ Click on Attributes -> Homologues and select these attributes:
+    GENE:
+        Gene ID
+    PARALOGUES:
+        Mouse paralogue gene stable ID
+        Paralogue %id. target Mouse gene identical to query gene
+        Paralogue %id. query gene identical to target Mouse gene
+5/ Click on Results and download the file as Compressed file (.gz) format TSV and check Unique results only
+    Name it Mus_musculus.GRCm38.87.paralog_genes.txt.gz
+6/ gunzip Mus_musculus.GRCm38.87.paralog_genes.txt.gz
+7/ Getting the genes with paralogues where the identify is 90%+
+    awk '$3>=90 || $4>=90' Mus_musculus.GRCm38.87.paralog_genes.txt > Mus_musculus.GRCm38.87.paralog_genes.90_percent_plus_identity.txt
