@@ -3,6 +3,13 @@ IGV performance:
         or index the gtf directly (did not find how to do this)
     -Work on IGV page
         -Zoom in to see features is not nice
+    -Report the error better when the web server is not active
+
+Presentation:
+    -Coloring, ranking and percentage filter
+
+ENSMUSG00000025200 in the sample data gives an error because the bam files in some tools are empty
+    Check it to not give errors anymore
 
 Add the other plots from the paper
 
