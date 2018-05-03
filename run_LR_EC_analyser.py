@@ -187,6 +187,8 @@ def main():
                 line = line.replace("<htmlDifferenceOnTheNumberOfIsoformsPlot>", htmlDifferenceOnTheNumberOfIsoformsPlot)
             if "<htmlLostTranscriptInGenesWSP2Plot>" in line:
                 line = line.replace("<htmlLostTranscriptInGenesWSP2Plot>", htmlLostTranscriptInGenesWSP2Plot)
+            if "<htmlDifferencesInRelativeExpressionsBoxPlot>" in line:
+                line = line.replace("<htmlDifferencesInRelativeExpressionsBoxPlot>", htmlDifferencesInRelativeExpressionsBoxPlot)
             indexTemplateLines[i] = line
 
 

@@ -193,5 +193,14 @@ class Plotter:
 
         tool2DifferencesInRelativeExpressions = get_tool2DifferencesInRelativeExpressions()
 
-        #TODO: finish boxplot
-        print "Boxplot comes here..."
+        #make the boxplot
+        fig = plt.figure()
+
+        #put the labels
+        plt.xlabel("Tools")
+        plt.ylabel("Relative expression")
+        data=[tool2DifferencesInRelativeExpressions[tool] for tool in self.toolsNoRaw]
+        plt.boxplot(data, labels=self.toolsNoRaw)
+
+        # save plot to html
+        return mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")
