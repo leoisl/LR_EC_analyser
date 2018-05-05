@@ -204,3 +204,27 @@ class Plotter:
 
         # save plot to html
         return mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")
+
+    def makeScatterPlotSizeParalogFamilies(self, geneID2gene, paralogous):
+        def get_paralogousGenesFamilySizeInTool(paralogousGroups, tool):
+            paralogousGenesFamilySize=[]
+            for paralogousGroup in paralogousGroups:
+                paralogousGeneFamilySize = 0
+                for geneId in paralogousGroup:
+                    if geneID2gene[geneId].profile.isExpressedInTool(tool):
+                        paralogousGeneFamilySize += 1
+                paralogousGenesFamilySize.append(paralogousGeneFamilySize)
+
+            return paralogousGenesFamilySize
+
+        paralogousGroups = paralogous.getParalogousGroups()
+        paralogousGeneFamilySizeBeforeCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, "raw.bam")
+        paralogousGeneFamilySizeAfterCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups,
+                                                                                      self.toolsNoRaw[0])
+
+        fig = plt.figure()
+        plt.scatter(paralogousGeneFamilySizeAfterCorrection, paralogousGeneFamilySizeBeforeCorrection, alpha=0.5, label="Gene family")
+        plt.xlabel("Paralogous gene family size after correction")
+        plt.ylabel("Paralogous gene family size before correction")
+        plt.legend()
+        return mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")

@@ -7,6 +7,7 @@ from Profiler import *
 from ExternalTools import *
 from Parsers import *
 from Plotter import *
+from Paralogous import *
 import sys
 
 
@@ -70,6 +71,7 @@ def main():
                         help='BAM files of the Fastas output by the correctors')
     parser.add_argument("--genome", dest="genome", help="The genome in fasta file")
     parser.add_argument("--gtf", dest="gtf", help="The transcriptome as GTF file")
+    parser.add_argument("--paralogous", help="Path to a file where the first two collumns denote paralogous genes (see file GettingParalogs.txt to know how you can get this file)")
     parser.add_argument("--raw", dest="rawBam", help="The BAM file of the raw reads (i.e. the uncorrected long reads file)")
     parser.add_argument("-o", dest="output", help="output folder", default="output/")
     parser.add_argument("-t", dest="threads", type=int, help="Number of threads to use")
@@ -110,6 +112,12 @@ def main():
         shutil.copy(args.gtf, args.output)
     else:
         print "Skipping transcriptome copying..."
+
+    #get the paralogous info, if given
+    paralogous = None
+    if args.paralogous != None:
+        paralogous = Paralogous(geneID2gene)
+        paralogous.readParalogousFile(args.paralogous)
 
 
     #TODO: walk the bam with pysam and get the read lengths to compute mean length of the aligned reads
@@ -161,6 +169,8 @@ def main():
     htmlDifferenceOnTheNumberOfIsoformsPlot = plotter.makeDifferenceOnTheNumberOfIsoformsPlot(geneID2gene, -3, 3)
     htmlLostTranscriptInGenesWSP2Plot = plotter.makeLostTranscriptInGenesWSP2Plot(geneID2gene)
     htmlDifferencesInRelativeExpressionsBoxPlot = plotter.makeDifferencesInRelativeExpressionsBoxPlot(geneID2gene)
+    if paralogous != None:
+        htmlScatterPlotSizeParalogFamilies = plotter.makeScatterPlotSizeParalogFamilies(geneID2gene, paralogous)
     print "Computing the plots - Done!"
 
 
@@ -189,6 +199,8 @@ def main():
                 line = line.replace("<htmlLostTranscriptInGenesWSP2Plot>", htmlLostTranscriptInGenesWSP2Plot)
             if "<htmlDifferencesInRelativeExpressionsBoxPlot>" in line:
                 line = line.replace("<htmlDifferencesInRelativeExpressionsBoxPlot>", htmlDifferencesInRelativeExpressionsBoxPlot)
+            if paralogous != None and "<htmlScatterPlotSizeParalogFamilies>" in line:
+                line = line.replace("<htmlScatterPlotSizeParalogFamilies>", htmlScatterPlotSizeParalogFamilies)
             indexTemplateLines[i] = line
 
 

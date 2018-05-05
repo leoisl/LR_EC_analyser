@@ -101,6 +101,7 @@ class FeatureProfiler:
 
 
 
+
 class StatProfiler:
     def __init__(self, tools, outputFolder):
         self.tools = tools
@@ -203,5 +204,3 @@ class StatProfiler:
     def getErrorStatsAsJSArrayForHOT(self):
         errorStatsFeatures = ["ANY_ERROR", "MISMATCHES", "ANY_DELETION", "ANY_INSERTION", "COMPLETE_DELETION", "HOMOPOLYMER_DELETION", "COMPLETE_INSERTION", "HOMOPOLYMER_INSERTION"]
         return self.__toJSArrayForHOT(errorStatsFeatures)
-
-

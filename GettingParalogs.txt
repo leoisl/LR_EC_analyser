@@ -1,4 +1,4 @@
-1/ http://dec2016.archive.ensembl.org/biomart
+1/ http://dec2016.archive.ensembl.org/biomart (or the version that you need - see https://www.ensembl.org/info/website/archives/index.html)
 2/ Database: Ensembl Genes 87
 3/ Dataset: Mouse genes (GRCm38.p5)
 4/ Click on Attributes -> Homologues and select these attributes:
