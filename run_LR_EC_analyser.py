@@ -80,15 +80,11 @@ def main():
                         help="Skips AlignQC calls - assume we had already done this.")
     parser.add_argument("--skip_copying", dest="skip_copying", action="store_true",
                         help="Skips copying genome and transcriptome to the output folder.")
-    parser.add_argument("--skip_splitting_bam", dest="skip_splitting_bam", action="store_true",
-                        help="Skips splitting the bams by genes and transcripts.")
     args=parser.parse_args()
 
     #create output dir
     if not os.path.exists(args.output):
         os.makedirs(args.output)
-    if not os.path.exists(args.output+"/bams"):
-        os.makedirs(args.output+"/bams")
 
 
     #get some useful vars
@@ -134,9 +130,6 @@ def main():
             processBam(bam, sortedBam, args.threads)
 
 
-
-    tool2Bam = {tool: bam for tool, bam in zip(tools, sortedBams)}
-
     #run AlignQC on the bams
     if not args.skip_alignqc:
         # AlignQC require the genome and gtf gzipped
@@ -156,7 +149,8 @@ def main():
 
     #create the gene profiler
     print "Running Gene profiler..."
-    geneProfiler = FeatureProfiler(geneID2gene, tools, tool2Bam, os.path.basename(genome), os.path.basename(gtf), args.output, args.skip_splitting_bam)
+    tool2Bam = {tool: os.path.basename(bam) for tool, bam in zip(tools, sortedBams)}
+    geneProfiler = FeatureProfiler(geneID2gene, tools, tool2Bam, os.path.basename(genome), os.path.basename(gtf), args.output)
     #populate the gene profiler
     for tool in tools:
         geneProfiler.populateFromAnnotbest(tool, args.output)
