@@ -221,10 +221,10 @@ class Plotter:
         paralogousGroups = paralogous.getParalogousGroups()
 
         paralogousGeneFamilySizeBeforeCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, "raw.bam")
-        fig = plt.figure(figsize=(10, 10))
 
         nbOfColumnsInSubplot = 2
-        nRowsInSubplot = int(math.ceil(float(len(self.toolsNoRaw))/nbOfColumnsInSubplot))
+        nbRowsInSubplot = int(math.ceil(float(len(self.toolsNoRaw))/nbOfColumnsInSubplot))
+        fig = plt.figure(figsize=(5*nbRowsInSubplot, 5*nbOfColumnsInSubplot))
         for toolIndex, tool in enumerate(self.toolsNoRaw):
             paralogousGeneFamilySizeAfterCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, tool)
 
@@ -236,7 +236,7 @@ class Plotter:
                     paralogousGeneFamilySizeBeforeCorrectionNoZeros.append(paralogousGeneFamilySizeBeforeCorrection[i])
                     paralogousGeneFamilySizeAfterCorrectionNoZeros.append(paralogousGeneFamilySizeAfterCorrection[i])
 
-            plt.subplot(nRowsInSubplot, nbOfColumnsInSubplot, toolIndex+1)
+            plt.subplot(nbRowsInSubplot, nbOfColumnsInSubplot, toolIndex+1)
             plt.scatter(paralogousGeneFamilySizeAfterCorrectionNoZeros, paralogousGeneFamilySizeBeforeCorrectionNoZeros, alpha=0.5, label="Gene family")
             plt.xlabel("Raw")
             plt.ylabel("After correction")
