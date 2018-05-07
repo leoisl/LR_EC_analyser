@@ -169,6 +169,7 @@ def main():
     if paralogous != None:
         htmlScatterPlotSizeParalogFamilies = plotter.makeScatterPlotSizeParalogFamilies(geneID2gene, paralogous)
         htmlScatterPlotSizeParalogFamiliesExcluingUnchanged = plotter.makeScatterPlotSizeParalogFamilies(geneID2gene, paralogous, True)
+        htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes = plotter.makeScatterPlotSizeParalogFamilies(geneID2gene, paralogous, True, True)
     print "Computing the plots - Done!"
 
 
@@ -207,6 +208,11 @@ def main():
                     line = line.replace("<htmlScatterPlotSizeParalogFamiliesExcluingUnchanged>", htmlScatterPlotSizeParalogFamiliesExcluingUnchanged)
                 else:
                     line = line.replace("<htmlScatterPlotSizeParalogFamiliesExcluingUnchanged>", "<p style='color: red; font-size: large;'>Paralogous file (--paralogous parameter) was not given, so we did not produce this plot. </p>")
+            if "<htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes>" in line:
+                if paralogous != None:
+                    line = line.replace("<htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes>", htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes)
+                else:
+                    line = line.replace("<htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes>", "<p style='color: red; font-size: large;'>Paralogous file (--paralogous parameter) was not given, so we did not produce this plot. </p>")
             indexTemplateLines[i] = line
 
 

@@ -206,7 +206,7 @@ class Plotter:
         # save plot to html
         return mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")
 
-    def makeScatterPlotSizeParalogFamilies(self, geneID2gene, paralogous, disregardUnchangedGeneFamilies=False):
+    def makeScatterPlotSizeParalogFamilies(self, geneID2gene, paralogous, disregardUnchangedGeneFamilies=False, includeOnlyCommonGenes=False):
         def get_paralogousGenesFamilySizeInTool(paralogousGroups, tool):
             paralogousGenesFamilySize=[]
             for paralogousGroup in paralogousGroups:
@@ -232,9 +232,11 @@ class Plotter:
             #y = family size after correction
             #1/ (0,0) are excluded
             #2/ if disregardUnchangedGeneFamilies is True, then gene families with the same size are disregarded
+            #3/ if includeOnlyCommonGenes is True, then only gene families present before and after are considered
             dataPoints=[]
             for i in xrange(len(paralogousGeneFamilySizeBeforeCorrection)):
-                if paralogousGeneFamilySizeBeforeCorrection[i]>0 or paralogousGeneFamilySizeAfterCorrection[i]>0:
+                if (includeOnlyCommonGenes and paralogousGeneFamilySizeBeforeCorrection[i]>0 and paralogousGeneFamilySizeAfterCorrection[i]>0) or \
+                   (not includeOnlyCommonGenes and (paralogousGeneFamilySizeBeforeCorrection[i]>0 or paralogousGeneFamilySizeAfterCorrection[i]>0)):
                     if not disregardUnchangedGeneFamilies or \
                        (disregardUnchangedGeneFamilies and paralogousGeneFamilySizeBeforeCorrection[i]!=paralogousGeneFamilySizeAfterCorrection[i]):
                         dataPoints.append((paralogousGeneFamilySizeBeforeCorrection[i], paralogousGeneFamilySizeAfterCorrection[i]))
