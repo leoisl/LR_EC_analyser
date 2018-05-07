@@ -193,8 +193,11 @@ def main():
                 line = line.replace("<htmlLostTranscriptInGenesWSP2Plot>", htmlLostTranscriptInGenesWSP2Plot)
             if "<htmlDifferencesInRelativeExpressionsBoxPlot>" in line:
                 line = line.replace("<htmlDifferencesInRelativeExpressionsBoxPlot>", htmlDifferencesInRelativeExpressionsBoxPlot)
-            if paralogous != None and "<htmlScatterPlotSizeParalogFamilies>" in line:
-                line = line.replace("<htmlScatterPlotSizeParalogFamilies>", htmlScatterPlotSizeParalogFamilies)
+            if "<htmlScatterPlotSizeParalogFamilies>" in line:
+                if paralogous != None:
+                    line = line.replace("<htmlScatterPlotSizeParalogFamilies>", htmlScatterPlotSizeParalogFamilies)
+                else:
+                    line = line.replace("<htmlScatterPlotSizeParalogFamilies>", "<p style='color: red; font-size: large;'>Paralogous file (--paralogous parameter) was not given, so we did not produce this plot. </p>")
             indexTemplateLines[i] = line
 
 

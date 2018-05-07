@@ -91,7 +91,7 @@ class Plotter:
 
         #compute the indexes and bar widths
         xAxisIndexes = np.arange(len(tool2Categories[self.toolsNoRaw[0]]))
-        barWidth = 1.0 / len(self.toolsNoRaw) - blankSpace
+        barWidth = 1.0 / len(self.toolsNoRaw) - blankSpace/len(self.toolsNoRaw)
 
         #add each bar
         for index, tool in enumerate(self.toolsNoRaw):
