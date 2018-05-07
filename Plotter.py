@@ -258,7 +258,8 @@ class Plotter:
         for toolIndex, tool in enumerate(self.toolsNoRaw):
             #plot it
             plt.subplot(nbRowsInSubplot, nbOfColumnsInSubplot, toolIndex+1)
-            plt.scatter(tool2PlotData[tool]["xDataPoints"], tool2PlotData[tool]["yDataPoints"], c=tool2PlotData[tool]["count"], cmap="bwr", vmin=0, vmax=largestDatapointCount)
+            plt.scatter(tool2PlotData[tool]["xDataPoints"], tool2PlotData[tool]["yDataPoints"], c=tool2PlotData[tool]["count"],
+                        cmap="bwr", vmin=0, vmax=largestDatapointCount, edgecolors="black")
             plt.xlim(0, largestFamilySize+1)
             plt.ylim(0, largestFamilySize+1)
             plt.xticks(range(0, largestFamilySize + 2, 2))
