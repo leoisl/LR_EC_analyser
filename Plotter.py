@@ -76,10 +76,11 @@ class Plotter:
     """
     Makes several plots
     """
-    def __init__(self, tools):
+    def __init__(self, tools, plotsOutput):
         self.tools=tools
         self.toolsNoRaw=list(tools)
         self.toolsNoRaw.remove("raw.bam")
+        self.plotsOutput = plotsOutput
 
     def __produceBarPlotAsHTML(self, tool2Categories, blankSpace, xlabel, ylabel, displayInterval=False):
         # produce the plot
@@ -217,24 +218,20 @@ class Plotter:
 
             return paralogousGenesFamilySize
 
-        print "paralogousGroups = paralogous.getParalogousGroups()"
         paralogousGroups = paralogous.getParalogousGroups()
-        print "paralogousGroups = paralogous.getParalogousGroups() - Done"
         paralogousGeneFamilySizeBeforeCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, "raw.bam")
         fig = plt.figure(figsize=(10, 10))
 
         nbOfColumnsInSubplot = 2
         nRowsInSubplot = int(math.ceil(float(len(self.toolsNoRaw))/nbOfColumnsInSubplot))
         for i, tool in enumerate(self.toolsNoRaw):
-            print "paralogousGeneFamilySizeAfterCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, tool)"
             paralogousGeneFamilySizeAfterCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, tool)
-            print "paralogousGeneFamilySizeAfterCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, tool) - Done"
-
-            print "plotting..."
             plt.subplot(nRowsInSubplot, nbOfColumnsInSubplot, i+1)
             plt.scatter(paralogousGeneFamilySizeAfterCorrection, paralogousGeneFamilySizeBeforeCorrection, alpha=0.5, label="Gene family")
             plt.xlabel("Paralogous gene family size after correction")
             plt.ylabel("Paralogous gene family size before correction")
             plt.legend()
-            print "plotting - Done"
-        return mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")
+
+        plt.savefig(self.plotsOutput+"/scatterPlotSizeParalogFamilies.png")
+        return "<img src=plots/scatterPlotSizeParalogFamilies.png />"
+        #return mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")

@@ -159,7 +159,10 @@ def main():
 
     #create the Plotter and the plots
     print "Computing the plots..."
-    plotter = Plotter(tools)
+    plotsOutput = args.output+"/plots"
+    if not os.path.exists(plotsOutput):
+        os.makedirs(plotsOutput)
+    plotter = Plotter(tools, plotsOutput)
     htmlDifferenceOnTheNumberOfIsoformsPlot = plotter.makeDifferenceOnTheNumberOfIsoformsPlot(geneID2gene, -3, 3)
     htmlLostTranscriptInGenesWSP2Plot = plotter.makeLostTranscriptInGenesWSP2Plot(geneID2gene)
     htmlDifferencesInRelativeExpressionsBoxPlot = plotter.makeDifferencesInRelativeExpressionsBoxPlot(geneID2gene)
