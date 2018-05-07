@@ -206,7 +206,7 @@ class Plotter:
         # save plot to html
         return mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")
 
-    def makeScatterPlotSizeParalogFamilies(self, geneID2gene, paralogous):
+    def makeScatterPlotSizeParalogFamilies(self, geneID2gene, paralogous, disregardUnchangedGeneFamilies=False):
         def get_paralogousGenesFamilySizeInTool(paralogousGroups, tool):
             paralogousGenesFamilySize=[]
             for paralogousGroup in paralogousGroups:
@@ -231,10 +231,13 @@ class Plotter:
             #x = family size before correction
             #y = family size after correction
             #1/ (0,0) are excluded
+            #2/ if disregardUnchangedGeneFamilies is True, then gene families with the same size are disregarded
             dataPoints=[]
             for i in xrange(len(paralogousGeneFamilySizeBeforeCorrection)):
                 if paralogousGeneFamilySizeBeforeCorrection[i]>0 or paralogousGeneFamilySizeAfterCorrection[i]>0:
-                    dataPoints.append((paralogousGeneFamilySizeBeforeCorrection[i], paralogousGeneFamilySizeAfterCorrection[i]))
+                    if not disregardUnchangedGeneFamilies or \
+                       (disregardUnchangedGeneFamilies and paralogousGeneFamilySizeBeforeCorrection[i]!=paralogousGeneFamilySizeAfterCorrection[i]):
+                        dataPoints.append((paralogousGeneFamilySizeBeforeCorrection[i], paralogousGeneFamilySizeAfterCorrection[i]))
 
             dataPoint2Count={}
             for dataPoint in dataPoints:
@@ -273,7 +276,9 @@ class Plotter:
             plt.colorbar()
 
 
-
+        '''
+        In png:
         plt.savefig(self.plotsOutput+"/scatterPlotSizeParalogFamilies.png")
         return "<img src=plots/scatterPlotSizeParalogFamilies.png />"
-        #return mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")
+        '''
+        return mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")

@@ -168,6 +168,7 @@ def main():
     htmlDifferencesInRelativeExpressionsBoxPlot = plotter.makeDifferencesInRelativeExpressionsBoxPlot(geneID2gene)
     if paralogous != None:
         htmlScatterPlotSizeParalogFamilies = plotter.makeScatterPlotSizeParalogFamilies(geneID2gene, paralogous)
+        htmlScatterPlotSizeParalogFamiliesExcluingUnchanged = plotter.makeScatterPlotSizeParalogFamilies(geneID2gene, paralogous, True)
     print "Computing the plots - Done!"
 
 
@@ -201,6 +202,11 @@ def main():
                     line = line.replace("<htmlScatterPlotSizeParalogFamilies>", htmlScatterPlotSizeParalogFamilies)
                 else:
                     line = line.replace("<htmlScatterPlotSizeParalogFamilies>", "<p style='color: red; font-size: large;'>Paralogous file (--paralogous parameter) was not given, so we did not produce this plot. </p>")
+            if "<htmlScatterPlotSizeParalogFamiliesExcluingUnchanged>" in line:
+                if paralogous != None:
+                    line = line.replace("<htmlScatterPlotSizeParalogFamiliesExcluingUnchanged>", htmlScatterPlotSizeParalogFamiliesExcluingUnchanged)
+                else:
+                    line = line.replace("<htmlScatterPlotSizeParalogFamiliesExcluingUnchanged>", "<p style='color: red; font-size: large;'>Paralogous file (--paralogous parameter) was not given, so we did not produce this plot. </p>")
             indexTemplateLines[i] = line
 
 
