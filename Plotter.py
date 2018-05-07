@@ -238,8 +238,13 @@ class Plotter:
 
             plt.subplot(nbRowsInSubplot, nbOfColumnsInSubplot, toolIndex+1)
             plt.scatter(paralogousGeneFamilySizeAfterCorrectionNoZeros, paralogousGeneFamilySizeBeforeCorrectionNoZeros, alpha=0.5, label="Gene family")
+
+            #drawing the diagonal line
+            maxValue = max(max(paralogousGeneFamilySizeBeforeCorrectionNoZeros), max(paralogousGeneFamilySizeAfterCorrectionNoZeros))
+            plt.plot(range(maxValue+1), range(maxValue+1), alpha=0.5, color="black")
+
             plt.xlabel("Raw")
-            plt.ylabel("After correction")
+            plt.ylabel(tool)
             plt.legend()
 
         plt.savefig(self.plotsOutput+"/scatterPlotSizeParalogFamilies.png")
