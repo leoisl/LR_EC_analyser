@@ -80,10 +80,9 @@ class Plotter:
         self.toolsNoRaw=list(tools)
         self.toolsNoRaw.remove("raw.bam")
 
-    def __producePlotAsHTML(self, tool2Categories, blankSpace, xlabel, ylabel, displayInterval=False):
+    def __produceBarPlotAsHTML(self, tool2Categories, blankSpace, xlabel, ylabel, displayInterval=False):
         # produce the plot
-        # fig = plt.figure(figsize=(10, 5))
-        fig = plt.figure()
+        fig = plt.figure(figsize=(10, 5))
 
         #put the labels
         plt.xlabel(xlabel)
@@ -146,7 +145,7 @@ class Plotter:
 
 
         tool2DifferenceCategories = get_tool2DifferenceCategories()
-        return self.__producePlotAsHTML(tool2DifferenceCategories, blankSpace, "Difference on the number of isoforms", "Number of genes")
+        return self.__produceBarPlotAsHTML(tool2DifferenceCategories, blankSpace, "Difference on the number of isoforms", "Number of genes")
 
 
     def makeLostTranscriptInGenesWSP2Plot(self, geneID2gene, blankSpace=0.1):
@@ -175,7 +174,7 @@ class Plotter:
         Helper functions
         '''
         tool2RelativeTranscriptOfLostTranscriptCategories =get_tool2RelativeTranscriptOfLostTranscriptCategories()
-        return self.__producePlotAsHTML(tool2RelativeTranscriptOfLostTranscriptCategories, blankSpace, "Relative transcript coverage in relation to gene coverage", "Number of transcripts", True)
+        return self.__produceBarPlotAsHTML(tool2RelativeTranscriptOfLostTranscriptCategories, blankSpace, "Relative transcript coverage in relation to gene coverage", "Number of transcripts", True)
 
     def makeDifferencesInRelativeExpressionsBoxPlot(self, geneID2gene, blankSpace=0.1):
         def get_tool2DifferencesInRelativeExpressions():
@@ -194,7 +193,7 @@ class Plotter:
         tool2DifferencesInRelativeExpressions = get_tool2DifferencesInRelativeExpressions()
 
         #make the boxplot
-        fig = plt.figure()
+        fig = plt.figure(figsize=(10, 5))
 
         #put the labels
         plt.xlabel("Tools")
@@ -222,7 +221,7 @@ class Plotter:
         paralogousGeneFamilySizeAfterCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups,
                                                                                       self.toolsNoRaw[0])
 
-        fig = plt.figure()
+        fig = plt.figure(figsize=(10, 5))
         plt.scatter(paralogousGeneFamilySizeAfterCorrection, paralogousGeneFamilySizeBeforeCorrection, alpha=0.5, label="Gene family")
         plt.xlabel("Paralogous gene family size after correction")
         plt.ylabel("Paralogous gene family size before correction")
