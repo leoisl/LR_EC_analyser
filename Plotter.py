@@ -199,7 +199,7 @@ class Plotter:
         plt.xlabel("Tools")
         plt.ylabel("Relative expression")
         data=[tool2DifferencesInRelativeExpressions[tool] for tool in self.toolsNoRaw]
-        plt.boxplot(data, labels=self.toolsNoRaw)
+        plt.boxplot(data, labels=self.toolsNoRaw, sym='')
 
         # save plot to html
         return mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")
