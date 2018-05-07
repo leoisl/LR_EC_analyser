@@ -20,7 +20,7 @@ R
 
 Then you need to download the source files and setup the virtual environment. This can be done with:
 ```
-git clone --recursive https://gitlab.com/leoisl/LR_EC_analyser
+git clone https://gitlab.com/leoisl/LR_EC_analyser
 cd LR_EC_analyser
 bash setup.sh
 ```
