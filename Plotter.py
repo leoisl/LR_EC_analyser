@@ -222,9 +222,9 @@ class Plotter:
 
         paralogousGeneFamilySizeBeforeCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, "raw.bam")
 
-        nbOfColumnsInSubplot = 2
+        nbOfColumnsInSubplot = 3
         nbRowsInSubplot = int(math.ceil(float(len(self.toolsNoRaw))/nbOfColumnsInSubplot))
-        fig = plt.figure(figsize=(5*nbRowsInSubplot, 5*nbOfColumnsInSubplot))
+        fig = plt.figure(figsize=(5*nbOfColumnsInSubplot, 5*nbRowsInSubplot))
         for toolIndex, tool in enumerate(self.toolsNoRaw):
             paralogousGeneFamilySizeAfterCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, tool)
 
