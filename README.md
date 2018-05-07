@@ -8,9 +8,9 @@ makes use of IGV.js (https://github.com/igvteam/igv.js) for an in-depth gene and
 # WARNING
 Use Firefox or Safari to view the reports for the moment.
 
-# Requirements
+# Installing
 
-## For running the script, please have installed
+For installing and running the script, please have pre-installed
 ```
 python 2.7
 virtualenv
@@ -18,22 +18,13 @@ samtools (v1.8+ http://www.htslib.org/download/)
 R
 ```
 
-## For viewing the results
-### Viewing the html page:
-    Firefox or Safari (bugged on Chrome for the moment)
-### Viewing IGV plots (Gene stats and Transcript stats):
-In order to serve the bams for the browser, you need to start a web server to serve the required files:
-```
-cd LR_EC_analyser
-source venv/bin/activate
-python serve_files.py --output <output_folder>
-```
-
-
-# Installing
+Then you need to download the source files and setup the virtual environment. This can be done with:
 ```
 git clone --recursive https://gitlab.com/leoisl/LR_EC_analyser
+cd LR_EC_analyser
+bash setup.sh
 ```
+
 
 # Running on a sample example
 This sample example contains some real long reads as raw reads, and subsets of the raw reads with some substitutions and
@@ -47,6 +38,17 @@ python run_LR_EC_analyser.py --genome sample_data/Mus_musculus.GRCm38.dna.chromo
 ```
 
 The output can be found here: https://www.dropbox.com/s/phdsty29yszn47j/output_sample_data.tar.gz?dl=1
+
+# For viewing the results
+## Viewing the html page:
+    Firefox or Safari (bugged on Chrome for the moment)
+## Viewing IGV plots (Gene stats and Transcript stats):
+In order to serve the bams for the browser, you need to start a web server to serve the required files:
+```
+cd LR_EC_analyser
+source venv/bin/activate
+python serve_files.py --output <output_folder>
+```
 
 # Parameters
 ```
