@@ -251,7 +251,7 @@ class Plotter:
 
             #plot it
             plt.subplot(nbRowsInSubplot, nbOfColumnsInSubplot, toolIndex+1)
-            plt.scatter(xDataPoints, yDataPoints, c=colors, label="Gene family", cmap="coolwarm")
+            plt.scatter(xDataPoints, yDataPoints, c=colors, label="Gene family", cmap="bwr")
 
             #drawing the diagonal line
             maxValue = max(max(xDataPoints), max(yDataPoints))
