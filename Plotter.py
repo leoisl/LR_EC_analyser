@@ -221,7 +221,7 @@ class Plotter:
         paralogousGeneFamilySizeAfterCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups,
                                                                                       self.toolsNoRaw[0])
 
-        fig = plt.figure(figsize=(10, 5))
+        fig = plt.figure()
         plt.scatter(paralogousGeneFamilySizeAfterCorrection, paralogousGeneFamilySizeBeforeCorrection, alpha=0.5, label="Gene family")
         plt.xlabel("Paralogous gene family size after correction")
         plt.ylabel("Paralogous gene family size before correction")

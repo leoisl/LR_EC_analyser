@@ -35,8 +35,7 @@ class Paralogous:
         """
         Fix the groups id, i.e., if the groups id are 5, 8 and 9, after this function call, they will be 0, 1, 2
         """
-        # TODO: recode this, it is too bad
-
+        # TODO: recode this, it is not good
         #get the sorted unique groups id
         sortedGroupsId = sorted(list(self.paralogousGeneId2IdGroup.values()))
         uniqueGroupsId = []
@@ -72,4 +71,4 @@ class Paralogous:
         """
         :return: a list where each element is a paralogous group (a list of paralogous genes)
         """
-        return [ [geneId for index, geneId in enumerate(self.paralogousGeneId2IdGroup.keys()) if index == groupId] for groupId in xrange(self.groupSize) ]
+        return [ [geneId for geneId, groupId in self.paralogousGeneId2IdGroup.items() if groupId == id] for id in xrange(self.groupSize) ]
