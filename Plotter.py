@@ -219,13 +219,24 @@ class Plotter:
             return paralogousGenesFamilySize
 
         paralogousGroups = paralogous.getParalogousGroups()
+        print "Largest paralogous group:"
+        largest=paralogousGroups[0]
+        for paralogousGroup in paralogousGroups:
+            if len(paralogousGroup)>len(largest):
+                largest=paralogousGroup
+        print "Size: %s\nGroup: %s"%(len(largest), largest)
+
         paralogousGeneFamilySizeBeforeCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, "raw.bam")
+        print "paralogousGeneFamilySizeBeforeCorrection = "
+        print paralogousGeneFamilySizeBeforeCorrection
         fig = plt.figure(figsize=(10, 10))
 
         nbOfColumnsInSubplot = 2
         nRowsInSubplot = int(math.ceil(float(len(self.toolsNoRaw))/nbOfColumnsInSubplot))
         for i, tool in enumerate(self.toolsNoRaw):
             paralogousGeneFamilySizeAfterCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, tool)
+            print "%s="%(tool)
+            print paralogousGeneFamilySizeAfterCorrection
             plt.subplot(nRowsInSubplot, nbOfColumnsInSubplot, i+1)
             plt.scatter(paralogousGeneFamilySizeAfterCorrection, paralogousGeneFamilySizeBeforeCorrection, alpha=0.5, label="Gene family")
             plt.xlabel("Paralogous gene family size after correction")
