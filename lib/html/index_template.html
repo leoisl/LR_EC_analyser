@@ -15,6 +15,13 @@
             fillMainSubtable('LR_EC_error_stats_table', <statProfiler.getErrorStatsAsJSArrayForHOT()>, <tools>);
             fillFeatureTable('Gene', 'LR_EC_gene_table', <geneProfiler.geneProfileToJSArrayForHOT()>, <tools>);
             fillFeatureTable('Transcript', 'LR_EC_transcript_table', <geneProfiler.transcriptProfileToJSArrayForHOT()>, <tools>);
+            infixes=["read", "base", "error"]
+        	infixes.forEach(function(infix){
+        		$("input[id^=LR_EC_"+infix+"_stats_table_number_format]").change(function(elem){
+        			tableId = elem.target.name.replace("_number_format", "")
+            		HOTs[tableId].render()
+            	});
+        	})
         })
     </script>
 </head>
@@ -22,13 +29,25 @@
 <!-- Div for the main table -->
 <h1>Main stats</h1>
 <h2>Read stats (compilation from AlignQC reports)</h2>
+<p>Transform numbers in:</p>
+<input type="radio" name="LR_EC_read_stats_table_number_format" id="LR_EC_read_stats_table_number_format_M" value="M"> Millions (M) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="radio" name="LR_EC_read_stats_table_number_format" id="LR_EC_read_stats_table_number_format_K" value="K" checked> Kilos (K) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="radio" name="LR_EC_read_stats_table_number_format" id="LR_EC_read_stats_table_number_format_N" value="N"> None<br>
 <div id="LR_EC_read_stats_table"></div>
 
 <h2>Base stats (compilation from AlignQC reports)</h2>
+<p>Transform numbers in:</p>
+<input type="radio" name="LR_EC_base_stats_table_number_format" id="LR_EC_read_stats_table_number_format_M" value="M"> Millions (M) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="radio" name="LR_EC_base_stats_table_number_format" id="LR_EC_read_stats_table_number_format_K" value="K" checked> Kilos (K) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="radio" name="LR_EC_base_stats_table_number_format" id="LR_EC_read_stats_table_number_format_N" value="N"> None<br>
 <div id="LR_EC_base_stats_table"></div>
 
 
 <h2>Error stats (compilation from AlignQC reports)</h2>
+<p>Transform numbers in:</p>
+<input type="radio" name="LR_EC_error_stats_table_number_format" id="LR_EC_read_stats_table_number_format_M" value="M"> Millions (M) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="radio" name="LR_EC_error_stats_table_number_format" id="LR_EC_read_stats_table_number_format_K" value="K" checked> Kilos (K) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="radio" name="LR_EC_error_stats_table_number_format" id="LR_EC_read_stats_table_number_format_N" value="N"> None<br>
 <div id="LR_EC_error_stats_table"></div>
 
 <br/><br/>
