@@ -196,10 +196,10 @@ class Plotter:
         fig = plt.figure(figsize=(10, 5))
 
         #put the labels
-        plt.xlabel("Tools")
-        plt.ylabel("Relative expression")
+        plt.ylabel("Tools")
+        plt.xlabel("Relative expression")
         data=[tool2DifferencesInRelativeExpressions[tool] for tool in self.toolsNoRaw]
-        plt.boxplot(data, labels=self.toolsNoRaw, sym='')
+        plt.boxplot(data, labels=self.toolsNoRaw, sym='', vert=False)
 
         # save plot to html
         return mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")
