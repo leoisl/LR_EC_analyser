@@ -28,15 +28,14 @@ class Paralogous:
         idGroup2 = self.paralogousGeneId2IdGroup[geneId2]
         paralogousGenes1 = self.idGroup2paralogousGenes[idGroup1]
         paralogousGenes2 = self.idGroup2paralogousGenes[idGroup2]
-        if idGroup1<=idGroup2:
+        if idGroup1<idGroup2:
             self.paralogousGeneId2IdGroup[geneId2] = idGroup1
             paralogousGenes1+=paralogousGenes2
             del paralogousGenes2[:] #clearing this list of genes, since it was added to paralogousGenes1
-        else:
+        elif idGroup1>idGroup2:
             self.paralogousGeneId2IdGroup[geneId1] = idGroup2
             paralogousGenes2 += paralogousGenes1
             del paralogousGenes1[:]  # clearing this list of genes, since it was added to paralogousGenes2
-
 
     '''
     def __fixGroupsId(self):
@@ -74,7 +73,6 @@ class Paralogous:
                     continue
                 lineSplit = line.split()
                 self.__addParalogousRelation(lineSplit[0], lineSplit[1])
-        #self.__fixGroupsId()  # fix the groups' ids
 
 
     def getParalogousGroups(self):
