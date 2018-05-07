@@ -228,19 +228,33 @@ class Plotter:
         for toolIndex, tool in enumerate(self.toolsNoRaw):
             paralogousGeneFamilySizeAfterCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, tool)
 
-            #removing the gene families where we have 0s in both tools
-            paralogousGeneFamilySizeBeforeCorrectionNoZeros=[]
-            paralogousGeneFamilySizeAfterCorrectionNoZeros=[]
+            #get the data points:
+            #x = family size before correction
+            #y = family size after correction
+            #1/ (0,0) are excluded
+            dataPoints=[]
             for i in xrange(len(paralogousGeneFamilySizeBeforeCorrection)):
                 if paralogousGeneFamilySizeBeforeCorrection[i]>0 or paralogousGeneFamilySizeAfterCorrection[i]>0:
-                    paralogousGeneFamilySizeBeforeCorrectionNoZeros.append(paralogousGeneFamilySizeBeforeCorrection[i])
-                    paralogousGeneFamilySizeAfterCorrectionNoZeros.append(paralogousGeneFamilySizeAfterCorrection[i])
+                    dataPoints.append((paralogousGeneFamilySizeBeforeCorrection[i], paralogousGeneFamilySizeAfterCorrection[i]))
 
+            dataPoint2Count={}
+            for dataPoint in dataPoints:
+                if dataPoint not in dataPoint2Count:
+                    dataPoint2Count[dataPoint]=dataPoints.count(dataPoint)
+
+            #get the new datapoints
+            dataPoints=dataPoint2Count.keys()
+            xDataPoints = [x for x,y in dataPoints]
+            yDataPoints = [y for x, y in dataPoints]
+            #the counts will be the colors of the scatterplot
+            colors = dataPoint2Count.values()
+
+            #plot it
             plt.subplot(nbRowsInSubplot, nbOfColumnsInSubplot, toolIndex+1)
-            plt.scatter(paralogousGeneFamilySizeAfterCorrectionNoZeros, paralogousGeneFamilySizeBeforeCorrectionNoZeros, alpha=0.5, label="Gene family")
+            plt.scatter(xDataPoints, yDataPoints, colors, label="Gene family")
 
             #drawing the diagonal line
-            maxValue = max(max(paralogousGeneFamilySizeBeforeCorrectionNoZeros), max(paralogousGeneFamilySizeAfterCorrectionNoZeros))
+            maxValue = max(max(xDataPoints), max(yDataPoints))
             plt.plot(range(maxValue+1), range(maxValue+1), alpha=0.5, color="black")
 
             plt.xlabel("Raw")
