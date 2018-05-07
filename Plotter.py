@@ -222,10 +222,9 @@ class Plotter:
 
         paralogousGeneFamilySizeBeforeCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, "raw.bam")
 
-        nbOfColumnsInSubplot = 3
-        nbRowsInSubplot = int(math.ceil(float(len(self.toolsNoRaw))/nbOfColumnsInSubplot))
-        fig = plt.figure(figsize=(5*nbOfColumnsInSubplot, 5*nbRowsInSubplot))
-        for toolIndex, tool in enumerate(self.toolsNoRaw):
+        #get all the data to plot it
+        tool2PlotData={tool:{} for tool in self.toolsNoRaw}
+        for tool in self.toolsNoRaw:
             paralogousGeneFamilySizeAfterCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, tool)
 
             #get the data points:
@@ -244,24 +243,35 @@ class Plotter:
 
             #get the new datapoints
             dataPoints=dataPoint2Count.keys()
-            xDataPoints = [x for x,y in dataPoints]
-            yDataPoints = [y for x, y in dataPoints]
+            tool2PlotData[tool]["xDataPoints"] = [x for x,y in dataPoints]
+            tool2PlotData[tool]["yDataPoints"] = [y for x, y in dataPoints]
             #the counts will be the colors of the scatterplot
-            colors = dataPoint2Count.values()
+            tool2PlotData[tool]["count"] = dataPoint2Count.values()
+        largestFamilySize=max([max(max(plotData["xDataPoints"]), max(plotData["xDataPoints"])) for plotData in tool2PlotData.values()])
+        largestDatapointCount=max([max(plotData["count"]) for plotData in tool2PlotData.values()])
 
+
+        #plot the data
+        nbOfColumnsInSubplot = 3
+        nbRowsInSubplot = int(math.ceil(float(len(self.toolsNoRaw)) / nbOfColumnsInSubplot))
+        fig = plt.figure(figsize=(5 * nbOfColumnsInSubplot, 5 * nbRowsInSubplot))
+        for toolIndex, tool in enumerate(self.toolsNoRaw):
             #plot it
             plt.subplot(nbRowsInSubplot, nbOfColumnsInSubplot, toolIndex+1)
-            plt.scatter(xDataPoints, yDataPoints, c=colors, cmap="bwr")
-
-            #drawing the diagonal line
-            maxValue = max(max(xDataPoints), max(yDataPoints))
-            plt.plot(range(maxValue+1), range(maxValue+1), alpha=0.5, color="black")
+            plt.scatter(tool2PlotData[tool]["xDataPoints"], tool2PlotData[tool]["yDataPoints"], c=tool2PlotData[tool]["count"], cmap="bwr", vmin=0, vmax=largestDatapointCount)
+            plt.xlim(0, largestFamilySize+1)
+            plt.ylim(0, largestFamilySize+1)
+            plt.xticks(range(0, largestFamilySize + 2, 2))
+            plt.yticks(range(0, largestFamilySize + 2, 2))
+            plt.plot(range(largestFamilySize+1), range(largestFamilySize+1), alpha=0.5, color="black")
 
 
             #putting the labels
             plt.xlabel("Raw")
             plt.ylabel(tool)
             plt.colorbar()
+
+
 
         plt.savefig(self.plotsOutput+"/scatterPlotSizeParalogFamilies.png")
         return "<img src=plots/scatterPlotSizeParalogFamilies.png />"
