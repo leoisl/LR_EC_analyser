@@ -251,15 +251,17 @@ class Plotter:
 
             #plot it
             plt.subplot(nbRowsInSubplot, nbOfColumnsInSubplot, toolIndex+1)
-            plt.scatter(xDataPoints, yDataPoints, c=colors, label="Gene family", cmap="bwr")
+            plt.scatter(xDataPoints, yDataPoints, c=colors, cmap="bwr")
 
             #drawing the diagonal line
             maxValue = max(max(xDataPoints), max(yDataPoints))
             plt.plot(range(maxValue+1), range(maxValue+1), alpha=0.5, color="black")
 
+
+            #putting the labels
             plt.xlabel("Raw")
             plt.ylabel(tool)
-            plt.legend()
+            plt.colorbar()
 
         plt.savefig(self.plotsOutput+"/scatterPlotSizeParalogFamilies.png")
         return "<img src=plots/scatterPlotSizeParalogFamilies.png />"
