@@ -247,7 +247,7 @@ class Plotter:
             tool2PlotData[tool]["yDataPoints"] = [y for x, y in dataPoints]
             #the counts will be the colors of the scatterplot
             tool2PlotData[tool]["count"] = dataPoint2Count.values()
-        largestFamilySize=max([max(max(plotData["xDataPoints"]), max(plotData["xDataPoints"])) for plotData in tool2PlotData.values()])
+        largestFamilySize=max([max(max(plotData["xDataPoints"]), max(plotData["yDataPoints"])) for plotData in tool2PlotData.values()])
         largestDatapointCount=max([max(plotData["count"]) for plotData in tool2PlotData.values()])
 
 
