@@ -8,7 +8,7 @@ class Paralogous:
     """
     def __init__(self, geneID2gene):
         self.paralogousGeneId2IdGroup={geneId:i for i, geneId in enumerate(geneID2gene.keys())} #create a union-find structure
-        self.groupSize = len(geneID2gene.keys())
+        self.idGroup2paralogousGenes = {i:[geneId] for i, geneId in enumerate(geneID2gene.keys())}  # create a union-find structure
 
 
     def __addParalogousRelation(self, geneId1, geneId2):
@@ -26,14 +26,24 @@ class Paralogous:
 
         idGroup1 = self.paralogousGeneId2IdGroup[geneId1]
         idGroup2 = self.paralogousGeneId2IdGroup[geneId2]
-        minId = min(idGroup1, idGroup2)
-        self.paralogousGeneId2IdGroup[geneId1] = minId
-        self.paralogousGeneId2IdGroup[geneId2] = minId
+        paralogousGenes1 = self.idGroup2paralogousGenes[idGroup1]
+        paralogousGenes2 = self.idGroup2paralogousGenes[idGroup2]
+        if idGroup1<=idGroup2:
+            self.paralogousGeneId2IdGroup[geneId2] = idGroup1
+            paralogousGenes1+=paralogousGenes2
+            del paralogousGenes2[:] #clearing this list of genes, since it was added to paralogousGenes1
+        else:
+            self.paralogousGeneId2IdGroup[geneId1] = idGroup2
+            paralogousGenes2 += paralogousGenes1
+            del paralogousGenes1[:]  # clearing this list of genes, since it was added to paralogousGenes2
 
 
+    '''
     def __fixGroupsId(self):
         """
+        This function is not needed, but I am leaving it just in case...
         Fix the groups id, i.e., if the groups id are 5, 8 and 9, after this function call, they will be 0, 1, 2
+
         """
         # TODO: recode this, it is not good
         #get the sorted unique groups id
@@ -50,7 +60,7 @@ class Paralogous:
 
         #update the size
         self.groupSize = max(oldId2NewId.values())+1
-
+    '''
 
     def readParalogousFile(self, filename):
         """
@@ -64,11 +74,11 @@ class Paralogous:
                     continue
                 lineSplit = line.split()
                 self.__addParalogousRelation(lineSplit[0], lineSplit[1])
-        self.__fixGroupsId()  # fix the groups' ids
+        #self.__fixGroupsId()  # fix the groups' ids
 
 
     def getParalogousGroups(self):
         """
         :return: a list where each element is a paralogous group (a list of paralogous genes)
         """
-        return [ [geneId for geneId, groupId in self.paralogousGeneId2IdGroup.items() if groupId == id] for id in xrange(self.groupSize) ]
+        return self.idGroup2paralogousGenes.values()
