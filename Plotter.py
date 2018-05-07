@@ -219,28 +219,27 @@ class Plotter:
             return paralogousGenesFamilySize
 
         paralogousGroups = paralogous.getParalogousGroups()
-        print "Largest paralogous group:"
-        largest=paralogousGroups[0]
-        for paralogousGroup in paralogousGroups:
-            if len(paralogousGroup)>len(largest):
-                largest=paralogousGroup
-        print "Size: %s\nGroup: %s"%(len(largest), largest)
 
         paralogousGeneFamilySizeBeforeCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, "raw.bam")
-        #print "paralogousGeneFamilySizeBeforeCorrection = "
-        #print paralogousGeneFamilySizeBeforeCorrection
         fig = plt.figure(figsize=(10, 10))
 
         nbOfColumnsInSubplot = 2
         nRowsInSubplot = int(math.ceil(float(len(self.toolsNoRaw))/nbOfColumnsInSubplot))
-        for i, tool in enumerate(self.toolsNoRaw):
+        for toolIndex, tool in enumerate(self.toolsNoRaw):
             paralogousGeneFamilySizeAfterCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, tool)
-            #print "%s="%(tool)
-            #print paralogousGeneFamilySizeAfterCorrection
-            plt.subplot(nRowsInSubplot, nbOfColumnsInSubplot, i+1)
-            plt.scatter(paralogousGeneFamilySizeAfterCorrection, paralogousGeneFamilySizeBeforeCorrection, alpha=0.5, label="Gene family")
-            plt.xlabel("Paralogous gene family size after correction")
-            plt.ylabel("Paralogous gene family size before correction")
+
+            #removing the gene families where we have 0s in both tools
+            paralogousGeneFamilySizeBeforeCorrectionNoZeros=[]
+            paralogousGeneFamilySizeAfterCorrectionNoZeros=[]
+            for i in xrange(len(paralogousGeneFamilySizeBeforeCorrection)):
+                if paralogousGeneFamilySizeBeforeCorrection[i]>0 or paralogousGeneFamilySizeAfterCorrection[i]>0:
+                    paralogousGeneFamilySizeBeforeCorrectionNoZeros.append(paralogousGeneFamilySizeBeforeCorrection[i])
+                    paralogousGeneFamilySizeAfterCorrectionNoZeros.append(paralogousGeneFamilySizeAfterCorrection[i])
+
+            plt.subplot(nRowsInSubplot, nbOfColumnsInSubplot, toolIndex+1)
+            plt.scatter(paralogousGeneFamilySizeAfterCorrectionNoZeros, paralogousGeneFamilySizeBeforeCorrectionNoZeros, alpha=0.5, label="Gene family")
+            plt.xlabel("Raw")
+            plt.ylabel("After correction")
             plt.legend()
 
         plt.savefig(self.plotsOutput+"/scatterPlotSizeParalogFamilies.png")
