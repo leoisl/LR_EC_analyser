@@ -5,6 +5,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import mpld3
+import math
 from decimal import Decimal
 
 class Category:
@@ -216,14 +217,24 @@ class Plotter:
 
             return paralogousGenesFamilySize
 
+        print "paralogousGroups = paralogous.getParalogousGroups()"
         paralogousGroups = paralogous.getParalogousGroups()
+        print "paralogousGroups = paralogous.getParalogousGroups() - Done"
         paralogousGeneFamilySizeBeforeCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, "raw.bam")
-        paralogousGeneFamilySizeAfterCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups,
-                                                                                      self.toolsNoRaw[0])
+        fig = plt.figure(figsize=(10, 10))
 
-        fig = plt.figure()
-        plt.scatter(paralogousGeneFamilySizeAfterCorrection, paralogousGeneFamilySizeBeforeCorrection, alpha=0.5, label="Gene family")
-        plt.xlabel("Paralogous gene family size after correction")
-        plt.ylabel("Paralogous gene family size before correction")
-        plt.legend()
+        nbOfColumnsInSubplot = 2
+        nRowsInSubplot = int(math.ceil(float(len(self.toolsNoRaw))/nbOfColumnsInSubplot))
+        for i, tool in enumerate(self.toolsNoRaw):
+            print "paralogousGeneFamilySizeAfterCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, tool)"
+            paralogousGeneFamilySizeAfterCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, tool)
+            print "paralogousGeneFamilySizeAfterCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, tool) - Done"
+
+            print "plotting..."
+            plt.subplot(nRowsInSubplot, nbOfColumnsInSubplot, i+1)
+            plt.scatter(paralogousGeneFamilySizeAfterCorrection, paralogousGeneFamilySizeBeforeCorrection, alpha=0.5, label="Gene family")
+            plt.xlabel("Paralogous gene family size after correction")
+            plt.ylabel("Paralogous gene family size before correction")
+            plt.legend()
+            print "plotting - Done"
         return mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")
