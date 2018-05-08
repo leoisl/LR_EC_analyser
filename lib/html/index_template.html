@@ -114,23 +114,25 @@ Otherwise we could account for lost genes, and these would inflate the high rela
 
 <h2>Distribution of the difference of relative expression in the transcripts</h2>
 This box and whisker plot represents the distribution of the difference of relative expression in the transcripts.<br/>
-It was done by taking, for each tool, each transcript that is expressed either in the raw reads or in the tool, and computing the absolute difference between the relative expression of the transcript.<br/>
+It was done by taking, for each tool, each transcript that is expressed either in the raw reads or in the tool, and computing the absolute difference between the relative expression of the transcript before and after correction.<br/>
 The relative expression of a transcript is the number of reads mapping to the transcript divided by the number of reads mapping to its gene.<br/>
-OBS: outliers were removed because in real data, there are so many that it is very slow to show the graph and the page becomes extremely slow (show it as image is a solution...)?<br/>
+OBS: outliers were removed because in real data, there are so many that it is very slow to show the graph and the page becomes extremely slow (show it as image is a solution..., shall we do it?)<br/>
 <htmlDifferencesInRelativeExpressionsBoxPlot>
 
 <br/><br/>
 <h1>Gene stats</h1>
+This is supposed to be a feature that allows users to see some genes in details, but I am not sure if it is good...<br/>
 Delta value is the largest difference between the # of reads mapping to a gene in a tool and in raw reads<br/>
 I guess sorting by it could be interesting...<br/>
-This is supposed to be a feature that allows users to see some genes in details, but I am not sure if it is good...<br/>
+
 <div id="LR_EC_gene_table" class="scrollableTable"></div>
 
 <br/><br/>
 <h1>Transcript stats</h1>
+This is supposed to be a feature that allows users to see some transcripts in details, but I am not sure if it is good...<br/>
 Delta value is the largest difference between the # of reads mapping to a gene in a tool and in raw reads.<br/>
 I guess sorting by it could be interesting...<br/>
-This is supposed to be a feature that allows users to see some transcripts in details, but I am not sure if it is good...<br/>
+    
 <div id="LR_EC_transcript_table" class="scrollableTable"></div>
 </body>
 </html>
