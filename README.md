@@ -18,6 +18,7 @@ python 2.7
 virtualenv
 samtools (v1.8+ http://www.htslib.org/download/)
 R
+Java 8
 ```
 
 Then you need to download the source files and setup the virtual environment. This can be done with:
@@ -79,10 +80,11 @@ optional arguments:
 # Thirdparties
 1. AlignQC (https://github.com/jason-weirather/AlignQC)
 2. IGV.js (https://github.com/igvteam/igv.js)
-3. samtools (http://www.htslib.org)
-4. handsontable (https://handsontable.com/)
-5. matplotlib (https://matplotlib.org/)
-6. mpld3 (http://mpld3.github.io/)
-7. Twisted (https://twistedmatrix.com/trac/)
-8. querystring (https://github.com/jgallen23/querystring)
-9. jQuery (http://jquery.com/)
+3. IGVTools (https://software.broadinstitute.org/software/igv/igvtools)
+4. samtools (http://www.htslib.org)
+5. handsontable (https://handsontable.com/)
+6. matplotlib (https://matplotlib.org/)
+7. mpld3 (http://mpld3.github.io/)
+8. Twisted (https://twistedmatrix.com/trac/)
+9. querystring (https://github.com/jgallen23/querystring)
+10. jQuery (http://jquery.com/)
