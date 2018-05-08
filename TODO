@@ -1,32 +1,36 @@
--Quantif correlation between the raw and error correction tools?
-    -Like what Camille does with the quantif of Nanopore vs Illumina
-
--Paralogous
-    -How to really get families of paralogous genes???
-        -Is the method I am doing correctly?
-
--Error reporting
-    -When finishing the output, but a 5kb long string in a javascript file - this will be the id of the run
-    -Put the id also in the final html page (hard-coded)
-    -In the index page, in the Gene and transcript table, check if the server is alive. If not, show a warning saying that IGV won't work
-    -If the server is alive, ask for the id. The id must match the on in the index html, otherwise issue an error
-    -If everything is fine, show a message
-    -Have a small form with an input for a port and a button "Retry" that checks if the server is fine
-
-
-IGV performance:
-    -For IGV, better convert gtf -> bed and index the bed (or ask for a bed, or use the gtf without being indexed)
-        or index the gtf directly (did not find how to do this)
-    -Work on IGV page
+Priority:
+    IGV:
         -Zoom in to see features is not nice
+            -I guess we can work with visibilityWindow (see https://github.com/igvteam/igv.js/wiki/Tracks-1.0)
+            -It should be set to the length of the gene/transcript
+        -ENSMUSG00000025200 in the sample data gives an error because the bam files in some tools are empty
+            -Check it to not give errors anymore
+    -Add all plots from the paper
 
 
-Presentation:
-    -Coloring, ranking and percentage filter
 
-ENSMUSG00000025200 in the sample data gives an error because the bam files in some tools are empty
-    Check it to not give errors anymore
 
-Add the other plots from the paper
+Normal:
+    -Checking if the file server is online/verifying the file server
+        -When finishing the output, but a 5kb long string in a javascript file - this will be the id of the run
+        -Put the id also in the final html page (hard-coded)
+        -In the index page, in the Gene and transcript table, check if the server is alive. If not, show a warning saying that IGV won't work
+        -If the server is alive, ask for the id. The id must match the on in the index html, otherwise issue an error
+        -If everything is fine, show a message
+        -Have a small form with an input for a port and a button "Retry" that checks if the server is fine
 
-Add new plots
+    -Presentation:
+        -Coloring, ranking and percentage filter
+
+    -Think about new plots:
+        -Quantif correlation between the raw and error correction tools?
+            -Like what Camille does with the quantif of Nanopore vs Illumina
+
+
+
+
+
+Low priority:
+    -Paralogous
+        -How to really get families of paralogous genes???
+            -Is the method I am doing correctly?
