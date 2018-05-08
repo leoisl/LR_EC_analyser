@@ -8,7 +8,7 @@ in a HTML report. It also makes use of IGV.js (https://github.com/igvteam/igv.js
 # WARNING
 Use Firefox or Safari to view the reports for the moment.
 
-Google Chrome browsers has a bug with IGV.js for now.
+Google Chrome browser has a bug with IGV.js for now.
 
 # Installing
 
@@ -28,18 +28,9 @@ bash setup.sh
 ```
 
 
-[//]: # # Running on a sample example
-[//]: # This sample example contains some real long reads as raw reads, and subsets of the raw reads with some substitutions and
-[//]: # indels artificially inserted as error-corrected reads. It is just for a proof of concept, no real error correction tools
-[//]: # were ran in these reads. To run the tool on this sample example, do:
+# Running on a sample example
 
-[//]: # ```
-[//]: # cd LR_EC_analyser
-[//]: # source venv/bin/activate
-[//]: # python run_LR_EC_analyser.py --genome sample_data/Mus_musculus.GRCm38.dna.chromosome.19.fa --gtf sample_data/Mus_musculus.GRCm38.91.chr19.gtf -t 4 -o sample_data/output --raw sample_data/gmap_CB_1Donly_to_GRCm38_chr19.bam sample_data/good.gmap.chr19.bam sample_data/indels.gmap.chr19.bam sample_data/subs.gmap.chr19.bam
-[//]: # ```
-
-[//]: # The output can be found here: https://www.dropbox.com/s/phdsty29yszn47j/output_sample_data.tar.gz?dl=1
+TODO
 
 # For viewing the results
 ## Viewing the html page:
