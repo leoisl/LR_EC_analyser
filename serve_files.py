@@ -27,7 +27,7 @@ class ResponseFile(File):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Serve files rooted at the output parameter. Accepts CORS and POST.')
-    parser.add_argument("--output", help="Output folder served.", required=True)
+    parser.add_argument("output", help="Output folder served.")
     parser.add_argument("--port", type=int, help="The port to use", default=19974)
     args=parser.parse_args()
 
