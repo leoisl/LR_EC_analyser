@@ -7,6 +7,7 @@ import numpy as np
 import mpld3
 import math
 from decimal import Decimal
+import traceback
 
 class Category:
     def __init__(self, start, end, step):
@@ -207,80 +208,85 @@ class Plotter:
         return mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")
 
     def makeScatterPlotSizeParalogFamilies(self, geneID2gene, paralogous, disregardUnchangedGeneFamilies=False, includeOnlyCommonGenes=False):
-        def get_paralogousGenesFamilySizeInTool(paralogousGroups, tool):
-            paralogousGenesFamilySize=[]
-            for paralogousGroup in paralogousGroups:
-                paralogousGeneFamilySize = 0
-                for geneId in paralogousGroup:
-                    if geneID2gene[geneId].profile.isExpressedInTool(tool):
-                        paralogousGeneFamilySize += 1
-                paralogousGenesFamilySize.append(paralogousGeneFamilySize)
+        try:
+            def get_paralogousGenesFamilySizeInTool(paralogousGroups, tool):
+                paralogousGenesFamilySize=[]
+                for paralogousGroup in paralogousGroups:
+                    paralogousGeneFamilySize = 0
+                    for geneId in paralogousGroup:
+                        if geneID2gene[geneId].profile.isExpressedInTool(tool):
+                            paralogousGeneFamilySize += 1
+                    paralogousGenesFamilySize.append(paralogousGeneFamilySize)
 
-            return paralogousGenesFamilySize
+                return paralogousGenesFamilySize
 
-        paralogousGroups = paralogous.getParalogousGroups()
+            paralogousGroups = paralogous.getParalogousGroups()
 
-        paralogousGeneFamilySizeBeforeCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, "raw.bam")
+            paralogousGeneFamilySizeBeforeCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, "raw.bam")
 
-        #get all the data to plot it
-        tool2PlotData={tool:{} for tool in self.toolsNoRaw}
-        for tool in self.toolsNoRaw:
-            paralogousGeneFamilySizeAfterCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, tool)
+            #get all the data to plot it
+            tool2PlotData={tool:{} for tool in self.toolsNoRaw}
+            for tool in self.toolsNoRaw:
+                paralogousGeneFamilySizeAfterCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, tool)
 
-            #get the data points:
-            #x = family size before correction
-            #y = family size after correction
-            #1/ (0,0) are excluded
-            #2/ if disregardUnchangedGeneFamilies is True, then gene families with the same size are disregarded
-            #3/ if includeOnlyCommonGenes is True, then only gene families present before and after are considered
-            dataPoints=[]
-            for i in xrange(len(paralogousGeneFamilySizeBeforeCorrection)):
-                if (includeOnlyCommonGenes and paralogousGeneFamilySizeBeforeCorrection[i]>0 and paralogousGeneFamilySizeAfterCorrection[i]>0) or \
-                   (not includeOnlyCommonGenes and (paralogousGeneFamilySizeBeforeCorrection[i]>0 or paralogousGeneFamilySizeAfterCorrection[i]>0)):
-                    if not disregardUnchangedGeneFamilies or \
-                       (disregardUnchangedGeneFamilies and paralogousGeneFamilySizeBeforeCorrection[i]!=paralogousGeneFamilySizeAfterCorrection[i]):
-                        dataPoints.append((paralogousGeneFamilySizeBeforeCorrection[i], paralogousGeneFamilySizeAfterCorrection[i]))
+                #get the data points:
+                #x = family size before correction
+                #y = family size after correction
+                #1/ (0,0) are excluded
+                #2/ if disregardUnchangedGeneFamilies is True, then gene families with the same size are disregarded
+                #3/ if includeOnlyCommonGenes is True, then only gene families present before and after are considered
+                dataPoints=[]
+                for i in xrange(len(paralogousGeneFamilySizeBeforeCorrection)):
+                    if (includeOnlyCommonGenes and paralogousGeneFamilySizeBeforeCorrection[i]>0 and paralogousGeneFamilySizeAfterCorrection[i]>0) or \
+                       (not includeOnlyCommonGenes and (paralogousGeneFamilySizeBeforeCorrection[i]>0 or paralogousGeneFamilySizeAfterCorrection[i]>0)):
+                        if not disregardUnchangedGeneFamilies or \
+                           (disregardUnchangedGeneFamilies and paralogousGeneFamilySizeBeforeCorrection[i]!=paralogousGeneFamilySizeAfterCorrection[i]):
+                            dataPoints.append((paralogousGeneFamilySizeBeforeCorrection[i], paralogousGeneFamilySizeAfterCorrection[i]))
 
-            dataPoint2Count={}
-            for dataPoint in dataPoints:
-                if dataPoint not in dataPoint2Count:
-                    dataPoint2Count[dataPoint]=dataPoints.count(dataPoint)
+                dataPoint2Count={}
+                for dataPoint in dataPoints:
+                    if dataPoint not in dataPoint2Count:
+                        dataPoint2Count[dataPoint]=dataPoints.count(dataPoint)
 
-            #get the new datapoints
-            dataPoints=dataPoint2Count.keys()
-            tool2PlotData[tool]["xDataPoints"] = [x for x,y in dataPoints]
-            tool2PlotData[tool]["yDataPoints"] = [y for x, y in dataPoints]
-            #the counts will be the colors of the scatterplot
-            tool2PlotData[tool]["count"] = dataPoint2Count.values()
-        largestFamilySize=max([max(max(plotData["xDataPoints"]), max(plotData["yDataPoints"])) for plotData in tool2PlotData.values()])
-        largestDatapointCount=max([max(plotData["count"]) for plotData in tool2PlotData.values()])
-
-
-        #plot the data
-        nbOfColumnsInSubplot = 3
-        nbRowsInSubplot = int(math.ceil(float(len(self.toolsNoRaw)) / nbOfColumnsInSubplot))
-        fig = plt.figure(figsize=(5 * nbOfColumnsInSubplot, 5 * nbRowsInSubplot))
-        for toolIndex, tool in enumerate(self.toolsNoRaw):
-            #plot it
-            plt.subplot(nbRowsInSubplot, nbOfColumnsInSubplot, toolIndex+1)
-            plt.scatter(tool2PlotData[tool]["xDataPoints"], tool2PlotData[tool]["yDataPoints"], c=tool2PlotData[tool]["count"],
-                        cmap="bwr", vmin=0, vmax=largestDatapointCount, edgecolors="black")
-            plt.xlim(0, largestFamilySize+1)
-            plt.ylim(0, largestFamilySize+1)
-            plt.xticks(range(0, largestFamilySize + 2, 2))
-            plt.yticks(range(0, largestFamilySize + 2, 2))
-            plt.plot(range(largestFamilySize+1), range(largestFamilySize+1), alpha=0.5, color="black")
+                #get the new datapoints
+                dataPoints=dataPoint2Count.keys()
+                tool2PlotData[tool]["xDataPoints"] = [x for x,y in dataPoints]
+                tool2PlotData[tool]["yDataPoints"] = [y for x, y in dataPoints]
+                #the counts will be the colors of the scatterplot
+                tool2PlotData[tool]["count"] = dataPoint2Count.values()
+            largestFamilySize=max([max(max(plotData["xDataPoints"]), max(plotData["yDataPoints"])) for plotData in tool2PlotData.values()])
+            largestDatapointCount=max([max(plotData["count"]) for plotData in tool2PlotData.values()])
 
 
-            #putting the labels
-            plt.xlabel("Raw")
-            plt.ylabel(tool)
-            plt.colorbar()
+            #plot the data
+            nbOfColumnsInSubplot = 3
+            nbRowsInSubplot = int(math.ceil(float(len(self.toolsNoRaw)) / nbOfColumnsInSubplot))
+            fig = plt.figure(figsize=(5 * nbOfColumnsInSubplot, 5 * nbRowsInSubplot))
+            for toolIndex, tool in enumerate(self.toolsNoRaw):
+                #plot it
+                plt.subplot(nbRowsInSubplot, nbOfColumnsInSubplot, toolIndex+1)
+                plt.scatter(tool2PlotData[tool]["xDataPoints"], tool2PlotData[tool]["yDataPoints"], c=tool2PlotData[tool]["count"],
+                            cmap="bwr", vmin=0, vmax=largestDatapointCount, edgecolors="black")
+                plt.xlim(0, largestFamilySize+1)
+                plt.ylim(0, largestFamilySize+1)
+                plt.xticks(range(0, largestFamilySize + 2, 2))
+                plt.yticks(range(0, largestFamilySize + 2, 2))
+                plt.plot(range(largestFamilySize+1), range(largestFamilySize+1), alpha=0.5, color="black")
 
 
-        '''
-        In png:
-        plt.savefig(self.plotsOutput+"/scatterPlotSizeParalogFamilies.png")
-        return "<img src=plots/scatterPlotSizeParalogFamilies.png />"
-        '''
-        return mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")
+                #putting the labels
+                plt.xlabel("Raw")
+                plt.ylabel(tool)
+                plt.colorbar()
+
+
+            '''
+            In png:
+            plt.savefig(self.plotsOutput+"/scatterPlotSizeParalogFamilies.png")
+            return "<img src=plots/scatterPlotSizeParalogFamilies.png />"
+            '''
+            return mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")
+        except:
+            traceback.print_exc()
+            #TODO: treat this better - we report error on computing all plots even if a single plot fails
+            return "<p style='color: red; font-size: large;'>Error on computing this plot...</p>"

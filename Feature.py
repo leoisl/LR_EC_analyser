@@ -19,7 +19,7 @@ class Profile:
         return max([abs(nbOfMappedRawReads-self.tool2NbOfMappedReads[tool]) for tool in self.tool2NbOfMappedReads] )
 
     def getProfileAsArrayForHot(self):
-        return [str(self.tool2NbOfMappedReads[tool]) for tool in self.toolsOrder] + [str(self.computeLargestDiscrepancy())]
+        return [str(self.computeLargestDiscrepancy())] + [str(self.tool2NbOfMappedReads[tool]) for tool in self.toolsOrder]
 
     def isExpressedInTool(self, tool):
         return self.tool2NbOfMappedReads[tool]>0
@@ -52,7 +52,9 @@ class Feature:
         return "'%s:%d-%d'"%(self.chromosome, self.begin, self.end)
 
     def getASArrayForHOT(self):
-        return ["'%s'"%self.id, self.getLocusInIGVJSFormat(), "'%s'"%self.strand] + self.profile.getProfileAsArrayForHot()
+        #TODO: is it better to return just the gene name (this line commented out returns gene name, chr and strand)
+        #return ["'%s'"%self.id, self.getLocusInIGVJSFormat(), "'%s'"%self.strand] + self.profile.getProfileAsArrayForHot()
+        return ["'%s'"%self.id] + self.profile.getProfileAsArrayForHot()
 
     def computeRelativeExpression(self, tool):
         """

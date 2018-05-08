@@ -80,6 +80,16 @@ class FeatureProfiler:
         listOfKeyValues=["%s=%s"%(key,value) for key,value in igvInfo.items()]
         return ["'" + urllib.quote("&".join(listOfKeyValues), safe='') + "'"]
 
+    def __getFeatureASArrayForHOT(self, feature):
+        """
+        Basically this get the feature as Array for HOT and add IGV info just after the gene in featureAsArrayForHOT
+        :param featureAsArrayForHOT:
+        :return: a javascript array
+        """
+        featureAsArrayForHOT = feature.getASArrayForHOT()
+        featureAsArrayForHOT = featureAsArrayForHOT [:2] + self.__buildIGVInfo(feature) + featureAsArrayForHOT[2:]
+        return "[%s]"%(",".join(featureAsArrayForHOT))
+
     def geneProfileToJSArrayForHOT(self):
         """
         Transforms this object in a format to JSArray to be put in a Hands-on table
@@ -89,8 +99,7 @@ class FeatureProfiler:
         stringList=[]
         for gene in self.geneId2Gene.values():
             if gene.profile.isExpressedInAnyTool():
-                stringList.append("[" + ",".join(gene.getASArrayForHOT() +
-                                                 self.__buildIGVInfo(gene)) + "]")
+                stringList.append(self.__getFeatureASArrayForHOT(gene))
         return "[" + ",".join(stringList) + "]"
 
     def transcriptProfileToJSArrayForHOT(self):
@@ -104,7 +113,7 @@ class FeatureProfiler:
             if gene.profile.isExpressedInAnyTool():
                 for transcript in gene.transcriptId2Transcript.values():
                     if transcript.profile.isExpressedInAnyTool():
-                        stringList.append("[" + ",".join(transcript.getASArrayForHOT() + self.__buildIGVInfo(transcript)) + "]")
+                        stringList.append(self.__getFeatureASArrayForHOT(transcript))
         return "[" + ",".join(stringList) + "]"
 
 
