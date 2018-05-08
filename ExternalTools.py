@@ -33,9 +33,17 @@ def processBam(bam, outputBam, threads):
 
 def runAlignQC(tool, bam, genome, gtf, outputFolder, threads):
     print "Running AlignQC for %s..." % bam
-    executeCommandLine("python %s/AlignQC/alignqc/alignqc.py analyze %s -g %s -t %s --output_folder %s/alignqc_out_on_%s --threads %d" % \
-                            (scriptDir, bam, genome, gtf, outputFolder, tool, threads))
+    executeCommandLine("alignqc analyze %s -g %s -t %s --output_folder %s/alignqc_out_on_%s --threads %d" % \
+                            (bam, genome, gtf, outputFolder, tool, threads))
     print "Running AlignQC for %s - Done!" % bam
+
+def sortAndIndexGTF(gtfFile):
+    print "Sorting and indexing %s..." % gtfFile
+    executeCommandLine("java -jar %s/IGVTools/igvtools.jar sort %s %s.sorted.gtf"%(scriptDir, gtfFile, gtfFile))
+    os.remove(gtfFile)
+    os.rename("%s.sorted.gtf"%gtfFile, gtfFile)
+    executeCommandLine("java -jar %s/IGVTools/igvtools.jar index %s" % (scriptDir, gtfFile))
+    print "Sorting and indexing %s - Done!" % gtfFile
 
 #This function was used to split the bam into several bams, to try to make IGV faster
 #It did not work, but let's keep this anyway...

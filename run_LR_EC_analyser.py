@@ -102,12 +102,13 @@ def main():
     #get genes from gtf
     geneID2gene = parseGTFToGetGenes(args.gtf, tools)
 
-    # copy gtf to output
+    # index and copy gtf to output
     gtf = args.output + "/" + os.path.basename(args.gtf)
     if not args.skip_copying:
         shutil.copy(args.gtf, args.output)
+        sortAndIndexGTF(gtf)
     else:
-        print "Skipping transcriptome copying..."
+        print "Skipping transcriptome copying and indexing..."
 
     #get the paralogous info, if given
     paralogous = None
