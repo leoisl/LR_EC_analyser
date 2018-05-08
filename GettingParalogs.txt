@@ -11,5 +11,5 @@
 5/ Click on Results and download the file as Compressed file (.gz) format TSV and check Unique results only
     Name it Mus_musculus.GRCm38.87.paralog_genes.txt.gz
 6/ gunzip Mus_musculus.GRCm38.87.paralog_genes.txt.gz
-7/ Getting the genes with paralogues where the identify is 90%+
-    awk '$3>=90 || $4>=90' Mus_musculus.GRCm38.87.paralog_genes.txt > Mus_musculus.GRCm38.87.paralog_genes.90_percent_plus_identity.txt
+7/ Getting the genes with paralogues where the identify is 80%+
+    awk '$3>=80 || $4>=80' Mus_musculus.GRCm38.87.paralog_genes.txt > Mus_musculus.GRCm38.87.paralog_genes.80_percent_plus_identity.txt
