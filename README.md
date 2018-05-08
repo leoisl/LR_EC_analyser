@@ -36,7 +36,7 @@ TODO
 ## Viewing the html page:
     Firefox or Safari (bugged on Chrome for the moment)
 ## Viewing IGV plots (Gene stats and Transcript stats):
-In order to serve the bams for the browser, you need to start a web server to serve the required files. To do so, you first need to install the tool and then:
+In order to serve the bams for the browser, you need to start a web server to serve the required files. To do so, you first need to install the tool (see [Installing section](#Installing)) and then:
 ```
 cd LR_EC_analyser
 source venv/bin/activate
