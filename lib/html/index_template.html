@@ -10,11 +10,43 @@
     <script src="lib/js/js.js"></script>
     <script>
         $(function(){ // on dom ready
+            //fill the main subtables
             fillMainSubtable('LR_EC_read_stats_table', <statProfiler.getReadStatsAsJSArrayForHOT()>, <tools>);
             fillMainSubtable('LR_EC_base_stats_table', <statProfiler.getBaseStatsAsJSArrayForHOT()>, <tools>);
             fillMainSubtable('LR_EC_error_stats_table', <statProfiler.getErrorStatsAsJSArrayForHOT()>, <tools>);
+
+            //register the event when changing the format of the units in the main subtables
+            infixes=["read", "base", "error"]
+        	infixes.forEach(function(infix){
+        		$("input[id^=LR_EC_"+infix+"_stats_table_number_format]").change(function(elem){
+        			tableId = elem.target.name.replace("_number_format", "")
+            		HOTs[tableId].render()
+            	});
+        	})
+
+        	//register the event when changing which plot to show in Corretion collapsing paralogous gene families plots
+        	$("input[id^=Collapsing_gene_families_show_option]").change(function(elem){
+                //hide all plots first
+                $("div[id^=htmlScatterPlotSizeParalogFamilies_]").css("display", "none")
+
+                //show the plot we want
+                divId = "htmlScatterPlotSizeParalogFamilies_" + elem.target.value
+                $("#"+divId).css("display", "block")
+            });
+
+            //show the first Corretion collapsing paralogous gene families plot (the one checked by default)
+            $("input[id^=Collapsing_gene_families_show_option]").each(function(i, elem){
+            	if (elem.checked) {
+            		divId = "htmlScatterPlotSizeParalogFamilies_" + elem.value
+            		$("#"+divId).css("display", "block")
+            	}
+            })
+
+            //fill the gene and transcript tables
             fillFeatureTable('Gene', 'LR_EC_gene_table', <geneProfiler.geneProfileToJSArrayForHOT()>, <tools>);
             fillFeatureTable('Transcript', 'LR_EC_transcript_table', <geneProfiler.transcriptProfileToJSArrayForHOT()>, <tools>);
+
+
         })
     </script>
 </head>
@@ -22,40 +54,87 @@
 <!-- Div for the main table -->
 <h1>Main stats</h1>
 <h2>Read stats (compilation from AlignQC reports)</h2>
+<p>Transform numbers in:</p>
+<input type="radio" name="LR_EC_read_stats_table_number_format" id="LR_EC_read_stats_table_number_format_M" value="M"> Millions (M) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="radio" name="LR_EC_read_stats_table_number_format" id="LR_EC_read_stats_table_number_format_K" value="K" checked> Kilos (K) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="radio" name="LR_EC_read_stats_table_number_format" id="LR_EC_read_stats_table_number_format_N" value="N"> None<br>
 <div id="LR_EC_read_stats_table"></div>
 
 <h2>Base stats (compilation from AlignQC reports)</h2>
+<p>Transform numbers in:</p>
+<input type="radio" name="LR_EC_base_stats_table_number_format" id="LR_EC_read_stats_table_number_format_M" value="M"> Millions (M) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="radio" name="LR_EC_base_stats_table_number_format" id="LR_EC_read_stats_table_number_format_K" value="K" checked> Kilos (K) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="radio" name="LR_EC_base_stats_table_number_format" id="LR_EC_read_stats_table_number_format_N" value="N"> None<br>
 <div id="LR_EC_base_stats_table"></div>
 
 
 <h2>Error stats (compilation from AlignQC reports)</h2>
+<p>Transform numbers in:</p>
+<input type="radio" name="LR_EC_error_stats_table_number_format" id="LR_EC_read_stats_table_number_format_M" value="M"> Millions (M) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="radio" name="LR_EC_error_stats_table_number_format" id="LR_EC_read_stats_table_number_format_K" value="K" checked> Kilos (K) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="radio" name="LR_EC_error_stats_table_number_format" id="LR_EC_read_stats_table_number_format_N" value="N"> None<br>
 <div id="LR_EC_error_stats_table"></div>
+
+<br/><br/>
+<h1>Corretion collapsing paralogous gene families plots</h1>
+This scatterplot shows the sizes of the paralogous gene families before and after correction.<br/>
+The size of a paralogous gene family is the number of genes expressed in a given gene family.<br/>
+For example, if a gene family has 10 members, and 8 are expressed in the raw data, and 2 are expressed after the correction,<br/>
+we can say that the size of this gene family before the correction is 8, and after, 2.<br/>
+We can then conclude that the correction shrinked the paralogous gene family, probably due to collapsing genes.<br/>
+To know how we computed the paralogous gene families, see: <a href="https://gitlab.com/leoisl/LR_EC_analyser/blob/master/GettingParalogs.txt">https://gitlab.com/leoisl/LR_EC_analyser/blob/master/GettingParalogs.txt</a></p>
+<input type="radio" name="Collapsing_gene_families_show_option" id="Collapsing_gene_families_show_option_ALL" value="A"> Show all paralogous gene families<br/>
+<input type="radio" name="Collapsing_gene_families_show_option" id="Collapsing_gene_families_show_option_NO_DIAG" value="ND" checked> Hide paralogous genes families that were unchanged (diagonal line)<br/>
+<input type="radio" name="Collapsing_gene_families_show_option" id="Collapsing_gene_families_show_option_NO_DIAG_NO_ZERO" value="NDN0"> Hide paralogous genes families that were unchanged (diagonal line) and keep only the ones expressed both before and after correction (hide gene families such that x=0 or y=0)<br/>
+
+<div id="htmlScatterPlotSizeParalogFamilies_A" style="display: none;">
+<htmlScatterPlotSizeParalogFamilies>
+</div>
+
+<div id="htmlScatterPlotSizeParalogFamilies_ND" style="display: none;">
+<htmlScatterPlotSizeParalogFamiliesExcluingUnchanged>
+</div>
+
+<div id="htmlScatterPlotSizeParalogFamilies_NDN0" style="display: none;">
+<htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes>
+</div>
 
 <br/><br/>
 <h1>Corretion towards major isoform plots</h1>
 
 <h2>Difference on the number of isoforms of a gene before and after correction</h2>
-<p>The genes taken into account here must be expressed in either the raw or the tool taken into consideration.</p>
-<p>Negative values: isoforms were lost. Positive values: isoforms were gained.</p>
+The genes taken into account here must be expressed in either the raw or the tool taken into consideration.<br/>
+Negative values: isoforms were lost. Positive values: isoforms were gained.<br/>
 <htmlDifferenceOnTheNumberOfIsoformsPlot>
 
 <h2>Lost transcripts in genes with Splicing Complexity 2+</h2>
-<p>The genes taken into account here must be expressed in BOTH the raw AND the tool taken into consideration.</p>
-<p>Otherwise we could account for while lost genes, and these would inflate the high relative transcript coverage bins (which is not true, since here we are investigating isoforms that were lost, not genes)</p>
+The genes taken into account here must be expressed in BOTH the raw AND the tool taken into consideration.<br/>
+Otherwise we could account for lost genes, and these would inflate the high relative transcript coverage bins (which is not true, since here we are investigating isoforms that were lost, not genes)<br/>
 <htmlLostTranscriptInGenesWSP2Plot>
 
 <h2>Distribution of the difference of relative expression in the transcripts</h2>
-<p>This box and whisker plot represents the distribution of the difference of relative expression in the transcripts.</p>
-<p>It was done by taking, for each tool, each transcript that is expressed either in the raw reads or in the tool, and computing the absolute difference between the relative expression of the transcript.</p>
-<p>The relative expression of a transcript is the number of reads mapping to the transcript divided by the number of reads mapping to its gene.</p>
+This box and whisker plot represents the distribution of the difference of relative expression in the transcripts.<br/>
+It was done by taking, for each tool, each transcript that is expressed either in the raw reads or in the tool, and computing the absolute difference between the relative expression of the transcript before and after correction.<br/>
+The relative expression of a transcript is the number of reads mapping to the transcript divided by the number of reads mapping to its gene.<br/>
+OBS: outliers were removed because in real data, there are so many that it is very slow to show the graph and the page becomes extremely slow (show it as image is a solution..., shall we do it?)<br/>
 <htmlDifferencesInRelativeExpressionsBoxPlot>
 
 <br/><br/>
 <h1>Gene stats</h1>
+This is supposed to be a feature that allows users to see some genes in details, but I am not sure if it is good...<br/>
+Delta value is the largest difference between the # of reads mapping to a gene in a tool and in raw reads<br/>
+I guess sorting by it could be interesting...<br/>
+<span style="color: red;">BE SURE TO DO THIS IF YOU WANT TO SEE THE IGV PLOTS: </span>
+
 <div id="LR_EC_gene_table" class="scrollableTable"></div>
 
 <br/><br/>
 <h1>Transcript stats</h1>
+This is supposed to be a feature that allows users to see some transcripts in details, but I am not sure if it is good...<br/>
+Delta value is the largest difference between the # of reads mapping to a gene in a tool and in raw reads.<br/>
+I guess sorting by it could be interesting...<br/>
+<span style="color: red;">BE SURE TO DO THIS IF YOU WANT TO SEE THE IGV PLOTS: </span>
+
 <div id="LR_EC_transcript_table" class="scrollableTable"></div>
 </body>
 </html>

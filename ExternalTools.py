@@ -37,6 +37,8 @@ def runAlignQC(tool, bam, genome, gtf, outputFolder, threads):
                             (scriptDir, bam, genome, gtf, outputFolder, tool, threads))
     print "Running AlignQC for %s - Done!" % bam
 
+#This function was used to split the bam into several bams, to try to make IGV faster
+#It did not work, but let's keep this anyway...
 def getBamInCoordinates(inputBam, coordinate, outputBam):
     executeCommandLine('samtools view -b %s %s -o %s'%(inputBam, coordinate, outputBam))
     executeCommandLine('samtools index %s' % outputBam)

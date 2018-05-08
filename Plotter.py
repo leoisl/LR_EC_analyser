@@ -5,7 +5,9 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 import mpld3
+import math
 from decimal import Decimal
+import traceback
 
 class Category:
     def __init__(self, start, end, step):
@@ -75,15 +77,15 @@ class Plotter:
     """
     Makes several plots
     """
-    def __init__(self, tools):
+    def __init__(self, tools, plotsOutput):
         self.tools=tools
         self.toolsNoRaw=list(tools)
         self.toolsNoRaw.remove("raw.bam")
+        self.plotsOutput = plotsOutput
 
-    def __producePlotAsHTML(self, tool2Categories, blankSpace, xlabel, ylabel, displayInterval=False):
+    def __produceBarPlotAsHTML(self, tool2Categories, blankSpace, xlabel, ylabel, displayInterval=False):
         # produce the plot
-        # fig = plt.figure(figsize=(10, 5))
-        fig = plt.figure()
+        fig = plt.figure(figsize=(10, 5))
 
         #put the labels
         plt.xlabel(xlabel)
@@ -91,7 +93,7 @@ class Plotter:
 
         #compute the indexes and bar widths
         xAxisIndexes = np.arange(len(tool2Categories[self.toolsNoRaw[0]]))
-        barWidth = 1.0 / len(self.toolsNoRaw) - blankSpace
+        barWidth = 1.0 / len(self.toolsNoRaw) - blankSpace/len(self.toolsNoRaw)
 
         #add each bar
         for index, tool in enumerate(self.toolsNoRaw):
@@ -146,7 +148,7 @@ class Plotter:
 
 
         tool2DifferenceCategories = get_tool2DifferenceCategories()
-        return self.__producePlotAsHTML(tool2DifferenceCategories, blankSpace, "Difference on the number of isoforms", "Number of genes")
+        return self.__produceBarPlotAsHTML(tool2DifferenceCategories, blankSpace, "Difference on the number of isoforms", "Number of genes")
 
 
     def makeLostTranscriptInGenesWSP2Plot(self, geneID2gene, blankSpace=0.1):
@@ -175,7 +177,7 @@ class Plotter:
         Helper functions
         '''
         tool2RelativeTranscriptOfLostTranscriptCategories =get_tool2RelativeTranscriptOfLostTranscriptCategories()
-        return self.__producePlotAsHTML(tool2RelativeTranscriptOfLostTranscriptCategories, blankSpace, "Relative transcript coverage in relation to gene coverage", "Number of transcripts", True)
+        return self.__produceBarPlotAsHTML(tool2RelativeTranscriptOfLostTranscriptCategories, blankSpace, "Relative transcript coverage in relation to gene coverage", "Number of transcripts", True)
 
     def makeDifferencesInRelativeExpressionsBoxPlot(self, geneID2gene, blankSpace=0.1):
         def get_tool2DifferencesInRelativeExpressions():
@@ -194,13 +196,97 @@ class Plotter:
         tool2DifferencesInRelativeExpressions = get_tool2DifferencesInRelativeExpressions()
 
         #make the boxplot
-        fig = plt.figure()
+        fig = plt.figure(figsize=(10, 5))
 
         #put the labels
-        plt.xlabel("Tools")
-        plt.ylabel("Relative expression")
+        plt.ylabel("Tools")
+        plt.xlabel("Relative expression")
         data=[tool2DifferencesInRelativeExpressions[tool] for tool in self.toolsNoRaw]
-        plt.boxplot(data, labels=self.toolsNoRaw)
+        plt.boxplot(data, labels=self.toolsNoRaw, sym='', vert=False)
 
         # save plot to html
         return mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")
+
+    def makeScatterPlotSizeParalogFamilies(self, geneID2gene, paralogous, disregardUnchangedGeneFamilies=False, includeOnlyCommonGenes=False):
+        try:
+            def get_paralogousGenesFamilySizeInTool(paralogousGroups, tool):
+                paralogousGenesFamilySize=[]
+                for paralogousGroup in paralogousGroups:
+                    paralogousGeneFamilySize = 0
+                    for geneId in paralogousGroup:
+                        if geneID2gene[geneId].profile.isExpressedInTool(tool):
+                            paralogousGeneFamilySize += 1
+                    paralogousGenesFamilySize.append(paralogousGeneFamilySize)
+
+                return paralogousGenesFamilySize
+
+            paralogousGroups = paralogous.getParalogousGroups()
+
+            paralogousGeneFamilySizeBeforeCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, "raw.bam")
+
+            #get all the data to plot it
+            tool2PlotData={tool:{} for tool in self.toolsNoRaw}
+            for tool in self.toolsNoRaw:
+                paralogousGeneFamilySizeAfterCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, tool)
+
+                #get the data points:
+                #x = family size before correction
+                #y = family size after correction
+                #1/ (0,0) are excluded
+                #2/ if disregardUnchangedGeneFamilies is True, then gene families with the same size are disregarded
+                #3/ if includeOnlyCommonGenes is True, then only gene families present before and after are considered
+                dataPoints=[]
+                for i in xrange(len(paralogousGeneFamilySizeBeforeCorrection)):
+                    if (includeOnlyCommonGenes and paralogousGeneFamilySizeBeforeCorrection[i]>0 and paralogousGeneFamilySizeAfterCorrection[i]>0) or \
+                       (not includeOnlyCommonGenes and (paralogousGeneFamilySizeBeforeCorrection[i]>0 or paralogousGeneFamilySizeAfterCorrection[i]>0)):
+                        if not disregardUnchangedGeneFamilies or \
+                           (disregardUnchangedGeneFamilies and paralogousGeneFamilySizeBeforeCorrection[i]!=paralogousGeneFamilySizeAfterCorrection[i]):
+                            dataPoints.append((paralogousGeneFamilySizeBeforeCorrection[i], paralogousGeneFamilySizeAfterCorrection[i]))
+
+                dataPoint2Count={}
+                for dataPoint in dataPoints:
+                    if dataPoint not in dataPoint2Count:
+                        dataPoint2Count[dataPoint]=dataPoints.count(dataPoint)
+
+                #get the new datapoints
+                dataPoints=dataPoint2Count.keys()
+                tool2PlotData[tool]["xDataPoints"] = [x for x,y in dataPoints]
+                tool2PlotData[tool]["yDataPoints"] = [y for x, y in dataPoints]
+                #the counts will be the colors of the scatterplot
+                tool2PlotData[tool]["count"] = dataPoint2Count.values()
+            largestFamilySize=max([max(max(plotData["xDataPoints"]), max(plotData["yDataPoints"])) for plotData in tool2PlotData.values()])
+            largestDatapointCount=max([max(plotData["count"]) for plotData in tool2PlotData.values()])
+
+
+            #plot the data
+            nbOfColumnsInSubplot = 3
+            nbRowsInSubplot = int(math.ceil(float(len(self.toolsNoRaw)) / nbOfColumnsInSubplot))
+            fig = plt.figure(figsize=(5 * nbOfColumnsInSubplot, 5 * nbRowsInSubplot))
+            for toolIndex, tool in enumerate(self.toolsNoRaw):
+                #plot it
+                plt.subplot(nbRowsInSubplot, nbOfColumnsInSubplot, toolIndex+1)
+                plt.scatter(tool2PlotData[tool]["xDataPoints"], tool2PlotData[tool]["yDataPoints"], c=tool2PlotData[tool]["count"],
+                            cmap="bwr", vmin=0, vmax=largestDatapointCount, edgecolors="black")
+                plt.xlim(0, largestFamilySize+1)
+                plt.ylim(0, largestFamilySize+1)
+                plt.xticks(range(0, largestFamilySize + 2, 2))
+                plt.yticks(range(0, largestFamilySize + 2, 2))
+                plt.plot(range(largestFamilySize+1), range(largestFamilySize+1), alpha=0.5, color="black")
+
+
+                #putting the labels
+                plt.xlabel("Raw")
+                plt.ylabel(tool)
+                plt.colorbar()
+
+
+            '''
+            In png:
+            plt.savefig(self.plotsOutput+"/scatterPlotSizeParalogFamilies.png")
+            return "<img src=plots/scatterPlotSizeParalogFamilies.png />"
+            '''
+            return mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")
+        except:
+            traceback.print_exc()
+            #TODO: treat this better - we report error on computing all plots even if a single plot fails
+            return "<p style='color: red; font-size: large;'>Error on computing this plot...</p>"

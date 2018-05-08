@@ -7,6 +7,7 @@ from Profiler import *
 from ExternalTools import *
 from Parsers import *
 from Plotter import *
+from Paralogous import *
 import sys
 
 
@@ -70,6 +71,7 @@ def main():
                         help='BAM files of the Fastas output by the correctors')
     parser.add_argument("--genome", dest="genome", help="The genome in fasta file")
     parser.add_argument("--gtf", dest="gtf", help="The transcriptome as GTF file")
+    parser.add_argument("--paralogous", help="Path to a file where the first two collumns denote paralogous genes (see file GettingParalogs.txt to know how you can get this file)")
     parser.add_argument("--raw", dest="rawBam", help="The BAM file of the raw reads (i.e. the uncorrected long reads file)")
     parser.add_argument("-o", dest="output", help="output folder", default="output/")
     parser.add_argument("-t", dest="threads", type=int, help="Number of threads to use")
@@ -78,15 +80,11 @@ def main():
                         help="Skips AlignQC calls - assume we had already done this.")
     parser.add_argument("--skip_copying", dest="skip_copying", action="store_true",
                         help="Skips copying genome and transcriptome to the output folder.")
-    parser.add_argument("--skip_splitting_bam", dest="skip_splitting_bam", action="store_true",
-                        help="Skips splitting the bams by genes and transcripts.")
     args=parser.parse_args()
 
     #create output dir
     if not os.path.exists(args.output):
         os.makedirs(args.output)
-    if not os.path.exists(args.output+"/bams"):
-        os.makedirs(args.output+"/bams")
 
 
     #get some useful vars
@@ -111,6 +109,12 @@ def main():
     else:
         print "Skipping transcriptome copying..."
 
+    #get the paralogous info, if given
+    paralogous = None
+    if args.paralogous != None:
+        paralogous = Paralogous(geneID2gene)
+        paralogous.readParalogousFile(args.paralogous)
+
 
     #TODO: walk the bam with pysam and get the read lengths to compute mean length of the aligned reads
 
@@ -125,9 +129,6 @@ def main():
         if not args.skip_bam:
             processBam(bam, sortedBam, args.threads)
 
-
-
-    tool2Bam = {tool: bam for tool, bam in zip(tools, sortedBams)}
 
     #run AlignQC on the bams
     if not args.skip_alignqc:
@@ -148,7 +149,8 @@ def main():
 
     #create the gene profiler
     print "Running Gene profiler..."
-    geneProfiler = FeatureProfiler(geneID2gene, tools, tool2Bam, os.path.basename(genome), os.path.basename(gtf), args.output, args.skip_splitting_bam)
+    tool2Bam = {tool: os.path.basename(bam) for tool, bam in zip(tools, sortedBams)}
+    geneProfiler = FeatureProfiler(geneID2gene, tools, tool2Bam, os.path.basename(genome), os.path.basename(gtf), args.output)
     #populate the gene profiler
     for tool in tools:
         geneProfiler.populateFromAnnotbest(tool, args.output)
@@ -157,10 +159,17 @@ def main():
 
     #create the Plotter and the plots
     print "Computing the plots..."
-    plotter = Plotter(tools)
+    plotsOutput = args.output+"/plots"
+    if not os.path.exists(plotsOutput):
+        os.makedirs(plotsOutput)
+    plotter = Plotter(tools, plotsOutput)
     htmlDifferenceOnTheNumberOfIsoformsPlot = plotter.makeDifferenceOnTheNumberOfIsoformsPlot(geneID2gene, -3, 3)
     htmlLostTranscriptInGenesWSP2Plot = plotter.makeLostTranscriptInGenesWSP2Plot(geneID2gene)
     htmlDifferencesInRelativeExpressionsBoxPlot = plotter.makeDifferencesInRelativeExpressionsBoxPlot(geneID2gene)
+    if paralogous != None:
+        htmlScatterPlotSizeParalogFamilies = plotter.makeScatterPlotSizeParalogFamilies(geneID2gene, paralogous)
+        htmlScatterPlotSizeParalogFamiliesExcluingUnchanged = plotter.makeScatterPlotSizeParalogFamilies(geneID2gene, paralogous, True)
+        htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes = plotter.makeScatterPlotSizeParalogFamilies(geneID2gene, paralogous, True, True)
     print "Computing the plots - Done!"
 
 
@@ -189,6 +198,21 @@ def main():
                 line = line.replace("<htmlLostTranscriptInGenesWSP2Plot>", htmlLostTranscriptInGenesWSP2Plot)
             if "<htmlDifferencesInRelativeExpressionsBoxPlot>" in line:
                 line = line.replace("<htmlDifferencesInRelativeExpressionsBoxPlot>", htmlDifferencesInRelativeExpressionsBoxPlot)
+            if "<htmlScatterPlotSizeParalogFamilies>" in line:
+                if paralogous != None:
+                    line = line.replace("<htmlScatterPlotSizeParalogFamilies>", htmlScatterPlotSizeParalogFamilies)
+                else:
+                    line = line.replace("<htmlScatterPlotSizeParalogFamilies>", "<p style='color: red; font-size: large;'>Paralogous file (--paralogous parameter) was not given, so we did not produce this plot. </p>")
+            if "<htmlScatterPlotSizeParalogFamiliesExcluingUnchanged>" in line:
+                if paralogous != None:
+                    line = line.replace("<htmlScatterPlotSizeParalogFamiliesExcluingUnchanged>", htmlScatterPlotSizeParalogFamiliesExcluingUnchanged)
+                else:
+                    line = line.replace("<htmlScatterPlotSizeParalogFamiliesExcluingUnchanged>", "<p style='color: red; font-size: large;'>Paralogous file (--paralogous parameter) was not given, so we did not produce this plot. </p>")
+            if "<htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes>" in line:
+                if paralogous != None:
+                    line = line.replace("<htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes>", htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes)
+                else:
+                    line = line.replace("<htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes>", "<p style='color: red; font-size: large;'>Paralogous file (--paralogous parameter) was not given, so we did not produce this plot. </p>")
             indexTemplateLines[i] = line
 
 

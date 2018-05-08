@@ -9,14 +9,13 @@ class FeatureProfiler:
     """
     Represents all features and their profiles
     """
-    def __init__(self, geneID2gene, tools, tool2Bam, genome, gtf, outputFolder, skip_splitting_bam):
+    def __init__(self, geneID2gene, tools, tool2Bam, genome, gtf, outputFolder):
         self.geneId2Gene = geneID2gene
         self.tools=tools
         self.tool2Bam = tool2Bam
         self.genome = genome
         self.gtf = gtf
         self.outputFolder = outputFolder
-        self.skip_splitting_bam = skip_splitting_bam
 
     def populateFromAnnotbest(self, tool, outputFolder):
         """
@@ -60,17 +59,36 @@ class FeatureProfiler:
         igvInfo["locus"] = feature.getLocusInIGVJSFormat()[1:-1]
         igvInfo["annotationURL"] = self.gtf
         for i, tool in enumerate(self.tools):
-            igvInfo["tool_%d"%i]=tool
-            #igvInfo["bam_%d"%i]=self.tool2Bam[tool]
+            igvInfo["tool_%d"%i] = tool
+
+            #single bam version
+            igvInfo["bam_%d"%i] = self.tool2Bam[tool]
+
+            '''
+            Version where we split the big bam into several bams
             outputFile = self.outputFolder+"/bams/%s_%s.bam"%(tool, feature.id)
 
             if not self.skip_splitting_bam:
                 getBamInCoordinates(self.tool2Bam[tool], igvInfo["locus"], outputFile)
 
             igvInfo["bam_%d" % i] = "bams/%s_%s.bam"%(tool, feature.id)
+            '''
+
+
+
 
         listOfKeyValues=["%s=%s"%(key,value) for key,value in igvInfo.items()]
         return ["'" + urllib.quote("&".join(listOfKeyValues), safe='') + "'"]
+
+    def __getFeatureASArrayForHOT(self, feature):
+        """
+        Basically this get the feature as Array for HOT and add IGV info just after the gene in featureAsArrayForHOT
+        :param featureAsArrayForHOT:
+        :return: a javascript array
+        """
+        featureAsArrayForHOT = feature.getASArrayForHOT()
+        featureAsArrayForHOT = featureAsArrayForHOT [:2] + self.__buildIGVInfo(feature) + featureAsArrayForHOT[2:]
+        return "[%s]"%(",".join(featureAsArrayForHOT))
 
     def geneProfileToJSArrayForHOT(self):
         """
@@ -81,8 +99,7 @@ class FeatureProfiler:
         stringList=[]
         for gene in self.geneId2Gene.values():
             if gene.profile.isExpressedInAnyTool():
-                stringList.append("[" + ",".join(gene.getASArrayForHOT() +
-                                                 self.__buildIGVInfo(gene)) + "]")
+                stringList.append(self.__getFeatureASArrayForHOT(gene))
         return "[" + ",".join(stringList) + "]"
 
     def transcriptProfileToJSArrayForHOT(self):
@@ -96,8 +113,9 @@ class FeatureProfiler:
             if gene.profile.isExpressedInAnyTool():
                 for transcript in gene.transcriptId2Transcript.values():
                     if transcript.profile.isExpressedInAnyTool():
-                        stringList.append("[" + ",".join(transcript.getASArrayForHOT() + self.__buildIGVInfo(transcript)) + "]")
+                        stringList.append(self.__getFeatureASArrayForHOT(transcript))
         return "[" + ",".join(stringList) + "]"
+
 
 
 
@@ -203,5 +221,3 @@ class StatProfiler:
     def getErrorStatsAsJSArrayForHOT(self):
         errorStatsFeatures = ["ANY_ERROR", "MISMATCHES", "ANY_DELETION", "ANY_INSERTION", "COMPLETE_DELETION", "HOMOPOLYMER_DELETION", "COMPLETE_INSERTION", "HOMOPOLYMER_INSERTION"]
         return self.__toJSArrayForHOT(errorStatsFeatures)
-
-

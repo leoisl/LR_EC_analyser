@@ -1,16 +1,18 @@
 # About LR_EC_analyser
-LR_EC_analyser stands for Long Read Error Correction analyser. It is a simple python script that analyses the output of
+LR_EC_analyser stands for Long Read Error Correction analyser. It is a python script that analyses the output of
 long reads error correctors, like daccord, LoRDEC, LoRMA, MECAT, NaS, PBcR, pbdagcon, proovreads, etc. It does so by
-running AlignQC (https://github.com/jason-weirather/AlignQC) on the BAMs built by mapping the output of error correction
-tools to a reference genome and parsing its output, then putting all the relevant information in a HTML report. It also
-makes use of IGV.js (https://github.com/igvteam/igv.js) for an in-depth gene and transcript analysis.
+running AlignQC (https://github.com/jason-weirather/AlignQC) on the BAMs built by the mapping the output of error correction
+tools to a reference genome and parsing its output, and creating other custom plots, and then putting all the relevant information
+in a HTML report. It also makes use of IGV.js (https://github.com/igvteam/igv.js) for an in-depth gene and transcript analysis.
 
 # WARNING
 Use Firefox or Safari to view the reports for the moment.
 
-# Requirements
+Google Chrome browsers has a bug with IGV.js for now.
 
-## For running the script, please have installed
+# Installing
+
+For installing and running the script, please have pre-installed
 ```
 python 2.7
 virtualenv
@@ -18,42 +20,44 @@ samtools (v1.8+ http://www.htslib.org/download/)
 R
 ```
 
-## For viewing the results
-### Viewing the html page:
+Then you need to download the source files and setup the virtual environment. This can be done with:
+```
+git clone https://gitlab.com/leoisl/LR_EC_analyser
+cd LR_EC_analyser
+bash setup.sh
+```
+
+
+[//]: # # Running on a sample example
+[//]: # This sample example contains some real long reads as raw reads, and subsets of the raw reads with some substitutions and
+[//]: # indels artificially inserted as error-corrected reads. It is just for a proof of concept, no real error correction tools
+[//]: # were ran in these reads. To run the tool on this sample example, do:
+
+[//]: # ```
+[//]: # cd LR_EC_analyser
+[//]: # source venv/bin/activate
+[//]: # python run_LR_EC_analyser.py --genome sample_data/Mus_musculus.GRCm38.dna.chromosome.19.fa --gtf sample_data/Mus_musculus.GRCm38.91.chr19.gtf -t 4 -o sample_data/output --raw sample_data/gmap_CB_1Donly_to_GRCm38_chr19.bam sample_data/good.gmap.chr19.bam sample_data/indels.gmap.chr19.bam sample_data/subs.gmap.chr19.bam
+[//]: # ```
+
+[//]: # The output can be found here: https://www.dropbox.com/s/phdsty29yszn47j/output_sample_data.tar.gz?dl=1
+
+# For viewing the results
+## Viewing the html page:
     Firefox or Safari (bugged on Chrome for the moment)
-### Viewing IGV plots (Gene stats and Transcript stats):
-In order to serve the bams for the browser, you need to start a web server to serve the required files:
+## Viewing IGV plots (Gene stats and Transcript stats):
+In order to serve the bams for the browser, you need to start a web server to serve the required files. To do so, you first need to install the tool and then:
 ```
 cd LR_EC_analyser
 source venv/bin/activate
-python serve_files.py --output <output_folder>
+python serve_files.py <output_folder>
 ```
-
-
-# Installing
-```
-git clone --recursive https://gitlab.com/leoisl/LR_EC_analyser
-```
-
-# Running on a sample example
-This sample example contains some real long reads as raw reads, and subsets of the raw reads with some substitutions and
-indels artificially inserted as error-corrected reads. It is just for a proof of concept, no real error correction tools
-were ran in these reads. To run the tool on this sample example, do:
-
-```
-cd LR_EC_analyser
-source venv/bin/activate
-python run_LR_EC_analyser.py --genome sample_data/Mus_musculus.GRCm38.dna.chromosome.19.fa --gtf sample_data/Mus_musculus.GRCm38.91.chr19.gtf -t 4 -o sample_data/output --raw sample_data/gmap_CB_1Donly_to_GRCm38_chr19.bam sample_data/good.gmap.chr19.bam sample_data/indels.gmap.chr19.bam sample_data/subs.gmap.chr19.bam
-```
-
-The output can be found here: https://www.dropbox.com/s/phdsty29yszn47j/output_sample_data.tar.gz?dl=1
 
 # Parameters
 ```
-usage: run_LR_EC_analyser.py [-h] [--genome GENOME] [--gtf GTF] [--raw RAWBAM]
+usage: run_LR_EC_analyser.py [-h] [--genome GENOME] [--gtf GTF]
+                             [--paralogous PARALOGOUS] [--raw RAWBAM]
                              [-o OUTPUT] [-t THREADS] [--skip_bam_process]
                              [--skip_alignqc] [--skip_copying]
-                             [--skip_splitting_bam]
                              <file.bam> [<file.bam> ...]
 
 Long read error corrector analyser.
@@ -65,6 +69,10 @@ optional arguments:
   -h, --help            show this help message and exit
   --genome GENOME       The genome in fasta file
   --gtf GTF             The transcriptome as GTF file
+  --paralogous PARALOGOUS
+                        Path to a file where the first two collumns denote
+                        paralogous genes (see file GettingParalogs.txt to know
+                        how you can get this file)
   --raw RAWBAM          The BAM file of the raw reads (i.e. the uncorrected
                         long reads file)
   -o OUTPUT             output folder
@@ -74,7 +82,7 @@ optional arguments:
   --skip_alignqc        Skips AlignQC calls - assume we had already done this.
   --skip_copying        Skips copying genome and transcriptome to the output
                         folder.
-  --skip_splitting_bam  Skips splitting the bams by genes and transcripts.
+
 ```
 
 # Thirdparties
@@ -82,7 +90,7 @@ optional arguments:
 2. IGV.js (https://github.com/igvteam/igv.js)
 3. samtools (http://www.htslib.org)
 4. handsontable (https://handsontable.com/)
-5.matplotlib (https://matplotlib.org/)
+5. matplotlib (https://matplotlib.org/)
 6. mpld3 (http://mpld3.github.io/)
 7. Twisted (https://twistedmatrix.com/trac/)
 8. querystring (https://github.com/jgallen23/querystring)

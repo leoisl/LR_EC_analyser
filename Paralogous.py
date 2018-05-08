@@ -1,0 +1,82 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+class Paralogous:
+    """
+    Represents the groups of paralogous genes
+    Each group of paralogous genes has an ID and its genes
+    """
+    def __init__(self, geneID2gene):
+        self.paralogousGeneId2IdGroup={geneId:i for i, geneId in enumerate(geneID2gene.keys())} #create a union-find structure
+        self.idGroup2paralogousGenes = {i:[geneId] for i, geneId in enumerate(geneID2gene.keys())}  # create a union-find structure
+
+
+    def __addParalogousRelation(self, geneId1, geneId2):
+        """
+        Add the information that geneId1 and geneId2 are paralogous
+        """
+        if geneId1 not in self.paralogousGeneId2IdGroup:
+            print "WARNING: %s is in the paralogous file but not in the gtf file! Are you using the same references?" % geneId1
+            return
+
+        if geneId2 not in self.paralogousGeneId2IdGroup:
+            print "WARNING: %s is in the paralogous file but not in the gtf file! Are you using the same references?" % geneId2
+            return
+
+
+        idGroup1 = self.paralogousGeneId2IdGroup[geneId1]
+        idGroup2 = self.paralogousGeneId2IdGroup[geneId2]
+        paralogousGenes1 = self.idGroup2paralogousGenes[idGroup1]
+        paralogousGenes2 = self.idGroup2paralogousGenes[idGroup2]
+        if idGroup1<idGroup2:
+            self.paralogousGeneId2IdGroup[geneId2] = idGroup1
+            paralogousGenes1+=paralogousGenes2
+            del paralogousGenes2[:] #clearing this list of genes, since it was added to paralogousGenes1
+        elif idGroup1>idGroup2:
+            self.paralogousGeneId2IdGroup[geneId1] = idGroup2
+            paralogousGenes2 += paralogousGenes1
+            del paralogousGenes1[:]  # clearing this list of genes, since it was added to paralogousGenes2
+
+    '''
+    def __fixGroupsId(self):
+        """
+        This function is not needed, but I am leaving it just in case...
+        Fix the groups id, i.e., if the groups id are 5, 8 and 9, after this function call, they will be 0, 1, 2
+
+        """
+        # TODO: recode this, it is not good
+        #get the sorted unique groups id
+        sortedGroupsId = sorted(list(self.paralogousGeneId2IdGroup.values()))
+        uniqueGroupsId = []
+        for id in sortedGroupsId:
+            if id not in uniqueGroupsId:
+                uniqueGroupsId.append(id)
+
+        #update the groups id
+        oldId2NewId = {id : i for i, id in enumerate(uniqueGroupsId)}
+        for geneId in self.paralogousGeneId2IdGroup:
+            self.paralogousGeneId2IdGroup[geneId]=oldId2NewId[self.paralogousGeneId2IdGroup[geneId]]
+
+        #update the size
+        self.groupSize = max(oldId2NewId.values())+1
+    '''
+
+    def readParalogousFile(self, filename):
+        """
+        Read a paralogous file and populate this object
+        """
+        with open(filename) as file:
+            header=True
+            for line in file:
+                if header: #skip the header
+                    header=False
+                    continue
+                lineSplit = line.split()
+                self.__addParalogousRelation(lineSplit[0], lineSplit[1])
+
+
+    def getParalogousGroups(self):
+        """
+        :return: a list where each element is a paralogous group (a list of paralogous genes)
+        """
+        return self.idGroup2paralogousGenes.values()
