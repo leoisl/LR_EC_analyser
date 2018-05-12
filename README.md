@@ -5,11 +5,6 @@ running AlignQC (https://github.com/jason-weirather/AlignQC) on the BAMs built b
 tools to a reference genome and parsing its output, and creating other custom plots, and then putting all the relevant information
 in a HTML report. It also makes use of IGV.js (https://github.com/igvteam/igv.js) for an in-depth gene and transcript analysis.
 
-# WARNING
-Use Firefox or Safari to view the reports for the moment.
-
-Google Chrome browser has a bug with IGV.js for now.
-
 # Installing
 
 For installing and running the script, please have pre-installed
@@ -35,7 +30,7 @@ TODO
 
 # For viewing the results
 ## Viewing the html page:
-    Firefox or Safari (bugged on Chrome for the moment)
+    Any browser (Google Chrome is recommended, since it seems to be the fastest to view IGV plots)
 ## Viewing IGV plots (Gene stats and Transcript stats):
 In order to serve the bams for the browser, you need to start a web server to serve the required files. To do so, you first need to install the tool (see [Installing section](#installing)) and then:
 ```
@@ -74,7 +69,6 @@ optional arguments:
   --skip_alignqc        Skips AlignQC calls - assume we had already done this.
   --skip_copying        Skips copying genome and transcriptome to the output
                         folder.
-
 ```
 
 # Thirdparties
@@ -83,8 +77,10 @@ optional arguments:
 3. IGVTools (https://software.broadinstitute.org/software/igv/igvtools)
 4. samtools (http://www.htslib.org)
 5. handsontable (https://handsontable.com/)
-6. matplotlib (https://matplotlib.org/)
-7. mpld3 (http://mpld3.github.io/)
-8. Twisted (https://twistedmatrix.com/trac/)
-9. querystring (https://github.com/jgallen23/querystring)
-10. jQuery (http://jquery.com/)
+6. matplotlib (https://matplotlib.org/) and mpld3 (http://mpld3.github.io/)
+7. node.js (https://nodejs.org/)
+8. npm (https://www.npmjs.com/)
+9. http-server (https://www.npmjs.com/package/http-server)
+10. nodeenv (https://github.com/ekalinin/nodeenv)
+11. querystring (https://github.com/jgallen23/querystring)
+12. jQuery (http://jquery.com/)
