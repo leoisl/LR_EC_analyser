@@ -58,6 +58,7 @@ class FeatureProfiler:
         igvInfo["fastaURL"] = self.genome
         igvInfo["locus"] = feature.getLocusInIGVJSFormat()[1:-1]
         igvInfo["annotationURL"] = self.gtf
+        igvInfo["visibilityWindow"] = feature.getFeatureLength()
         for i, tool in enumerate(self.tools):
             igvInfo["tool_%d"%i] = tool
 

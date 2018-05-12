@@ -12,6 +12,8 @@ Normal:
     -Main tables presentation:
         -Coloring, ranking and percentage filter
 
+    -Do a light html version, where the plots are images instead of d3 objects
+
     -Checking if the file server is online/verifying the file server
         -When finishing the output, but a 5kb long string in a javascript file - this will be the id of the run
         -Put the id also in the final html page (hard-coded)

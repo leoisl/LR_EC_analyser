@@ -51,6 +51,9 @@ class Feature:
     def getLocusInIGVJSFormat(self):
         return "'%s:%d-%d'"%(self.chromosome, self.begin, self.end)
 
+    def getFeatureLength(self):
+        return self.end-self.begin+1
+
     def getASArrayForHOT(self):
         #TODO: is it better to return just the gene name (this line commented out returns gene name, chr and strand)
         #return ["'%s'"%self.id, self.getLocusInIGVJSFormat(), "'%s'"%self.strand] + self.profile.getProfileAsArrayForHot()
