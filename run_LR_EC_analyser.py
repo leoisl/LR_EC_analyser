@@ -141,7 +141,7 @@ def main():
         for tool, bam in zip(tools, sortedBams):
             runAlignQC(tool, bam, genome+".gz", gtf+".gz", args.output, args.threads)
     else:
-        print "Skipping AlignQC runs../"
+        print "Skipping AlignQC runs..."
 
     #create the output by parsing AlignQC results
     print "Running Stat profiler..."
