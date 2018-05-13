@@ -1,10 +1,7 @@
 High Priority:
-    IGV:
-        -Zoom in to see features is not nice
-            -I guess we can work with visibilityWindow (see https://github.com/igvteam/igv.js/wiki/Tracks-1.0)
-            -It should be set to the length of the gene/transcript
     -Add all plots from the paper
-
+        -Low-priority possible stuff (for the paper, L): isolate the part of AlignQC that plots the read length histogram, make it plot with consistent y axis.
+        -Coverage of main isoform before and after correction
 
 
 
