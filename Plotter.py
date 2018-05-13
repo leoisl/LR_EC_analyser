@@ -290,3 +290,45 @@ class Plotter:
             traceback.print_exc()
             #TODO: treat this better - we report error on computing all plots even if a single plot fails
             return "<p style='color: red; font-size: large;'>Error on computing this plot...</p>"
+
+
+    def makeScatterPlotCoverageOfMainIsoform(self, geneID2gene):
+        # get all the data to plot it
+        tool2PlotData = {tool: {} for tool in self.toolsNoRaw}
+        for tool in self.toolsNoRaw:
+            # get the data points:
+            # x = coverage before correction
+            # y = coverage after correction
+            tool2PlotData[tool]["xDataPoints"] = []
+            tool2PlotData[tool]["yDataPoints"] = []
+            for gene in geneID2gene.values():
+                mainIsoform = gene.getMainIsoform()
+                if mainIsoform.profile.isExpressedInTool("raw.bam"): #filtering out the cases where the main isoform has 0 reads mapping to it
+                    tool2PlotData[tool]["xDataPoints"].append(mainIsoform.profile.tool2NbOfMappedReads["raw.bam"])
+                    tool2PlotData[tool]["yDataPoints"].append(mainIsoform.profile.tool2NbOfMappedReads[tool])
+
+        highestExpression = max([max(max(plotData["xDataPoints"]), max(plotData["yDataPoints"])) for plotData in tool2PlotData.values()])
+
+        # plot the data
+        nbOfColumnsInSubplot = 3
+        nbRowsInSubplot = int(math.ceil(float(len(self.toolsNoRaw)) / nbOfColumnsInSubplot))
+        fig = plt.figure(figsize=(5 * nbOfColumnsInSubplot, 5 * nbRowsInSubplot))
+        for toolIndex, tool in enumerate(self.toolsNoRaw):
+            # plot it
+            plt.subplot(nbRowsInSubplot, nbOfColumnsInSubplot, toolIndex + 1)
+            plt.scatter(tool2PlotData[tool]["xDataPoints"], tool2PlotData[tool]["yDataPoints"],
+                        vmin=0, vmax=highestExpression, edgecolors="black")
+            plt.xlim(0, int(highestExpression*1.1))
+            plt.ylim(0, int(highestExpression*1.1))
+            plt.plot(range(highestExpression + 1), range(highestExpression + 1), alpha=0.5, color="black")
+
+            # putting the labels
+            plt.xlabel("Main isoform coverage before")
+            plt.ylabel("Main isoform coverage after %s"%tool)
+
+        '''
+        In png:
+        plt.savefig(self.plotsOutput+"/scatterPlotSizeParalogFamilies.png")
+        return "<img src=plots/scatterPlotSizeParalogFamilies.png />"
+        '''
+        return mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")

@@ -117,8 +117,6 @@ def main():
         paralogous.readParalogousFile(args.paralogous)
 
 
-    #TODO: walk the bam with pysam and get the read lengths to compute mean length of the aligned reads
-
     #sort and index bam
     if args.skip_bam:
         print "Skipping bam processing..."
@@ -167,6 +165,7 @@ def main():
     htmlDifferenceOnTheNumberOfIsoformsPlot = plotter.makeDifferenceOnTheNumberOfIsoformsPlot(geneID2gene, -3, 3)
     htmlLostTranscriptInGenesWSP2Plot = plotter.makeLostTranscriptInGenesWSP2Plot(geneID2gene)
     htmlDifferencesInRelativeExpressionsBoxPlot = plotter.makeDifferencesInRelativeExpressionsBoxPlot(geneID2gene)
+    htmlScatterPlotCoverageOfMainIsoform = plotter.makeScatterPlotCoverageOfMainIsoform(geneID2gene)
     if paralogous != None:
         htmlScatterPlotSizeParalogFamilies = plotter.makeScatterPlotSizeParalogFamilies(geneID2gene, paralogous)
         htmlScatterPlotSizeParalogFamiliesExcluingUnchanged = plotter.makeScatterPlotSizeParalogFamilies(geneID2gene, paralogous, True)
@@ -214,6 +213,9 @@ def main():
                     line = line.replace("<htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes>", htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes)
                 else:
                     line = line.replace("<htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes>", "<p style='color: red; font-size: large;'>Paralogous file (--paralogous parameter) was not given, so we did not produce this plot. </p>")
+
+            if "<htmlScatterPlotCoverageOfMainIsoform>" in line:
+                line = line.replace("<htmlScatterPlotCoverageOfMainIsoform>", htmlScatterPlotCoverageOfMainIsoform)
             indexTemplateLines[i] = line
 
 

@@ -81,6 +81,17 @@ class Gene(Feature):
         Feature.__init__(self, id, chromosome, begin, end, strand, tools)
         self.transcriptId2Transcript={}
 
+    def getMainIsoform(self):
+        """
+        The main isoform is the isoform with highest expression in raw reads
+        :return: the main isoform
+        """
+        #if self.profile.isExpressedInTool(("raw.bam"))
+        mainIsoformExpression = max([transcript.profile.tool2NbOfMappedReads["raw.bam"] for transcript in self.transcriptId2Transcript.values()])
+        for transcript in self.transcriptId2Transcript.values():
+            if transcript.profile.tool2NbOfMappedReads["raw.bam"] == mainIsoformExpression:
+                return transcript
+
     def getNbOfIsoformsExpressedInTool(self, tool):
         nbOfIsoformsPresent = 0
         for transcript in self.transcriptId2Transcript.values():
