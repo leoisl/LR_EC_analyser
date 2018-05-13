@@ -176,52 +176,75 @@ def main():
 
     # create the html report
     print "Creating HTML report..."
+
+    def callFunctionAndPopulateTheReports(index, htmlTag, linesHTMLReport, linesHighResHTMLReport, object, methodName=None, **kwargs):
+        if htmlTag in linesHTMLReport[index] or htmlTag in linesHighResHTMLReport[index]:
+            if methodName!=None: #there is a method passed
+                method = getattr(object, methodName)
+                plots = method(**kwargs)
+            else: #the method is the object itself
+                plots = object
+            if type(plots) is dict and "imagePlot" in object:
+                linesHTMLReport[index] = linesHTMLReport[index].replace(htmlTag, str(plots["imagePlot"]))
+            else:
+                linesHTMLReport[index] = linesHTMLReport[index].replace(htmlTag, str(plots))
+            if type(plots) is dict and "jsPlot" in object:
+                linesHighResHTMLReport[index] = linesHighResHTMLReport[index].replace(htmlTag, str(plots["jsPlot"]))
+            else:
+                linesHighResHTMLReport[index] = linesHighResHTMLReport[index].replace(htmlTag, str(plots))
+
     with open("lib/html/index_template.html") as indexTemplateFile:
-        indexTemplateLines = indexTemplateFile.readlines()
+        linesHTMLReport = indexTemplateFile.readlines()
+        linesHighResHTMLReport = list(linesHTMLReport)
 
-        for i, line in enumerate(indexTemplateLines):
-            if "<statProfiler.getReadStatsAsJSArrayForHOT()>" in line:
-                line = line.replace("<statProfiler.getReadStatsAsJSArrayForHOT()>", statProfiler.getReadStatsAsJSArrayForHOT())
-            if "<statProfiler.getBaseStatsAsJSArrayForHOT()>" in line:
-                line = line.replace("<statProfiler.getBaseStatsAsJSArrayForHOT()>", statProfiler.getBaseStatsAsJSArrayForHOT())
-            if "<statProfiler.getErrorStatsAsJSArrayForHOT()>" in line:
-                line = line.replace("<statProfiler.getErrorStatsAsJSArrayForHOT()>", statProfiler.getErrorStatsAsJSArrayForHOT())
-            if "<geneProfiler.geneProfileToJSArrayForHOT()>" in line:
-                line = line.replace("<geneProfiler.geneProfileToJSArrayForHOT()>", geneProfiler.geneProfileToJSArrayForHOT())
-            if "<geneProfiler.transcriptProfileToJSArrayForHOT()>" in line:
-                line = line.replace("<geneProfiler.transcriptProfileToJSArrayForHOT()>", geneProfiler.transcriptProfileToJSArrayForHOT())
-            if "<tools>" in line:
-                line = line.replace("<tools>", str(tools))
-            if "<htmlDifferenceOnTheNumberOfIsoformsPlot>" in line:
-                line = line.replace("<htmlDifferenceOnTheNumberOfIsoformsPlot>", htmlDifferenceOnTheNumberOfIsoformsPlot)
-            if "<htmlLostTranscriptInGenesWSP2Plot>" in line:
-                line = line.replace("<htmlLostTranscriptInGenesWSP2Plot>", htmlLostTranscriptInGenesWSP2Plot)
-            if "<htmlDifferencesInRelativeExpressionsBoxPlot>" in line:
-                line = line.replace("<htmlDifferencesInRelativeExpressionsBoxPlot>", htmlDifferencesInRelativeExpressionsBoxPlot)
-            if "<htmlScatterPlotSizeParalogFamilies>" in line:
-                if paralogous != None:
-                    line = line.replace("<htmlScatterPlotSizeParalogFamilies>", htmlScatterPlotSizeParalogFamilies)
-                else:
-                    line = line.replace("<htmlScatterPlotSizeParalogFamilies>", "<p style='color: red; font-size: large;'>Paralogous file (--paralogous parameter) was not given, so we did not produce this plot. </p>")
-            if "<htmlScatterPlotSizeParalogFamiliesExcluingUnchanged>" in line:
-                if paralogous != None:
-                    line = line.replace("<htmlScatterPlotSizeParalogFamiliesExcluingUnchanged>", htmlScatterPlotSizeParalogFamiliesExcluingUnchanged)
-                else:
-                    line = line.replace("<htmlScatterPlotSizeParalogFamiliesExcluingUnchanged>", "<p style='color: red; font-size: large;'>Paralogous file (--paralogous parameter) was not given, so we did not produce this plot. </p>")
-            if "<htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes>" in line:
-                if paralogous != None:
-                    line = line.replace("<htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes>", htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes)
-                else:
-                    line = line.replace("<htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes>", "<p style='color: red; font-size: large;'>Paralogous file (--paralogous parameter) was not given, so we did not produce this plot. </p>")
+    for i in xrange(len(linesHTMLReport)):
+        callFunctionAndPopulateTheReports(i, "<statProfiler.getReadStatsAsJSArrayForHOT()>", linesHTMLReport, linesHighResHTMLReport, \
+                                          statProfiler, "getReadStatsAsJSArrayForHOT")
+        callFunctionAndPopulateTheReports(i, "<statProfiler.getBaseStatsAsJSArrayForHOT()>", linesHTMLReport, linesHighResHTMLReport, \
+                                          statProfiler, "getBaseStatsAsJSArrayForHOT")
+        callFunctionAndPopulateTheReports(i, "<statProfiler.getErrorStatsAsJSArrayForHOT()>", linesHTMLReport, linesHighResHTMLReport, \
+                                          statProfiler, "getErrorStatsAsJSArrayForHOT")
+        callFunctionAndPopulateTheReports(i, "<geneProfiler.geneProfileToJSArrayForHOT()>", linesHTMLReport, linesHighResHTMLReport, \
+                                          geneProfiler, "geneProfileToJSArrayForHOT")
+        callFunctionAndPopulateTheReports(i, "<geneProfiler.transcriptProfileToJSArrayForHOT()>", linesHTMLReport, linesHighResHTMLReport, \
+                                          geneProfiler, "transcriptProfileToJSArrayForHOT")
+        callFunctionAndPopulateTheReports(i, "<htmlDifferenceOnTheNumberOfIsoformsPlot>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlDifferenceOnTheNumberOfIsoformsPlot)
+        callFunctionAndPopulateTheReports(i, "<htmlLostTranscriptInGenesWSP2Plot>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlLostTranscriptInGenesWSP2Plot)
+        callFunctionAndPopulateTheReports(i, "<htmlDifferencesInRelativeExpressionsBoxPlot>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlDifferencesInRelativeExpressionsBoxPlot)
+        callFunctionAndPopulateTheReports(i, "<tools>", linesHTMLReport, linesHighResHTMLReport, \
+                                          tools)
+        callFunctionAndPopulateTheReports(i, "<htmlScatterPlotCoverageOfMainIsoform>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlScatterPlotCoverageOfMainIsoform)
 
-            if "<htmlScatterPlotCoverageOfMainIsoform>" in line:
-                line = line.replace("<htmlScatterPlotCoverageOfMainIsoform>", htmlScatterPlotCoverageOfMainIsoform)
-            indexTemplateLines[i] = line
+        if paralogous != None:
+            callFunctionAndPopulateTheReports(i, "<htmlScatterPlotSizeParalogFamilies>", linesHTMLReport, linesHighResHTMLReport, \
+                                              htmlScatterPlotSizeParalogFamilies)
+            callFunctionAndPopulateTheReports(i, "<htmlScatterPlotSizeParalogFamiliesExcluingUnchanged>", linesHTMLReport, linesHighResHTMLReport, \
+                                              htmlScatterPlotSizeParalogFamiliesExcluingUnchanged)
+            callFunctionAndPopulateTheReports(i, "<htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes>", linesHTMLReport, linesHighResHTMLReport, \
+                                              htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes)
+        else:
+            errorMsg = "<p style='color: red; font-size: large;'>Paralogous file (--paralogous parameter) was not given, so we did not produce this plot. </p>"
+            callFunctionAndPopulateTheReports(i, "<htmlScatterPlotSizeParalogFamilies>", linesHTMLReport, linesHighResHTMLReport, \
+                                              errorMsg)
+            callFunctionAndPopulateTheReports(i, "<htmlScatterPlotSizeParalogFamiliesExcluingUnchanged>", linesHTMLReport, linesHighResHTMLReport, \
+                                              errorMsg)
+            callFunctionAndPopulateTheReports(i, "<htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes>", linesHTMLReport, linesHighResHTMLReport, \
+                                              errorMsg)
 
 
-    #save the html report
+
+
+
+    #save the html reports
     with open(args.output+"/report.html", "w") as indexOutFile:
-        for line in indexTemplateLines:
+        for line in linesHTMLReport:
+            indexOutFile.write(line)
+    with open(args.output+"/report_high_resolution.html", "w") as indexOutFile:
+        for line in linesHighResHTMLReport:
             indexOutFile.write(line)
 
     #copy lib to the output
@@ -229,8 +252,6 @@ def main():
         shutil.rmtree(args.output+"/lib")
     shutil.copytree("lib", args.output+"/lib")
     print "Creating HTML report... - Done!"
-
-
 
     print "We are finished!"
 

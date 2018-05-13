@@ -1,6 +1,4 @@
 High Priority:
-    -Do a light html version, where the plots are images instead of d3 objects
-
     -Add all plots from the paper
         -Low-priority possible stuff (for the paper, L): isolate the part of AlignQC that plots the read length histogram, make it plot with consistent y axis.
 

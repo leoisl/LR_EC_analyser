@@ -83,7 +83,7 @@ class Plotter:
         self.toolsNoRaw.remove("raw.bam")
         self.plotsOutput = plotsOutput
 
-    def __produceBarPlotAsHTML(self, tool2Categories, blankSpace, xlabel, ylabel, displayInterval=False):
+    def __produceBarPlot(self, name, tool2Categories, blankSpace, xlabel, ylabel, displayInterval=False):
         # produce the plot
         fig = plt.figure(figsize=(10, 5))
 
@@ -107,8 +107,13 @@ class Plotter:
         #add the tool labels
         plt.legend()
 
-        # save plot to html
-        return mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")
+        # save plot to png
+        plt.savefig(self.plotsOutput + "/%s.png"%name)
+
+        return {
+            "imagePlot": "<img src=plots/%s.png />" % name,
+            "jsPlot": mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")
+        }
 
     def makeDifferenceOnTheNumberOfIsoformsPlot(self, geneID2gene, lowestCategory=-3, highestCategory=3, step=1, blankSpace=0.1):
         """
@@ -148,7 +153,7 @@ class Plotter:
 
 
         tool2DifferenceCategories = get_tool2DifferenceCategories()
-        return self.__produceBarPlotAsHTML(tool2DifferenceCategories, blankSpace, "Difference on the number of isoforms", "Number of genes")
+        return self.__produceBarPlot("DifferenceOnTheNumberOfIsoformsPlot", tool2DifferenceCategories, blankSpace, "Difference on the number of isoforms", "Number of genes")
 
 
     def makeLostTranscriptInGenesWSP2Plot(self, geneID2gene, blankSpace=0.1):
@@ -177,7 +182,7 @@ class Plotter:
         Helper functions
         '''
         tool2RelativeTranscriptOfLostTranscriptCategories =get_tool2RelativeTranscriptOfLostTranscriptCategories()
-        return self.__produceBarPlotAsHTML(tool2RelativeTranscriptOfLostTranscriptCategories, blankSpace, "Relative transcript coverage in relation to gene coverage", "Number of transcripts", True)
+        return self.__produceBarPlot("LostTranscriptInGenesWSP2Plot", tool2RelativeTranscriptOfLostTranscriptCategories, blankSpace, "Relative transcript coverage in relation to gene coverage", "Number of transcripts", True)
 
     def makeDifferencesInRelativeExpressionsBoxPlot(self, geneID2gene, blankSpace=0.1):
         def get_tool2DifferencesInRelativeExpressions():
@@ -196,19 +201,31 @@ class Plotter:
         tool2DifferencesInRelativeExpressions = get_tool2DifferencesInRelativeExpressions()
 
         #make the boxplot
+        name = "DifferencesInRelativeExpressionsBoxPlot"
         fig = plt.figure(figsize=(10, 5))
 
         #put the labels
         plt.ylabel("Tools")
         plt.xlabel("Relative expression")
         data=[tool2DifferencesInRelativeExpressions[tool] for tool in self.toolsNoRaw]
-        plt.boxplot(data, labels=self.toolsNoRaw, sym='', vert=False)
+        plt.boxplot(data, labels=self.toolsNoRaw, vert=False)
 
-        # save plot to html
-        return mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")
+        # save plot to png
+        plt.savefig(self.plotsOutput + "/%s.png" % name)
+
+        return {
+            "imagePlot": "<img src=plots/%s.png />" % name,
+            "jsPlot": mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")
+        }
 
     def makeScatterPlotSizeParalogFamilies(self, geneID2gene, paralogous, disregardUnchangedGeneFamilies=False, includeOnlyCommonGenes=False):
         try:
+            name = "ScatterPlotSizeParalogFamilies"
+            if disregardUnchangedGeneFamilies:
+                name+="_NoDiagPoints"
+            if includeOnlyCommonGenes:
+                name += "_OnlyCommonGenes"
+
             def get_paralogousGenesFamilySizeInTool(paralogousGroups, tool):
                 paralogousGenesFamilySize=[]
                 for paralogousGroup in paralogousGroups:
@@ -219,6 +236,7 @@ class Plotter:
                     paralogousGenesFamilySize.append(paralogousGeneFamilySize)
 
                 return paralogousGenesFamilySize
+
 
             paralogousGroups = paralogous.getParalogousGroups()
 
@@ -280,19 +298,25 @@ class Plotter:
                 plt.colorbar()
 
 
-            '''
-            In png:
-            plt.savefig(self.plotsOutput+"/scatterPlotSizeParalogFamilies.png")
-            return "<img src=plots/scatterPlotSizeParalogFamilies.png />"
-            '''
-            return mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")
+            # save plot to png
+            plt.savefig(self.plotsOutput + "/%s.png" % name)
+
+            return {
+                "imagePlot": "<img src=plots/%s.png />" % name,
+                "jsPlot": mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")
+            }
         except:
             traceback.print_exc()
             #TODO: treat this better - we report error on computing all plots even if a single plot fails
-            return "<p style='color: red; font-size: large;'>Error on computing this plot...</p>"
+            return {
+                "imagePlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>",
+                "jsPlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>"
+            }
 
 
     def makeScatterPlotCoverageOfMainIsoform(self, geneID2gene):
+        name = "ScatterPlotCoverageOfMainIsoform"
+
         # get all the data to plot it
         tool2PlotData = {tool: {} for tool in self.toolsNoRaw}
         for tool in self.toolsNoRaw:
@@ -326,9 +350,10 @@ class Plotter:
             plt.xlabel("Main isoform coverage before")
             plt.ylabel("Main isoform coverage after %s"%tool)
 
-        '''
-        In png:
-        plt.savefig(self.plotsOutput+"/scatterPlotSizeParalogFamilies.png")
-        return "<img src=plots/scatterPlotSizeParalogFamilies.png />"
-        '''
-        return mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")
+        # save plot to png
+        plt.savefig(self.plotsOutput + "/%s.png" % name)
+
+        return {
+            "imagePlot": "<img src=plots/%s.png />" % name,
+            "jsPlot": mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")
+        }
