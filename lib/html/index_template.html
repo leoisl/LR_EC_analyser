@@ -53,6 +53,9 @@
 <body>
 <!-- Div for the main table -->
 <h1>Main stats</h1>
+
+I guess presenting these is some graphs is valuable, instead of just tables <br/>
+
 <h2>Read stats (compilation from AlignQC reports)</h2>
 <p>Transform numbers in:</p>
 <input type="radio" name="LR_EC_read_stats_table_number_format" id="LR_EC_read_stats_table_number_format_M" value="M"> Millions (M) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -82,7 +85,7 @@ The size of a paralogous gene family is the number of genes expressed in a given
 For example, if a gene family has 10 members, and 8 are expressed in the raw data, and 2 are expressed after the correction,<br/>
 we can say that the size of this gene family before the correction is 8, and after, 2.<br/>
 We can then conclude that the correction shrinked the paralogous gene family, probably due to collapsing genes.<br/>
-To know how we computed the paralogous gene families, see: <a href="https://gitlab.com/leoisl/LR_EC_analyser/blob/master/GettingParalogs.txt">https://gitlab.com/leoisl/LR_EC_analyser/blob/master/GettingParalogs.txt</a></p>
+To know how we computed the paralogous gene families, see: <a href="https://gitlab.com/leoisl/LR_EC_analyser/blob/master/GettingParalogs.txt" target="_blank">https://gitlab.com/leoisl/LR_EC_analyser/blob/master/GettingParalogs.txt</a></p>
 <input type="radio" name="Collapsing_gene_families_show_option" id="Collapsing_gene_families_show_option_ALL" value="A"> Show all paralogous gene families<br/>
 <input type="radio" name="Collapsing_gene_families_show_option" id="Collapsing_gene_families_show_option_NO_DIAG" value="ND" checked> Hide paralogous genes families that were unchanged (diagonal line)<br/>
 <input type="radio" name="Collapsing_gene_families_show_option" id="Collapsing_gene_families_show_option_NO_DIAG_NO_ZERO" value="NDN0"> Hide paralogous genes families that were unchanged (diagonal line) and keep only the ones expressed both before and after correction (hide gene families such that x=0 or y=0)<br/>
@@ -109,14 +112,13 @@ Negative values: isoforms were lost. Positive values: isoforms were gained.<br/>
 
 <h2>Lost transcripts in genes with Splicing Complexity 2+</h2>
 The genes taken into account here must be expressed in BOTH the raw AND the tool taken into consideration.<br/>
-Otherwise we could account for lost genes, and these would inflate the high relative transcript coverage bins (which is not true, since here we are investigating isoforms that were lost, not genes)<br/>
+Otherwise we could account for lost genes, and these would inflate the high relative transcript coverage bins (which is not what we want, since here we are investigating isoforms that were lost, not genes, probably corrected towards the main isoform)<br/>
 <htmlLostTranscriptInGenesWSP2Plot>
 
 <h2>Distribution of the difference of relative expression in the transcripts</h2>
 This box and whisker plot represents the distribution of the difference of relative expression in the transcripts.<br/>
 It was done by taking, for each tool, each transcript that is expressed either in the raw reads or in the tool, and computing the absolute difference between the relative expression of the transcript before and after correction.<br/>
 The relative expression of a transcript is the number of reads mapping to the transcript divided by the number of reads mapping to its gene.<br/>
-OBS: outliers were removed because in real data, there are so many that it is very slow to show the graph and the page becomes extremely slow (show it as image is a solution..., shall we do it?)<br/>
 <htmlDifferencesInRelativeExpressionsBoxPlot>
 
 <h2>Coverage of the main isoform before and after correction</h2>
@@ -129,7 +131,7 @@ This plot shows how the coverage of the main isoform changes after the correctio
 This is supposed to be a feature that allows users to see some genes in details, but I am not sure if it is good...<br/>
 Delta value is the largest difference between the # of reads mapping to a gene in a tool and in raw reads<br/>
 I guess sorting by it could be interesting...<br/>
-<span style="color: red;">BE SURE TO DO THIS IF YOU WANT TO SEE THE IGV PLOTS: <a href="https://gitlab.com/leoisl/LR_EC_analyser#viewing-igv-plots-gene-stats-and-transcript-stats">https://gitlab.com/leoisl/LR_EC_analyser#viewing-igv-plots-gene-stats-and-transcript-stats</a> </span>
+<span style="color: red;">BE SURE TO DO THIS IF YOU WANT TO SEE THE IGV PLOTS: <a href="https://gitlab.com/leoisl/LR_EC_analyser#viewing-igv-plots-gene-stats-and-transcript-stats" target="_blank">https://gitlab.com/leoisl/LR_EC_analyser#viewing-igv-plots-gene-stats-and-transcript-stats</a> </span>
 
 <div id="LR_EC_gene_table" class="scrollableTable"></div>
 
@@ -138,7 +140,7 @@ I guess sorting by it could be interesting...<br/>
 This is supposed to be a feature that allows users to see some transcripts in details, but I am not sure if it is good...<br/>
 Delta value is the largest difference between the # of reads mapping to a gene in a tool and in raw reads.<br/>
 I guess sorting by it could be interesting...<br/>
-<span style="color: red;">BE SURE TO DO THIS IF YOU WANT TO SEE THE IGV PLOTS: <a href="https://gitlab.com/leoisl/LR_EC_analyser#viewing-igv-plots-gene-stats-and-transcript-stats">https://gitlab.com/leoisl/LR_EC_analyser#viewing-igv-plots-gene-stats-and-transcript-stats</a> </span>
+<span style="color: red;">BE SURE TO DO THIS IF YOU WANT TO SEE THE IGV PLOTS: <a href="https://gitlab.com/leoisl/LR_EC_analyser#viewing-igv-plots-gene-stats-and-transcript-stats" target="_blank">https://gitlab.com/leoisl/LR_EC_analyser#viewing-igv-plots-gene-stats-and-transcript-stats</a> </span>
 
 <div id="LR_EC_transcript_table" class="scrollableTable"></div>
 </body>
