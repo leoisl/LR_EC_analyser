@@ -154,6 +154,15 @@ class StatProfiler:
         else:
             raise Exception("Rarefraction processing error!")
 
+    @staticmethod
+    def getReadsMeanLength (lengthsFilename):
+        lengths=[]
+        with gzip.open(lengthsFilename) as file:
+            for line in file:
+                lineSplit = line.rstrip().split()
+                lengths.append(int(lineSplit[4]))
+        return float(sum(lengths))/len(lengths)
+
     def parseAlignQCOutput(self, tool, outputFolder):
         dataFolder = outputFolder+"/alignqc_out_on_%s/data" % tool
         statsDic = {}
@@ -199,6 +208,8 @@ class StatProfiler:
         statsDic["GENES_DETECTED_FULL_MATCH"] = StatProfiler.processRarefractionFile(dataFolder + "/gene_full_rarefraction.txt",
                                                                         statsDic["TOTAL_READS"])
 
+        statsDic["MEAN_LENGTH"] = StatProfiler.getReadsMeanLength(dataFolder+"/lengths.txt.gz")
+
         return statsDic
 
 
@@ -212,7 +223,7 @@ class StatProfiler:
         return "[" + ",".join(jsArray) + "]"
 
     def getReadStatsAsJSArrayForHOT(self):
-        readStatsFeatures = ["TOTAL_READS", "UNALIGNED_READS", "ALIGNED_READS", "SINGLE_ALIGN_READS", "GAPPED_ALIGN_READS", "CHIMERA_ALIGN_READS", "TRANSCHIMERA_ALIGN_READS", "SELFCHIMERA_ALIGN_READS"]
+        readStatsFeatures = ["TOTAL_READS", "UNALIGNED_READS", "ALIGNED_READS", "MEAN_LENGTH", "SINGLE_ALIGN_READS", "GAPPED_ALIGN_READS", "CHIMERA_ALIGN_READS", "TRANSCHIMERA_ALIGN_READS", "SELFCHIMERA_ALIGN_READS"]
         return self.__toJSArrayForHOT(readStatsFeatures)
 
     def getBaseStatsAsJSArrayForHOT(self):
