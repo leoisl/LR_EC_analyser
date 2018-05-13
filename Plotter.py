@@ -317,10 +317,10 @@ class Plotter:
             # plot it
             plt.subplot(nbRowsInSubplot, nbOfColumnsInSubplot, toolIndex + 1)
             plt.scatter(tool2PlotData[tool]["xDataPoints"], tool2PlotData[tool]["yDataPoints"],
-                        vmin=0, vmax=highestExpression, edgecolors="black")
+                        vmin=0, vmax=highestExpression, alpha=0.2, c="black")
             plt.xlim(0, int(highestExpression*1.1))
             plt.ylim(0, int(highestExpression*1.1))
-            plt.plot(range(highestExpression + 1), range(highestExpression + 1), alpha=0.5, color="black")
+            plt.plot(range(highestExpression + 1), range(highestExpression + 1), color="black")
 
             # putting the labels
             plt.xlabel("Main isoform coverage before")
