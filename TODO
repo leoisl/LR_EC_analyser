@@ -1,6 +1,9 @@
 High Priority:
+    -Fix  gene track not showing
     -Add all plots from the paper
         -Low-priority possible stuff (for the paper, L): isolate the part of AlignQC that plots the read length histogram, make it plot with consistent y axis.
+    -Make all plots interactive
+        -When clicking on a bar or on a point, open an IGV plot showing the alignment of the reads to the concerned gene/transcript
 
 
 
