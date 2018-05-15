@@ -5,6 +5,19 @@ running AlignQC (https://github.com/jason-weirather/AlignQC) on the BAMs built b
 tools to a reference genome and parsing its output, and creating other custom plots, and then putting all the relevant information
 in a HTML report. It also makes use of IGV.js (https://github.com/igvteam/igv.js) for an in-depth gene and transcript analysis.
 
+# Motivation
+RNA long reads from third generation sequencers like PacBio or ONT are becoming widely used due to the fact that such reads are usually
+long enough to cover entire transcripts, removing the need for transcriptome assembly and allowing for the discovery of the full
+transcript structure and long-range exon coupling. One of the main issues on using long reads is their high error rates. As such,
+many error correctors were developed in the past few years, that are broadly classified into two categories: non-hybrid (correct long reads
+using only long reads) and hybrid (correct long reads using short reads). However, the big majority of these error correctors are tailored for
+the genomic context, and transcriptomic characteristics like the presence of alternative splicing, which can create long gaps between common sequences,
+the highly dynamic isoform expression levels, which create regions with high coverage and low coverage, can pose difficulties to these tools, since
+they are not present in the DNA level, and thus probably not modelled. Ultimately, it is not simple to choose which error corrector to use, mainly if
+all your options are tailored for correcting genomic long reads. This tool aims at filling this gap, by evaluating the quality of correction of different
+error correctors when applied to a RNA long reads dataset. This tool is not suited to evaluate how well the tools perform on correction DNA long reads.
+It can help users choose which error corrector to use on a specific transcritome dataset.
+
 # Installing
 
 For installing and running the script, please have pre-installed
