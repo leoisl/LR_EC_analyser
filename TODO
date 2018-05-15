@@ -1,7 +1,13 @@
 High Priority:
+    -Work on the text
+
     -Fix  gene track not showing
+
+    -Make plots for the main stats subtables
+
     -Add all plots from the paper
         -Low-priority possible stuff (for the paper, L): isolate the part of AlignQC that plots the read length histogram, make it plot with consistent y axis.
+
     -Make all plots interactive
         -When clicking on a bar or on a point, open an IGV plot showing the alignment of the reads to the concerned gene/transcript
 
@@ -10,7 +16,6 @@ High Priority:
 Normal:
     -Main tables presentation:
         -Coloring, ranking and percentage filter
-
 
 
     -Checking if the file server is online/verifying the file server
@@ -22,15 +27,12 @@ Normal:
         -Have a small form with an input for a port and a button "Retry" that checks if the server is fine
 
 
-    -Think about new plots:
-        -Quantif correlation between the raw and error correction tools?
-            -Like what Camille does with the quantif of Nanopore vs Illumina
-
-
-
-
 
 Low priority:
     -Paralogous
         -How to really get families of paralogous genes???
             -Is the method I am doing correctly?
+
+    -Think about new plots:
+        -Quantif correlation between the raw and error correction tools?
+            -Like what Camille does with the quantif of Nanopore vs Illumina
