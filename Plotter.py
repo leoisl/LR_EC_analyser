@@ -368,7 +368,7 @@ class Plotter:
         # add each bar
         for index, tool in enumerate(statProfiler.tools):
             plt.bar(index, statProfiler.tool2Stats[tool][metric], label=tool, tick_label=tool)
-        plt.xticks(range(len(statProfiler.tools)), statProfiler.tools, rotation=45)
+        plt.xticks(range(len(statProfiler.tools)), statProfiler.tools, rotation="vertical")
 
         plt.tight_layout()
         return self.__buildFilesAndCleanup(fig, name)
