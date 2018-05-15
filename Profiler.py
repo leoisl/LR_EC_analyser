@@ -124,6 +124,10 @@ class StatProfiler:
     def __init__(self, tools, outputFolder):
         self.tools = tools
         self.tool2Stats = {tool: self.parseAlignQCOutput(tool, outputFolder) for tool in tools}
+        self.readStatsFeatures = ["TOTAL_READS", "UNALIGNED_READS", "ALIGNED_READS", "MEAN_LENGTH", "SINGLE_ALIGN_READS", "GAPPED_ALIGN_READS", "CHIMERA_ALIGN_READS", "TRANSCHIMERA_ALIGN_READS", "SELFCHIMERA_ALIGN_READS"]
+        self.baseStatsFeatures = ["TOTAL_BASES", "UNALIGNED_BASES", "ALIGNED_BASES", "SINGLE_ALIGN_BASES", "GAPPED_ALIGN_BASES", "CHIMERA_ALIGN_BASES", "TRANSCHIMERA_ALIGN_BASES", "SELFCHIMERA_ALIGN_BASES"]
+        self.errorStatsFeatures = ["ANY_ERROR", "MISMATCHES", "ANY_DELETION", "ANY_INSERTION", "COMPLETE_DELETION", "HOMOPOLYMER_DELETION", "COMPLETE_INSERTION", "HOMOPOLYMER_INSERTION"]
+        self.allFeatures = self.readStatsFeatures + self.baseStatsFeatures + self.errorStatsFeatures
 
     @staticmethod
     def readFileComposedOfPairStringIntToDict(filename):
@@ -223,13 +227,10 @@ class StatProfiler:
         return "[" + ",".join(jsArray) + "]"
 
     def getReadStatsAsJSArrayForHOT(self):
-        readStatsFeatures = ["TOTAL_READS", "UNALIGNED_READS", "ALIGNED_READS", "MEAN_LENGTH", "SINGLE_ALIGN_READS", "GAPPED_ALIGN_READS", "CHIMERA_ALIGN_READS", "TRANSCHIMERA_ALIGN_READS", "SELFCHIMERA_ALIGN_READS"]
-        return self.__toJSArrayForHOT(readStatsFeatures)
+        return self.__toJSArrayForHOT(self.readStatsFeatures)
 
     def getBaseStatsAsJSArrayForHOT(self):
-        baseStatsFeatures = ["TOTAL_BASES", "UNALIGNED_BASES", "ALIGNED_BASES", "SINGLE_ALIGN_BASES", "GAPPED_ALIGN_BASES", "CHIMERA_ALIGN_BASES", "TRANSCHIMERA_ALIGN_BASES", "SELFCHIMERA_ALIGN_BASES"]
-        return self.__toJSArrayForHOT(baseStatsFeatures)
+        return self.__toJSArrayForHOT(self.baseStatsFeatures)
 
     def getErrorStatsAsJSArrayForHOT(self):
-        errorStatsFeatures = ["ANY_ERROR", "MISMATCHES", "ANY_DELETION", "ANY_INSERTION", "COMPLETE_DELETION", "HOMOPOLYMER_DELETION", "COMPLETE_INSERTION", "HOMOPOLYMER_INSERTION"]
-        return self.__toJSArrayForHOT(errorStatsFeatures)
+        return self.__toJSArrayForHOT(self.errorStatsFeatures)

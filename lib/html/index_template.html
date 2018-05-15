@@ -54,14 +54,48 @@
 <!-- Div for the main table -->
 <h1>Main stats</h1>
 
-I guess presenting these is some graphs is valuable, instead of just tables <br/>
+TODO: Improve the graphs <br/>
+TODO: Some stats are better presented in % (i.e. # reads aligned, # reads unaligned, etc) <br/>
 
 <h2>Read stats (compilation from AlignQC reports)</h2>
+
 <p>Transform numbers in:</p>
 <input type="radio" name="LR_EC_read_stats_table_number_format" id="LR_EC_read_stats_table_number_format_M" value="M"> Millions (M) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <input type="radio" name="LR_EC_read_stats_table_number_format" id="LR_EC_read_stats_table_number_format_K" value="K" checked> Kilos (K) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <input type="radio" name="LR_EC_read_stats_table_number_format" id="LR_EC_read_stats_table_number_format_N" value="N"> None<br>
 <div id="LR_EC_read_stats_table"></div>
+<div>
+    <div style="float: left; width: 50%"><html_TOTAL_READS_Plot></div>
+    <div style="float: left; width: 50%"><html_UNALIGNED_READS_Plot></div>
+</div>
+
+
+<div>
+    <div style="float: left; width: 50%"><html_ALIGNED_READS_Plot></div>
+    <div style="float: left; width: 50%"><html_MEAN_LENGTH_Plot></div>
+</div>
+
+<div>
+    <div style="float: left; width: 50%">  <html_SINGLE_ALIGN_READS_Plot>  </div>
+    <div style="float: left; width: 50%">   <html_GAPPED_ALIGN_READS_Plot> </div>
+</div>
+
+<div>
+    <div style="float: left; width: 50%">  <html_CHIMERA_ALIGN_READS_Plot>  </div>
+    <div style="float: left; width: 50%">  <html_TRANSCHIMERA_ALIGN_READS_Plot>  </div>
+</div>
+
+<div>
+    <div style="width: 50%">  <html_SELFCHIMERA_ALIGN_READS_Plot>  </div>
+</div>
+
+
+
+
+
+
+
+
 
 <h2>Base stats (compilation from AlignQC reports)</h2>
 <p>Transform numbers in:</p>
@@ -69,6 +103,26 @@ I guess presenting these is some graphs is valuable, instead of just tables <br/
 <input type="radio" name="LR_EC_base_stats_table_number_format" id="LR_EC_read_stats_table_number_format_K" value="K" checked> Kilos (K) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <input type="radio" name="LR_EC_base_stats_table_number_format" id="LR_EC_read_stats_table_number_format_N" value="N"> None<br>
 <div id="LR_EC_base_stats_table"></div>
+<div>
+    <div style="float: left; width: 50%">  <html_TOTAL_BASES_Plot>  </div>
+    <div style="float: left; width: 50%">  <html_UNALIGNED_BASES_Plot>  </div>
+</div>
+
+<div>
+    <div style="float: left; width: 50%">  <html_ALIGNED_BASES_Plot>  </div>
+    <div style="float: left; width: 50%">  <html_SINGLE_ALIGN_BASES_Plot>  </div>
+</div>
+
+<div>
+    <div style="float: left; width: 50%">  <html_GAPPED_ALIGN_BASES_Plot>  </div>
+    <div style="float: left; width: 50%">   <html_CHIMERA_ALIGN_BASES_Plot> </div>
+</div>
+
+<div>
+    <div style="float: left; width: 50%">  <html_TRANSCHIMERA_ALIGN_BASES_Plot>  </div>
+    <div style="float: left; width: 50%"> <html_SELFCHIMERA_ALIGN_BASES_Plot>   </div>
+</div>
+
 
 
 <h2>Error stats (compilation from AlignQC reports)</h2>
@@ -77,6 +131,26 @@ I guess presenting these is some graphs is valuable, instead of just tables <br/
 <input type="radio" name="LR_EC_error_stats_table_number_format" id="LR_EC_read_stats_table_number_format_K" value="K" checked> Kilos (K) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <input type="radio" name="LR_EC_error_stats_table_number_format" id="LR_EC_read_stats_table_number_format_N" value="N"> None<br>
 <div id="LR_EC_error_stats_table"></div>
+
+<div>
+    <div style="float: left; width: 50%">  <html_ANY_ERROR_Plot>  </div>
+    <div style="float: left; width: 50%">  <html_MISMATCHES_Plot>  </div>
+</div>
+
+<div>
+    <div style="float: left; width: 50%">  <html_ANY_DELETION_Plot>  </div>
+    <div style="float: left; width: 50%">   <html_ANY_INSERTION_Plot> </div>
+</div>
+
+<div>
+    <div style="float: left; width: 50%">  <html_COMPLETE_DELETION_Plot>  </div>
+    <div style="float: left; width: 50%">  <html_HOMOPOLYMER_DELETION_Plot>  </div>
+</div>
+
+<div>
+    <div style="float: left; width: 50%">  <html_COMPLETE_INSERTION_Plot>  </div>
+    <div style="float: left; width: 50%">  <html_HOMOPOLYMER_INSERTION_Plot>  </div>
+</div>
 
 <br/><br/>
 <h1>Corretion collapsing paralogous gene families plots</h1>
