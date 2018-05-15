@@ -8,7 +8,6 @@ from ExternalTools import *
 from Parsers import *
 from Plotter import *
 from Paralogous import *
-import sys
 
 
 """
@@ -162,6 +161,10 @@ def main():
     if not os.path.exists(plotsOutput):
         os.makedirs(plotsOutput)
     plotter = Plotter(tools, plotsOutput)
+
+    #make all stats plots
+    allStatsPlots = {feature: plotter.makeBarPlotFromStats(statProfiler, feature) for feature in statProfiler.allFeatures}
+
     htmlDifferenceOnTheNumberOfIsoformsPlot = plotter.makeDifferenceOnTheNumberOfIsoformsPlot(geneID2gene, -3, 3)
     htmlLostTranscriptInGenesWSP2Plot = plotter.makeLostTranscriptInGenesWSP2Plot(geneID2gene)
     htmlDifferencesInRelativeExpressionsBoxPlot = plotter.makeDifferencesInRelativeExpressionsBoxPlot(geneID2gene)
@@ -198,6 +201,10 @@ def main():
         linesHighResHTMLReport = list(linesHTMLReport)
 
     for i in xrange(len(linesHTMLReport)):
+        for feature in statProfiler.allFeatures:
+            callFunctionAndPopulateTheReports(i, "<html_%s_Plot>"%feature, linesHTMLReport, linesHighResHTMLReport, \
+                                              allStatsPlots[feature])
+
         callFunctionAndPopulateTheReports(i, "<statProfiler.getReadStatsAsJSArrayForHOT()>", linesHTMLReport, linesHighResHTMLReport, \
                                           statProfiler, "getReadStatsAsJSArrayForHOT")
         callFunctionAndPopulateTheReports(i, "<statProfiler.getBaseStatsAsJSArrayForHOT()>", linesHTMLReport, linesHighResHTMLReport, \

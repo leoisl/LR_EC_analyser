@@ -83,6 +83,30 @@ class Plotter:
         self.toolsNoRaw.remove("raw.bam")
         self.plotsOutput = plotsOutput
 
+    def __buildFilesAndCleanup(self, fig, name):
+        """
+        Save fig as the png file and return the html for the png and the d3 object
+        :param fig:
+        :param name:
+        :return:
+        """
+        #make sure everything in the plot appears
+        plt.tight_layout()
+
+        # save plot to png
+        plt.savefig(self.plotsOutput + "/%s.png" % name)
+
+        #produce what we have to return
+        dicToReturn = {
+            "imagePlot": "<img src=plots/%s.png />" % name,
+            "jsPlot": mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")
+        }
+
+        #cleanup
+        plt.close(fig)
+
+        return dicToReturn
+
     def __produceBarPlot(self, name, tool2Categories, blankSpace, xlabel, ylabel, displayInterval=False):
         # produce the plot
         fig = plt.figure(figsize=(10, 5))
@@ -107,13 +131,7 @@ class Plotter:
         #add the tool labels
         plt.legend()
 
-        # save plot to png
-        plt.savefig(self.plotsOutput + "/%s.png"%name)
-
-        return {
-            "imagePlot": "<img src=plots/%s.png />" % name,
-            "jsPlot": mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")
-        }
+        return self.__buildFilesAndCleanup(fig, name)
 
     def makeDifferenceOnTheNumberOfIsoformsPlot(self, geneID2gene, lowestCategory=-3, highestCategory=3, step=1, blankSpace=0.1):
         """
@@ -210,13 +228,7 @@ class Plotter:
         data=[tool2DifferencesInRelativeExpressions[tool] for tool in self.toolsNoRaw]
         plt.boxplot(data, labels=self.toolsNoRaw, vert=False)
 
-        # save plot to png
-        plt.savefig(self.plotsOutput + "/%s.png" % name)
-
-        return {
-            "imagePlot": "<img src=plots/%s.png />" % name,
-            "jsPlot": mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")
-        }
+        return self.__buildFilesAndCleanup(fig, name)
 
     def makeScatterPlotSizeParalogFamilies(self, geneID2gene, paralogous, disregardUnchangedGeneFamilies=False, includeOnlyCommonGenes=False):
         try:
@@ -298,13 +310,7 @@ class Plotter:
                 plt.colorbar()
 
 
-            # save plot to png
-            plt.savefig(self.plotsOutput + "/%s.png" % name)
-
-            return {
-                "imagePlot": "<img src=plots/%s.png />" % name,
-                "jsPlot": mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")
-            }
+            return self.__buildFilesAndCleanup(fig, name)
         except:
             traceback.print_exc()
             #TODO: treat this better - we report error on computing all plots even if a single plot fails
@@ -350,10 +356,21 @@ class Plotter:
             plt.xlabel("Main isoform coverage before")
             plt.ylabel("Main isoform coverage after %s"%tool)
 
-        # save plot to png
-        plt.savefig(self.plotsOutput + "/%s.png" % name)
+        return self.__buildFilesAndCleanup(fig, name)
 
-        return {
-            "imagePlot": "<img src=plots/%s.png />" % name,
-            "jsPlot": mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")
-        }
+    def makeBarPlotFromStats(self, statProfiler, metric):
+        name = metric
+
+        # produce the plot
+        fig = plt.figure()
+
+        # put the labels
+        plt.xlabel("Tools")
+        plt.ylabel(metric)
+
+        # add each bar
+        for index, tool in enumerate(statProfiler.tools):
+            plt.bar(index, statProfiler.tool2Stats[tool][metric], label=tool, tick_label=tool)
+        plt.xticks(range(len(statProfiler.tools)), statProfiler.tools, rotation="vertical")
+
+        return self.__buildFilesAndCleanup(fig, name)
