@@ -90,6 +90,9 @@ class Plotter:
         :param name:
         :return:
         """
+        #make sure everything in the plot appears
+        plt.tight_layout()
+
         # save plot to png
         plt.savefig(self.plotsOutput + "/%s.png" % name)
 
@@ -370,5 +373,4 @@ class Plotter:
             plt.bar(index, statProfiler.tool2Stats[tool][metric], label=tool, tick_label=tool)
         plt.xticks(range(len(statProfiler.tools)), statProfiler.tools, rotation="vertical")
 
-        plt.tight_layout()
         return self.__buildFilesAndCleanup(fig, name)
