@@ -165,6 +165,11 @@ def main():
     #make all stats plots
     allStatsPlots = {feature: plotter.makeBarPlotFromStats(statProfiler, feature) for feature in statProfiler.allFeatures}
 
+    #make the ReadCuttingPlot
+    totalReadsCuttingPlot = plotter.makeReadCountPlotDividedBySize(statProfiler, "TOTAL_SIZE_BINS", "All reads length line plot")
+    alignedReadsCuttingPlot = plotter.makeReadCountPlotDividedBySize(statProfiler, "ALIGNED_SIZE_BINS", "Aligned reads length line plot")
+    unalignedReadsCuttingPlot = plotter.makeReadCountPlotDividedBySize(statProfiler, "UNALIGNED_SIZE_BINS", "Unaligned reads length line plot")
+
     htmlDifferenceOnTheNumberOfIsoformsPlot = plotter.makeDifferenceOnTheNumberOfIsoformsPlot(geneID2gene, -3, 3)
     htmlLostTranscriptInGenesWSP2Plot = plotter.makeLostTranscriptInGenesWSP2Plot(geneID2gene)
     htmlDifferencesInRelativeExpressionsBoxPlot = plotter.makeDifferencesInRelativeExpressionsBoxPlot(geneID2gene)
@@ -225,6 +230,13 @@ def main():
                                           tools)
         callFunctionAndPopulateTheReports(i, "<htmlScatterPlotCoverageOfMainIsoform>", linesHTMLReport, linesHighResHTMLReport, \
                                           htmlScatterPlotCoverageOfMainIsoform)
+
+        callFunctionAndPopulateTheReports(i, "<htmlTotalReadsCuttingPlot>", linesHTMLReport, linesHighResHTMLReport, \
+                                          totalReadsCuttingPlot)
+        callFunctionAndPopulateTheReports(i, "<htmlAlignedReadsCuttingPlot>", linesHTMLReport, linesHighResHTMLReport, \
+                                          alignedReadsCuttingPlot)
+        callFunctionAndPopulateTheReports(i, "<htmlUnalignedReadsCuttingPlot>", linesHTMLReport, linesHighResHTMLReport, \
+                                          unalignedReadsCuttingPlot)
 
         if paralogous != None:
             callFunctionAndPopulateTheReports(i, "<htmlScatterPlotSizeParalogFamilies>", linesHTMLReport, linesHighResHTMLReport, \

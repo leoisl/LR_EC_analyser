@@ -8,6 +8,8 @@ import mpld3
 import math
 from decimal import Decimal
 import traceback
+import plotly
+import gzip
 
 class Category:
     def __init__(self, start, end, step):
@@ -19,7 +21,7 @@ class Category:
             self.intervals.append({"min": start, "max": start+step, "count":0})
             start+=step
 
-    def getCategoriesAsString(self, displayInterval=False):
+    def getCategoriesAsString(self, displayInterval=False, displayPlusOnFirstItem=False, displayPlusOnLastItem=False):
         """
         transform the intervals list into a list of string that will be the xlabels of the plot
         Basically, transform a vector like [-2, -1, 0, 1, 2] into ["-2+", "-1", "0", "+1", "+2+"]
@@ -36,12 +38,15 @@ class Category:
 
                 # set the suffix
                 suffix = ""
-                if i == 0 or i == len(self.intervals) - 1:
+                if (displayPlusOnFirstItem and i == 0) or (displayPlusOnLastItem and i == len(self.intervals) - 1):
                     suffix = "+"
 
                 intervalsAsString.append(prefix + str(lowerBound) + suffix)
             else:
-                intervalsAsString.append("[%s,%s)"%(interval["min"], interval["max"]))
+                if i < len(self.intervals) - 1 or not displayPlusOnLastItem:
+                    intervalsAsString.append("[%s,%s)" % (interval["min"], interval["max"]))
+                else:
+                    intervalsAsString.append("%s+"%(interval["min"]))
 
         return intervalsAsString
 
@@ -361,16 +366,63 @@ class Plotter:
     def makeBarPlotFromStats(self, statProfiler, metric):
         name = metric
 
-        # produce the plot
-        fig = plt.figure()
+        #produce the plot
+        data = [plotly.graph_objs.Bar(x=statProfiler.tools, y=[statProfiler.tool2Stats[tool][metric] for tool in statProfiler.tools])]
+        layout = plotly.graph_objs.Layout(
+            title=metric,
+            xaxis={"title": "Tools"},
+            yaxis={"title": metric}
+        )
 
-        # put the labels
-        plt.xlabel("Tools")
-        plt.ylabel(metric)
+        return {
+            "imagePlot": "<img src=plots/%s.png />" % name,
+            "jsPlot": plotly.offline.plot({"data": data, "layout": layout}, include_plotlyjs=False, output_type='div')
+        }
 
-        # add each bar
-        for index, tool in enumerate(statProfiler.tools):
-            plt.bar(index, statProfiler.tool2Stats[tool][metric], label=tool, tick_label=tool)
-        plt.xticks(range(len(statProfiler.tools)), statProfiler.tools, rotation="vertical")
+    def makeBarPlotFromStats(self, statProfiler, metric):
+        name = metric
 
-        return self.__buildFilesAndCleanup(fig, name)
+        #produce the plot
+        data = [plotly.graph_objs.Bar(x=["Tools"], y=[statProfiler.tool2Stats[tool][metric]], name=tool) for tool in statProfiler.tools]
+        layout = plotly.graph_objs.Layout(
+            title=metric,
+            yaxis={"title": metric},
+            barmode="group"
+        )
+
+        return {
+            "imagePlot": "<img src=plots/%s.png />" % name,
+            "jsPlot": plotly.offline.plot({"data": data, "layout": layout}, include_plotlyjs=False, output_type='div')
+        }
+
+    def makeReadCountPlotDividedBySize(self, statProfiler, feature, title):
+        #first we get the labels
+        labels = statProfiler.tool2Stats["raw.bam"][feature].getCategoriesAsString(displayInterval=True, displayPlusOnLastItem=True)
+
+
+        # produce the plot data
+        data=[]
+        for tool in self.tools:
+            data.append(plotly.graph_objs.Scatter(
+                x=range(len(labels)),
+                y=statProfiler.tool2Stats[tool][feature].getIntervalCount(),
+                mode='lines+markers',
+                name="%s"%(tool)
+                ))
+
+
+        layout = plotly.graph_objs.Layout(
+            title=title,
+            xaxis=plotly.graph_objs.XAxis(
+                   title="Read lengths",
+                   showticklabels=True,
+                   tickvals=range(len(labels)),
+                   ticktext=labels
+                ),
+            yaxis={"title": "Read count"}
+        )
+
+        return {
+            "imagePlot": "TODO",
+            "jsPlot": plotly.offline.plot({"data": data, "layout": layout}, include_plotlyjs=False, output_type='div')
+        }

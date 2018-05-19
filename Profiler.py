@@ -4,6 +4,7 @@
 import gzip
 import urllib
 from ExternalTools import *
+from Plotter import Category
 
 class FeatureProfiler:
     """
@@ -121,13 +122,20 @@ class FeatureProfiler:
 
 
 class StatProfiler:
-    def __init__(self, tools, outputFolder):
+    def __init__(self, tools, outputFolder, start=0, end=4500, step=500):
         self.tools = tools
-        self.tool2Stats = {tool: self.parseAlignQCOutput(tool, outputFolder) for tool in tools}
-        self.readStatsFeatures = ["TOTAL_READS", "UNALIGNED_READS", "ALIGNED_READS", "MEAN_LENGTH", "SINGLE_ALIGN_READS", "GAPPED_ALIGN_READS", "CHIMERA_ALIGN_READS", "TRANSCHIMERA_ALIGN_READS", "SELFCHIMERA_ALIGN_READS"]
-        self.baseStatsFeatures = ["TOTAL_BASES", "UNALIGNED_BASES", "ALIGNED_BASES", "SINGLE_ALIGN_BASES", "GAPPED_ALIGN_BASES", "CHIMERA_ALIGN_BASES", "TRANSCHIMERA_ALIGN_BASES", "SELFCHIMERA_ALIGN_BASES"]
+        self.outputFolder = outputFolder
+        self.start = start
+        self.end = end
+        self.step = step
+        self.readStatsFeatures = ["TOTAL_READS", "UNALIGNED_READS", "ALIGNED_READS", "MEAN_LENGTH", "SINGLE_ALIGN_READS", "GAPPED_ALIGN_READS", "CHIMERA_ALIGN_READS", "TRANSCHIMERA_ALIGN_READS",
+                                  "SELFCHIMERA_ALIGN_READS"]
+        self.baseStatsFeatures = ["TOTAL_BASES", "UNALIGNED_BASES", "ALIGNED_BASES", "SINGLE_ALIGN_BASES", "GAPPED_ALIGN_BASES", "CHIMERA_ALIGN_BASES", "TRANSCHIMERA_ALIGN_BASES",
+                                  "SELFCHIMERA_ALIGN_BASES"]
         self.errorStatsFeatures = ["ANY_ERROR", "MISMATCHES", "ANY_DELETION", "ANY_INSERTION", "COMPLETE_DELETION", "HOMOPOLYMER_DELETION", "COMPLETE_INSERTION", "HOMOPOLYMER_INSERTION"]
         self.allFeatures = self.readStatsFeatures + self.baseStatsFeatures + self.errorStatsFeatures
+        self.parseAlignQCOutputForAllTools()
+
 
     @staticmethod
     def readFileComposedOfPairStringIntToDict(filename):
@@ -158,18 +166,70 @@ class StatProfiler:
         else:
             raise Exception("Rarefraction processing error!")
 
-    @staticmethod
-    def getReadsMeanLength (lengthsFilename):
+
+    def __processLengthsFile (self, tool, dataFolder):
+        '''
+        Fills:
+            self.tool2Stats[tool]["MEAN_LENGTH"]
+            self.tool2Stats[tool]["ALIGNED_SIZE_BINS"]
+            self.tool2Stats[tool]["UNALIGNED_SIZE_BINS"]
+
+
+        /data/lengths.txt.gz file:
+            -nb of lines = nb of reads
+            -About column 1:
+                Aligned reads (the sum of):
+                    Single-align reads = line[1]=="original"
+                    Gapped-align reads = line[1]=="gapped"
+                    Chimeric reads (sum of):
+                        Self-chimera: line[1]=="self-chimera" or line[1]=="self-chimera-atypical"
+                        Trans-chimera: line[1]=="chimera"
+                Unaligned reads:
+                    line[1]=="unaligned"
+            -Column 4 is read length
+        '''
+        alignedSizeBins = Category(self.start, self.end, self.step)
+        unalignedSizeBins = Category(self.start, self.end, self.step)
+        totalSizeBins = Category(self.start, self.end, self.step)
+        alignedReadsClassifications=["original", "gapped", "self-chimera", "self-chimera-atypical", "chimera"]
+        unalignedReadsClassifications = ["unaligned"]
+
+
+        #process the lengths file
         lengths=[]
-        with gzip.open(lengthsFilename) as file:
+        with gzip.open(dataFolder + "/lengths.txt.gz") as file:
             for line in file:
                 lineSplit = line.rstrip().split()
-                lengths.append(int(lineSplit[4]))
-        return float(sum(lengths))/len(lengths)
 
-    def parseAlignQCOutput(self, tool, outputFolder):
-        dataFolder = outputFolder+"/alignqc_out_on_%s/data" % tool
-        statsDic = {}
+                #get the fields we are interested
+                classification=lineSplit[1]
+                length=int(lineSplit[4])
+
+                #add the read to the appropriate size bin
+                if classification in alignedReadsClassifications:
+                    alignedSizeBins.addDataPoint(length)
+                elif classification in unalignedReadsClassifications:
+                    unalignedSizeBins.addDataPoint(length)
+                else:
+                    raise Exception("Unknown classification %s in __processLengthsFile()" % classification)
+                totalSizeBins.addDataPoint(length)
+
+
+                #add length to lengths
+                lengths.append(length)
+
+        #fills the object
+        self.tool2Stats[tool]["MEAN_LENGTH"] = float(sum(lengths))/len(lengths)
+        self.tool2Stats[tool]["TOTAL_SIZE_BINS"] = totalSizeBins
+        self.tool2Stats[tool]["ALIGNED_SIZE_BINS"] = alignedSizeBins
+        self.tool2Stats[tool]["UNALIGNED_SIZE_BINS"] = unalignedSizeBins
+
+
+
+    def __parseAlignQCOutput(self, tool):
+        dataFolder = self.outputFolder+"/alignqc_out_on_%s/data" % tool
+        self.tool2Stats[tool] = {}
+
 
         '''
         Added the following fields:
@@ -190,7 +250,7 @@ class StatProfiler:
         TRANSCHIMERA_ALIGN_BASES	0
         SELFCHIMERA_ALIGN_BASES	22590
         '''
-        statsDic.update(StatProfiler.readFileComposedOfPairStringIntToDict(dataFolder + "/alignment_stats.txt"))
+        self.tool2Stats[tool].update(StatProfiler.readFileComposedOfPairStringIntToDict(dataFolder + "/alignment_stats.txt"))
 
         '''
         Added the following fields:
@@ -205,16 +265,28 @@ class StatProfiler:
         COMPLETE_INSERTION	28668
         HOMOPOLYMER_INSERTION	20422
         '''
-        statsDic.update(StatProfiler.readFileComposedOfPairStringIntToDict(dataFolder + "/error_stats.txt"))
+        self.tool2Stats[tool].update(StatProfiler.readFileComposedOfPairStringIntToDict(dataFolder + "/error_stats.txt"))
 
-        statsDic["GENES_DETECTED_ANY_MATCH"] = StatProfiler.processRarefractionFile(dataFolder + "/gene_rarefraction.txt",
-                                                                       statsDic["TOTAL_READS"])
-        statsDic["GENES_DETECTED_FULL_MATCH"] = StatProfiler.processRarefractionFile(dataFolder + "/gene_full_rarefraction.txt",
-                                                                        statsDic["TOTAL_READS"])
+        self.tool2Stats[tool]["GENES_DETECTED_ANY_MATCH"] = StatProfiler.processRarefractionFile(dataFolder + "/gene_rarefraction.txt",
+                                                                                                 self.tool2Stats[tool]["TOTAL_READS"])
+        self.tool2Stats[tool]["GENES_DETECTED_FULL_MATCH"] = StatProfiler.processRarefractionFile(dataFolder + "/gene_full_rarefraction.txt",
+                                                                                                  self.tool2Stats[tool]["TOTAL_READS"])
+        '''
+        Added the following fields:
+        self.tool2Stats[tool]["MEAN_LENGTH"]
+        self.tool2Stats[tool]["ALIGNED_SIZE_BINS"]
+        self.tool2Stats[tool]["UNALIGNED_SIZE_BINS"]
+        '''
+        self.__processLengthsFile(tool, dataFolder)
 
-        statsDic["MEAN_LENGTH"] = StatProfiler.getReadsMeanLength(dataFolder+"/lengths.txt.gz")
 
-        return statsDic
+
+    def parseAlignQCOutputForAllTools(self):
+        self.tool2Stats = {}
+        #populate self.tool2Stats
+        for tool in self.tools:
+            self.__parseAlignQCOutput(tool)
+
 
 
     def __toJSArrayForHOT(self, features):
