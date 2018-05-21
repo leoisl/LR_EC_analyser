@@ -288,12 +288,11 @@ class Plotter:
             fig['layout'].update(height=nbRowsInSubplot*600, width=nbOfColumnsInSubplot*600, showlegend=False)
 
             for toolIndex, tool  in enumerate(self.toolsNoRaw):
-                row, col = int(toolIndex / nbOfColumnsInSubplot) + 1, toolIndex % nbOfColumnsInSubplot + 1
                 fig['layout']['xaxis%d'%(toolIndex+1)].update(range=[0, largestFamilySize + 1], title="Raw")
                 fig['layout']['yaxis%d'%(toolIndex+1)].update(range=[0, largestFamilySize + 1], title=tool)
                 fig['layout']['shapes'].append(dict({
-                        'xref': "x%d"%col,
-                        'yref': "y%d"%row,
+                        'xref': "x%d"%(toolIndex+1),
+                        'yref': "y%d"%(toolIndex+1),
                         'type': 'line',
                         'x0': 0,
                         'y0': 0,
