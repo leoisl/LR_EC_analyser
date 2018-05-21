@@ -1,15 +1,7 @@
-# make the plot nb_of_isoforms_lost_or_won_nb_of_genes.80QC_filter.pdf
-
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import numpy as np
-import mpld3
 import math
 from decimal import Decimal
 import traceback
 import plotly
-import gzip
 
 class Category:
     def __init__(self, start, end, step):
@@ -32,14 +24,15 @@ class Category:
             if not displayInterval:
                 lowerBound = interval["min"]
                 # set the prefix
-                prefix = ""
+                prefix = "("
                 if lowerBound > 0:
-                    prefix = "+"
+                    prefix += "+"
 
                 # set the suffix
                 suffix = ""
                 if (displayPlusOnFirstItem and i == 0) or (displayPlusOnLastItem and i == len(self.intervals) - 1):
-                    suffix = "+"
+                    suffix += "+"
+                suffix += ")"
 
                 intervalsAsString.append(prefix + str(lowerBound) + suffix)
             else:
@@ -88,55 +81,35 @@ class Plotter:
         self.toolsNoRaw.remove("raw.bam")
         self.plotsOutput = plotsOutput
 
-    def __buildFilesAndCleanup(self, fig, name):
+    def __buildPlots(self, fig, name):
         """
-        Save fig as the png file and return the html for the png and the d3 object
-        :param fig:
-        :param name:
-        :return:
+        build the plots and return what needs to be returned
         """
-        #make sure everything in the plot appears
-        plt.tight_layout()
+        plotly.offline.plot(fig, image = 'png', image_filename="%s/%s.png"%(self.plotsOutput, name),
+                            filename="%s/%s.html"%(self.plotsOutput, name), auto_open=False)
 
-        # save plot to png
-        plt.savefig(self.plotsOutput + "/%s.png" % name)
-
-        #produce what we have to return
-        dicToReturn = {
-            "imagePlot": "<img src=plots/%s.png />" % name,
-            "jsPlot": mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")
+        return {
+            #"imagePlot": "<img src=plots/%s.png />" % name,
+            "imagePlot": "TODO",
+            "jsPlot": plotly.offline.plot(fig, include_plotlyjs=False, output_type='div')
         }
 
-        #cleanup
-        plt.close(fig)
+    def __produceBarPlot(self, name, tool2Categories, xlabel, ylabel, displayInterval=False, displayPlusOnFirstItem=False, displayPlusOnLastItem=False):
+        #produce the plot
+        data = [plotly.graph_objs.Bar(
+                x=tool2Categories[tool].getCategoriesAsString(displayInterval, displayPlusOnFirstItem, displayPlusOnLastItem),
+                y=tool2Categories[tool].getIntervalCount(),
+                name=tool)
+                    for tool in self.toolsNoRaw]
 
-        return dicToReturn
+        layout = plotly.graph_objs.Layout(
+            xaxis={"title": xlabel},
+            yaxis={"title": ylabel},
+            barmode='group'
+        )
 
-    def __produceBarPlot(self, name, tool2Categories, blankSpace, xlabel, ylabel, displayInterval=False):
-        # produce the plot
-        fig = plt.figure(figsize=(10, 5))
-
-        #put the labels
-        plt.xlabel(xlabel)
-        plt.ylabel(ylabel)
-
-        #compute the indexes and bar widths
-        xAxisIndexes = np.arange(len(tool2Categories[self.toolsNoRaw[0]]))
-        barWidth = 1.0 / len(self.toolsNoRaw) - blankSpace/len(self.toolsNoRaw)
-
-        #add each bar
-        for index, tool in enumerate(self.toolsNoRaw):
-            plt.bar(xAxisIndexes + (index * barWidth), tool2Categories[tool].getIntervalCount(),
-                    width=barWidth, label=tool)
-
-        #add the x labels
-        plt.xticks(xAxisIndexes + (len(self.toolsNoRaw) / 2.0 * barWidth - barWidth / 2.0),
-                   tool2Categories[self.toolsNoRaw[0]].getCategoriesAsString(displayInterval))
-
-        #add the tool labels
-        plt.legend()
-
-        return self.__buildFilesAndCleanup(fig, name)
+        fig = plotly.graph_objs.Figure(data=data, layout=layout)
+        return self.__buildPlots(fig, name)
 
     def makeDifferenceOnTheNumberOfIsoformsPlot(self, geneID2gene, lowestCategory=-3, highestCategory=3, step=1, blankSpace=0.1):
         """
@@ -176,7 +149,7 @@ class Plotter:
 
 
         tool2DifferenceCategories = get_tool2DifferenceCategories()
-        return self.__produceBarPlot("DifferenceOnTheNumberOfIsoformsPlot", tool2DifferenceCategories, blankSpace, "Difference on the number of isoforms", "Number of genes")
+        return self.__produceBarPlot("DifferenceOnTheNumberOfIsoformsPlot", tool2DifferenceCategories, "Difference on the number of isoforms", "Number of genes", False, True, True)
 
 
     def makeLostTranscriptInGenesWSP2Plot(self, geneID2gene, blankSpace=0.1):
@@ -205,7 +178,7 @@ class Plotter:
         Helper functions
         '''
         tool2RelativeTranscriptOfLostTranscriptCategories =get_tool2RelativeTranscriptOfLostTranscriptCategories()
-        return self.__produceBarPlot("LostTranscriptInGenesWSP2Plot", tool2RelativeTranscriptOfLostTranscriptCategories, blankSpace, "Relative transcript coverage in relation to gene coverage", "Number of transcripts", True)
+        return self.__produceBarPlot("LostTranscriptInGenesWSP2Plot", tool2RelativeTranscriptOfLostTranscriptCategories, "Relative transcript coverage in relation to gene coverage", "Number of transcripts", True)
 
     def makeDifferencesInRelativeExpressionsBoxPlot(self, geneID2gene, blankSpace=0.1):
         def get_tool2DifferencesInRelativeExpressions():
@@ -225,15 +198,17 @@ class Plotter:
 
         #make the boxplot
         name = "DifferencesInRelativeExpressionsBoxPlot"
-        fig = plt.figure(figsize=(10, 5))
+
 
         #put the labels
-        plt.ylabel("Tools")
-        plt.xlabel("Relative expression")
-        data=[tool2DifferencesInRelativeExpressions[tool] for tool in self.toolsNoRaw]
-        plt.boxplot(data, labels=self.toolsNoRaw, vert=False)
+        data=[plotly.graph_objs.Box(y=tool2DifferencesInRelativeExpressions[tool], name=tool) for tool in self.toolsNoRaw]
+        layout = plotly.graph_objs.Layout(
+            xaxis={"title": "Relative expression"},
+            yaxis={"title": "Tools"}
+        )
+        fig = plotly.graph_objs.Figure(data=data, layout=layout)
 
-        return self.__buildFilesAndCleanup(fig, name)
+        return self.__buildPlots(fig, name)
 
     def makeScatterPlotSizeParalogFamilies(self, geneID2gene, paralogous, disregardUnchangedGeneFamilies=False, includeOnlyCommonGenes=False):
         try:
@@ -296,26 +271,39 @@ class Plotter:
             #plot the data
             nbOfColumnsInSubplot = 3
             nbRowsInSubplot = int(math.ceil(float(len(self.toolsNoRaw)) / nbOfColumnsInSubplot))
-            fig = plt.figure(figsize=(5 * nbOfColumnsInSubplot, 5 * nbRowsInSubplot))
+            fig = plotly.tools.make_subplots(rows=nbRowsInSubplot, cols=nbOfColumnsInSubplot)
             for toolIndex, tool in enumerate(self.toolsNoRaw):
+                row, col = int(toolIndex / nbOfColumnsInSubplot) + 1, toolIndex % nbOfColumnsInSubplot + 1
                 #plot it
-                plt.subplot(nbRowsInSubplot, nbOfColumnsInSubplot, toolIndex+1)
-                plt.scatter(tool2PlotData[tool]["xDataPoints"], tool2PlotData[tool]["yDataPoints"], c=tool2PlotData[tool]["count"],
-                            cmap="bwr", vmin=0, vmax=largestDatapointCount, edgecolors="black")
-                plt.xlim(0, largestFamilySize+1)
-                plt.ylim(0, largestFamilySize+1)
-                plt.xticks(range(0, largestFamilySize + 2, 2))
-                plt.yticks(range(0, largestFamilySize + 2, 2))
-                plt.plot(range(largestFamilySize+1), range(largestFamilySize+1), alpha=0.5, color="black")
+                trace = plotly.graph_objs.Scatter(x=tool2PlotData[tool]["xDataPoints"], y=tool2PlotData[tool]["yDataPoints"],
+                                                  mode='markers',
+                                                  marker={'color': tool2PlotData[tool]["count"],
+                                                          'cmax': largestDatapointCount,
+                                                          'cmin': 0,
+                                                          'colorbar': {'title': 'Count'},
+                                                          'colorscale': 'RdBu'}
+                                                  )
+                fig.append_trace(trace, row, col)
+
+            fig['layout'].update(height=nbRowsInSubplot*600, width=nbOfColumnsInSubplot*600, showlegend=False)
+
+            for toolIndex, tool  in enumerate(self.toolsNoRaw):
+                row, col = int(toolIndex / nbOfColumnsInSubplot) + 1, toolIndex % nbOfColumnsInSubplot + 1
+                fig['layout']['xaxis%d'%(toolIndex+1)].update(range=[0, largestFamilySize + 1], title="Raw")
+                fig['layout']['yaxis%d'%(toolIndex+1)].update(range=[0, largestFamilySize + 1], title=tool)
+                fig['layout']['shapes'].append(dict({
+                        'xref': "x%d"%col,
+                        'yref': "y%d"%row,
+                        'type': 'line',
+                        'x0': 0,
+                        'y0': 0,
+                        'x1': largestFamilySize,
+                        'y1': largestFamilySize,
+                        'opacity': 0.5
+                    }))
 
 
-                #putting the labels
-                plt.xlabel("Raw")
-                plt.ylabel(tool)
-                plt.colorbar()
-
-
-            return self.__buildFilesAndCleanup(fig, name)
+            return self.__buildPlots(fig, name)
         except:
             traceback.print_exc()
             #TODO: treat this better - we report error on computing all plots even if a single plot fails
@@ -347,21 +335,38 @@ class Plotter:
         # plot the data
         nbOfColumnsInSubplot = 3
         nbRowsInSubplot = int(math.ceil(float(len(self.toolsNoRaw)) / nbOfColumnsInSubplot))
-        fig = plt.figure(figsize=(5 * nbOfColumnsInSubplot, 5 * nbRowsInSubplot))
+        fig = plotly.tools.make_subplots(rows=nbRowsInSubplot, cols=nbOfColumnsInSubplot,
+                                         subplot_titles=self.toolsNoRaw)
         for toolIndex, tool in enumerate(self.toolsNoRaw):
+            row, col = int(toolIndex / nbOfColumnsInSubplot) + 1, toolIndex % nbOfColumnsInSubplot + 1
             # plot it
-            plt.subplot(nbRowsInSubplot, nbOfColumnsInSubplot, toolIndex + 1)
-            plt.scatter(tool2PlotData[tool]["xDataPoints"], tool2PlotData[tool]["yDataPoints"],
-                        vmin=0, vmax=highestExpression, alpha=0.2, c="black")
-            plt.xlim(0, int(highestExpression*1.1))
-            plt.ylim(0, int(highestExpression*1.1))
-            plt.plot(range(highestExpression + 1), range(highestExpression + 1), color="black")
+            trace = plotly.graph_objs.Scatter(x=tool2PlotData[tool]["xDataPoints"], y=tool2PlotData[tool]["yDataPoints"],
+                                              mode='markers',
+                                              marker={
+                                                  'color': 'black',
+                                                  'opacity': 0.2
+                                              }
+                                              )
+            fig.append_trace(trace, row, col)
 
-            # putting the labels
-            plt.xlabel("Main isoform coverage before")
-            plt.ylabel("Main isoform coverage after %s"%tool)
+        fig['layout'].update(height=nbRowsInSubplot * 600, width=nbOfColumnsInSubplot * 600, showlegend=False)
 
-        return self.__buildFilesAndCleanup(fig, name)
+        for toolIndex in xrange(len(self.toolsNoRaw)):
+            row, col = int(toolIndex / nbOfColumnsInSubplot) + 1, toolIndex % nbOfColumnsInSubplot + 1
+            fig['layout']['xaxis%d' % (toolIndex + 1)].update(range=[0, int(math.ceil(highestExpression*1.1))+1], title="Main coverage before")
+            fig['layout']['yaxis%d' % (toolIndex + 1)].update(range=[0, int(math.ceil(highestExpression*1.1))+1], title="Main coverage after")
+            fig['layout']['shapes'].append(dict({
+                'xref': "x%d"%col,
+                'yref': "y%d"%row,
+                'type': 'line',
+                'x0': 0,
+                'y0': 0,
+                'x1': highestExpression,
+                'y1': highestExpression,
+                'opacity': 0.5
+            }))
+
+        return self.__buildPlots(fig, name)
 
     def makeBarPlotFromStats(self, statProfiler, metric):
         name = metric
@@ -389,11 +394,8 @@ class Plotter:
             yaxis={"title": metric},
             barmode="group"
         )
-
-        return {
-            "imagePlot": "<img src=plots/%s.png />" % name,
-            "jsPlot": plotly.offline.plot({"data": data, "layout": layout}, include_plotlyjs=False, output_type='div')
-        }
+        fig = plotly.graph_objs.Figure(data=data, layout=layout)
+        return self.__buildPlots(fig, name)
 
     def makeReadCountPlotDividedBySize(self, statProfiler, feature, title):
         #first we get the labels
@@ -422,7 +424,5 @@ class Plotter:
             yaxis={"title": "Read count"}
         )
 
-        return {
-            "imagePlot": "TODO",
-            "jsPlot": plotly.offline.plot({"data": data, "layout": layout}, include_plotlyjs=False, output_type='div')
-        }
+        fig = plotly.graph_objs.Figure(data=data, layout=layout)
+        return self.__buildPlots(fig, "ReadCountPlotDividedBySize_%s"%feature)
