@@ -285,7 +285,7 @@ class Plotter:
                                                   )
                 fig.append_trace(trace, row, col)
 
-            fig['layout'].update(height=nbRowsInSubplot*600, width=nbOfColumnsInSubplot*600, showlegend=False)
+            fig['layout'].update(height=nbRowsInSubplot*400, width=nbOfColumnsInSubplot*400, showlegend=False)
 
             for toolIndex, tool  in enumerate(self.toolsNoRaw):
                 fig['layout']['xaxis%d'%(toolIndex+1)].update(range=[0, largestFamilySize + 1], title="Raw")
@@ -348,7 +348,7 @@ class Plotter:
                                               )
             fig.append_trace(trace, row, col)
 
-        fig['layout'].update(height=nbRowsInSubplot * 600, width=nbOfColumnsInSubplot * 600, showlegend=False)
+        fig['layout'].update(height=nbRowsInSubplot * 400, width=nbOfColumnsInSubplot * 400, showlegend=False)
 
         for toolIndex in xrange(len(self.toolsNoRaw)):
             fig['layout']['xaxis%d' % (toolIndex + 1)].update(range=[0, int(math.ceil(highestExpression*1.1))+1], title="Main coverage before")
