@@ -339,6 +339,7 @@ class Plotter:
             row, col = int(toolIndex / nbOfColumnsInSubplot) + 1, toolIndex % nbOfColumnsInSubplot + 1
             # plot it
             trace = plotly.graph_objs.Scatter(x=tool2PlotData[tool]["xDataPoints"], y=tool2PlotData[tool]["yDataPoints"],
+											  type='scattergl',
                                               mode='markers',
                                               marker={
                                                   'color': 'black',
