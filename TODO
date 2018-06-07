@@ -17,6 +17,18 @@ Bug:
     TypeError: %d format: a number is required, not NoneType
 
 High Priority:
+    -I guess the main problem for error correcting are repeats.
+        -In DNA, repeats appear in form of repeats themselves.
+        -Repeats in RNA differ from DNA
+            -We do have expressed repeats, but AS/paralogy can cause similar problems (similar sequences expressed)
+            -Explore the quality of reads in this regard
+            -Basically we want to answer:
+                -Does a tool get affect by high repeat content?
+                -Does a tool get affect by high AS?
+                -Does a tool get affect by high paralogy?
+                -Do a boxplot with the avg score of all genes in a given category to check this?
+
+
     -Focus on the new reads that are produced by the error correctors
 
     -Work on the text

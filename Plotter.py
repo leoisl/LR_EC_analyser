@@ -180,7 +180,7 @@ class Plotter:
         tool2RelativeTranscriptOfLostTranscriptCategories =get_tool2RelativeTranscriptOfLostTranscriptCategories()
         return self.__produceBarPlot("LostTranscriptInGenesWSP2Plot", tool2RelativeTranscriptOfLostTranscriptCategories, "Relative transcript coverage in relation to gene coverage", "Number of transcripts", True)
 
-    def makeDifferencesInRelativeExpressionsBoxPlot(self, geneID2gene, blankSpace=0.1):
+    def makeDifferencesInRelativeExpressionsBoxPlot(self, geneID2gene):
         def get_tool2DifferencesInRelativeExpressions():
             tool2DifferencesInRelativeExpressions={tool:[] for tool in self.toolsNoRaw}
             for gene in geneID2gene.values():
@@ -201,7 +201,7 @@ class Plotter:
 
 
         #put the labels
-        data=[plotly.graph_objs.Box(y=tool2DifferencesInRelativeExpressions[tool], name=tool) for tool in self.toolsNoRaw]
+        data=[plotly.graph_objs.Box(y=tool2DifferencesInRelativeExpressions[tool], name=tool, boxpoints=False) for tool in self.toolsNoRaw]
         layout = plotly.graph_objs.Layout(
             xaxis={"title": "Relative expression"},
             yaxis={"title": "Tools"}
@@ -304,8 +304,7 @@ class Plotter:
 
             return self.__buildPlots(fig, name)
         except:
-            traceback.print_exc()
-            #TODO: treat this better - we report error on computing all plots even if a single plot fails
+            #traceback.print_exc()
             return {
                 "imagePlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>",
                 "jsPlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>"
