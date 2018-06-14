@@ -236,6 +236,7 @@ class Plotter:
 
             #get all the data to plot it
             tool2PlotData={tool:{} for tool in self.toolsNoRaw}
+            tool2GeneralStats={tool:{"Shrunk": 0, "Unchanged": 0, "Expanded": 0} for tool in self.toolsNoRaw}
             for tool in self.toolsNoRaw:
                 paralogousGeneFamilySizeAfterCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, tool)
 
@@ -252,6 +253,13 @@ class Plotter:
                         if not disregardUnchangedGeneFamilies or \
                            (disregardUnchangedGeneFamilies and paralogousGeneFamilySizeBeforeCorrection[i]!=paralogousGeneFamilySizeAfterCorrection[i]):
                             dataPoints.append((paralogousGeneFamilySizeBeforeCorrection[i], paralogousGeneFamilySizeAfterCorrection[i]))
+                            if paralogousGeneFamilySizeBeforeCorrection[i] < paralogousGeneFamilySizeAfterCorrection[i]:
+                                tool2GeneralStats[tool]["Expanded"]+=1
+                            elif paralogousGeneFamilySizeBeforeCorrection[i] > paralogousGeneFamilySizeAfterCorrection[i]:
+                                tool2GeneralStats[tool]["Shrunk"] += 1
+                            else:
+                                tool2GeneralStats[tool]["Unchanged"] += 1
+
 
                 dataPoint2Count={}
                 for dataPoint in dataPoints:
@@ -271,7 +279,7 @@ class Plotter:
             #plot the data
             nbOfColumnsInSubplot = 3
             nbRowsInSubplot = int(math.ceil(float(len(self.toolsNoRaw)) / nbOfColumnsInSubplot))
-            fig = plotly.tools.make_subplots(rows=nbRowsInSubplot, cols=nbOfColumnsInSubplot)
+            specificPlotFig = plotly.tools.make_subplots(rows=nbRowsInSubplot, cols=nbOfColumnsInSubplot)
             for toolIndex, tool in enumerate(self.toolsNoRaw):
                 row, col = int(toolIndex / nbOfColumnsInSubplot) + 1, toolIndex % nbOfColumnsInSubplot + 1
                 #plot it
@@ -283,14 +291,14 @@ class Plotter:
                                                           'colorbar': {'title': 'Count'},
                                                           'colorscale': 'RdBu'}
                                                   )
-                fig.append_trace(trace, row, col)
+                specificPlotFig.append_trace(trace, row, col)
 
-            fig['layout'].update(height=nbRowsInSubplot*400, width=nbOfColumnsInSubplot*400, showlegend=False)
+                specificPlotFig['layout'].update(height=nbRowsInSubplot*400, width=nbOfColumnsInSubplot*400, showlegend=False)
 
             for toolIndex, tool  in enumerate(self.toolsNoRaw):
-                fig['layout']['xaxis%d'%(toolIndex+1)].update(range=[0, largestFamilySize + 1], title="Raw")
-                fig['layout']['yaxis%d'%(toolIndex+1)].update(range=[0, largestFamilySize + 1], title=tool)
-                fig['layout']['shapes'].append(dict({
+                specificPlotFig['layout']['xaxis%d'%(toolIndex+1)].update(range=[0, largestFamilySize + 1], title="Raw")
+                specificPlotFig['layout']['yaxis%d'%(toolIndex+1)].update(range=[0, largestFamilySize + 1], title=tool)
+                specificPlotFig['layout']['shapes'].append(dict({
                         'xref': "x%d"%(toolIndex+1),
                         'yref': "y%d"%(toolIndex+1),
                         'type': 'line',
@@ -302,10 +310,33 @@ class Plotter:
                     }))
 
 
-            return self.__buildPlots(fig, name)
+
+            #build the plots for the general stats
+            # produce the plot
+            labels=["Shrunk", "Unchanged", "Expanded"]
+            generalStatsPlotData = [plotly.graph_objs.Bar(
+                x=labels,
+                y=[tool2GeneralStats[tool][label] for label in labels],
+                name=tool)
+                for tool in self.toolsNoRaw]
+
+            generalStatsPlotLayout = plotly.graph_objs.Layout(
+                xaxis={"title": "Tool's behaviour towards the gene family"},
+                yaxis={"title": "Gene family count"},
+                barmode='group',
+                width=800,
+                height=400
+            )
+            generalPlotfig = plotly.graph_objs.Figure(data=generalStatsPlotData, layout=generalStatsPlotLayout)
+
+            #return both plots
+            return self.__buildPlots(generalPlotfig, name+"General"), self.__buildPlots(specificPlotFig, name+"Specific")
         except:
             #traceback.print_exc()
             return {
+                "imagePlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>",
+                "jsPlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>"
+            }, {
                 "imagePlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>",
                 "jsPlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>"
             }

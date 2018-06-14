@@ -175,9 +175,9 @@ def main():
     htmlDifferencesInRelativeExpressionsBoxPlot = plotter.makeDifferencesInRelativeExpressionsBoxPlot(geneID2gene)
     htmlScatterPlotCoverageOfMainIsoform = plotter.makeScatterPlotCoverageOfMainIsoform(geneID2gene)
     if paralogous != None:
-        htmlScatterPlotSizeParalogFamilies = plotter.makeScatterPlotSizeParalogFamilies(geneID2gene, paralogous)
-        htmlScatterPlotSizeParalogFamiliesExcluingUnchanged = plotter.makeScatterPlotSizeParalogFamilies(geneID2gene, paralogous, True)
-        htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes = plotter.makeScatterPlotSizeParalogFamilies(geneID2gene, paralogous, True, True)
+		htmlGeneralViewParalogFamilies, htmlScatterPlotSizeParalogFamilies = plotter.makeScatterPlotSizeParalogFamilies(geneID2gene, paralogous)
+		htmlGeneralViewParalogFamiliesExcluingUnchanged, htmlScatterPlotSizeParalogFamiliesExcluingUnchanged = plotter.makeScatterPlotSizeParalogFamilies(geneID2gene, paralogous, True)
+		htmlGeneralViewParalogFamiliesExcluingUnchangedCommonGenes, htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes = plotter.makeScatterPlotSizeParalogFamilies(geneID2gene, paralogous, True, True)
     print "Computing the plots - Done!"
 
 
@@ -239,6 +239,8 @@ def main():
                                           unalignedReadsCuttingPlot)
 
         if paralogous != None:
+            callFunctionAndPopulateTheReports(i, "<htmlGeneralViewParalogFamilies>", linesHTMLReport, linesHighResHTMLReport, \
+                                              htmlGeneralViewParalogFamilies)
             callFunctionAndPopulateTheReports(i, "<htmlScatterPlotSizeParalogFamilies>", linesHTMLReport, linesHighResHTMLReport, \
                                               htmlScatterPlotSizeParalogFamilies)
             callFunctionAndPopulateTheReports(i, "<htmlScatterPlotSizeParalogFamiliesExcluingUnchanged>", linesHTMLReport, linesHighResHTMLReport, \
@@ -247,13 +249,14 @@ def main():
                                               htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes)
         else:
             errorMsg = "<p style='color: red; font-size: large;'>Paralogous file (--paralogous parameter) was not given, so we did not produce this plot. </p>"
+            callFunctionAndPopulateTheReports(i, "<htmlGeneralViewParalogFamilies>", linesHTMLReport, linesHighResHTMLReport, \
+                                              errorMsg)
             callFunctionAndPopulateTheReports(i, "<htmlScatterPlotSizeParalogFamilies>", linesHTMLReport, linesHighResHTMLReport, \
                                               errorMsg)
             callFunctionAndPopulateTheReports(i, "<htmlScatterPlotSizeParalogFamiliesExcluingUnchanged>", linesHTMLReport, linesHighResHTMLReport, \
                                               errorMsg)
             callFunctionAndPopulateTheReports(i, "<htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes>", linesHTMLReport, linesHighResHTMLReport, \
                                               errorMsg)
-
 
 
 
