@@ -25,23 +25,42 @@ class FeatureProfiler:
 
         annotbest.txt format:
         columns:
-        0: id of the line (?)
+        0: read line number (the readline of this annotation in file best.sorted.bed.gz or best.sorted.gpd.gz)
         1: read name
         2: gene name
         3: transcript name
-        4: partial or full (if it mapped partially or fully in the genome according to AlignQC)
-        5: # ?
-        6: # most consecutive exons in read
-        7: # exons in read
-        8: # exons in the transcript
-        9: overlap size between read and transcript
+        4: match type (partial or full (if it mapped partially or fully in the genome according to AlignQC))
+        5: number of matching exons
+        6: highest number of consecutive_exons
+        7: number of exons in read
+        8: number of exons in reference transcript
+        9: number of bp overlapping between read and transcript
         10: read length
         11: transcript length
-        12: alignment coordinates
-        13: transcript coordinates
+        12: read range
+        13: transcript range
+        14: reference line number
 
         Example:
         5	m150117_043342_42142_c100769800150000001823165407071580_s1_p0/144819/ccs	ENSG00000274276.4	ENST00000624934.3	partial	15	11	16	18	1747	3884	1992	chr21:6446736-6467516	chr21:6445433-6467532	2454
+
+
+        From seqtools/cli/utilities/gpd_annotate.py:
+           1. read line number
+		   2. read name
+		   3. gene name
+		   4. transcript name
+		   5. match type
+		   6. number of matching exons
+		   7. highst number of consecutive_exons
+		   8. number of exons in read
+		   9. number of exons in reference transcript
+		   10. number of bp overlapping
+		   11. read lengthread_length
+		   12. transcript length
+		   13. read range
+		   14. transcript range
+		   15. reference line number
         """
         dataFolder = outputFolder+"/alignqc_out_on_%s/data"%tool
         with gzip.open(dataFolder+"/annotbest.txt.gz") as file:
