@@ -365,7 +365,7 @@ class Plotter:
         highestExpression = max([max(max(plotData["xDataPoints"]), max(plotData["yDataPoints"])) for plotData in tool2PlotData.values()])
 
         # plot the data
-        annotations=[]
+        rSquaredAnnotations=[]
         nbOfColumnsInSubplot = 3
         nbRowsInSubplot = int(math.ceil(float(len(self.toolsNoRaw)) / nbOfColumnsInSubplot))
         fig = plotly.tools.make_subplots(rows=nbRowsInSubplot, cols=nbOfColumnsInSubplot,
@@ -396,7 +396,7 @@ class Plotter:
             )
             fig.append_trace(linearRegressionTrace, row, col)
 
-            annotations.append(plotly.graph_objs.Annotation(
+            rSquaredAnnotations.append(plotly.graph_objs.Annotation(
                 xref = "x%d"%(toolIndex + 1),
                 yref = "y%d"%(toolIndex + 1),
                 x = highestExpression/2,
@@ -410,7 +410,7 @@ class Plotter:
 
         fig['layout'].update(height=nbRowsInSubplot * 400, width=nbOfColumnsInSubplot * 400, showlegend=False)
 
-        for toolIndex in xrange(len(self.toolsNoRaw)):
+        for toolIndex, tool in enumerate(self.toolsNoRaw):
             fig['layout']['xaxis%d' % (toolIndex + 1)].update(range=[0, int(math.ceil(highestExpression*1.1))+1], title="Main isoform coverage before" if toolIndex==0 else "")
             fig['layout']['yaxis%d' % (toolIndex + 1)].update(range=[0, int(math.ceil(highestExpression*1.1))+1], title="Main isoform coverage after" if toolIndex==0 else "")
             fig['layout']['shapes'].append(dict({
@@ -424,7 +424,8 @@ class Plotter:
                 'opacity': 0.5
             }))
 
-        fig['layout']['annotations'] = annotations
+        #
+        fig['layout']['annotations'].extend(rSquaredAnnotations)
 
         return self.__buildPlots(fig, name)
 
