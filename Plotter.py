@@ -382,8 +382,8 @@ class Plotter:
         fig['layout'].update(height=nbRowsInSubplot * 400, width=nbOfColumnsInSubplot * 400, showlegend=False)
 
         for toolIndex in xrange(len(self.toolsNoRaw)):
-            fig['layout']['xaxis%d' % (toolIndex + 1)].update(range=[0, int(math.ceil(highestExpression*1.1))+1], title="Main coverage before")
-            fig['layout']['yaxis%d' % (toolIndex + 1)].update(range=[0, int(math.ceil(highestExpression*1.1))+1], title="Main coverage after")
+            fig['layout']['xaxis%d' % (toolIndex + 1)].update(range=[0, int(math.ceil(highestExpression*1.1))+1], title="Main isoform coverage before" if toolIndex==0 else "")
+            fig['layout']['yaxis%d' % (toolIndex + 1)].update(range=[0, int(math.ceil(highestExpression*1.1))+1], title="Main isoform coverage after" if toolIndex==0 else "")
             fig['layout']['shapes'].append(dict({
                 'xref': "x%d"%(toolIndex+1),
                 'yref': "y%d"%(toolIndex+1),

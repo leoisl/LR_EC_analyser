@@ -81,6 +81,8 @@ def main():
                         help="Skips copying genome and transcriptome to the output folder.")
     args=parser.parse_args()
 
+    #TODO: Change all paths to absolute paths (otherwise the user can only call the tool from the source dir)
+
     #create output dir
     if not os.path.exists(args.output):
         os.makedirs(args.output)
