@@ -1,7 +1,10 @@
 import math
 from decimal import Decimal
-import traceback
 import plotly
+from scipy import stats
+import numpy
+
+
 
 class Category:
     def __init__(self, start, end, step):
@@ -362,6 +365,7 @@ class Plotter:
         highestExpression = max([max(max(plotData["xDataPoints"]), max(plotData["yDataPoints"])) for plotData in tool2PlotData.values()])
 
         # plot the data
+        annotations=[]
         nbOfColumnsInSubplot = 3
         nbRowsInSubplot = int(math.ceil(float(len(self.toolsNoRaw)) / nbOfColumnsInSubplot))
         fig = plotly.tools.make_subplots(rows=nbRowsInSubplot, cols=nbOfColumnsInSubplot,
@@ -379,6 +383,31 @@ class Plotter:
                                               )
             fig.append_trace(trace, row, col)
 
+            # get R squared, from https://plot.ly/python/linear-fits/
+            slope, intercept, r_value, p_value, std_err = stats.linregress(tool2PlotData[tool]["xDataPoints"], tool2PlotData[tool]["yDataPoints"])
+            rSquared = r_value ** 2
+            linearRegressionLine = slope * numpy.array(tool2PlotData[tool]["xDataPoints"]) + intercept
+            linearRegressionTrace = plotly.graph_objs.Scatter(
+                x=tool2PlotData[tool]["xDataPoints"],
+                y=linearRegressionLine,
+                mode='lines',
+                marker=plotly.graph_objs.Marker(color='rgb(31, 119, 180)'),
+                name='Fit'
+            )
+            fig.append_trace(linearRegressionTrace, row, col)
+
+            annotations.append(plotly.graph_objs.Annotation(
+                xref = "x%d"%(toolIndex + 1),
+                yref = "y%d"%(toolIndex + 1),
+                x = highestExpression/2,
+                y = highestExpression,
+                text="R^2 = %f"%rSquared,
+                showarrow=False,
+                font=plotly.graph_objs.Font(size=14)
+            ))
+
+
+
         fig['layout'].update(height=nbRowsInSubplot * 400, width=nbOfColumnsInSubplot * 400, showlegend=False)
 
         for toolIndex in xrange(len(self.toolsNoRaw)):
@@ -394,6 +423,8 @@ class Plotter:
                 'y1': highestExpression,
                 'opacity': 0.5
             }))
+
+        fig['layout']['annotations'] = annotations
 
         return self.__buildPlots(fig, name)
 
