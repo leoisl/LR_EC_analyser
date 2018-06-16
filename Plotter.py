@@ -239,7 +239,7 @@ class Plotter:
 
             #get all the data to plot it
             tool2PlotData={tool:{} for tool in self.toolsNoRaw}
-            tool2GeneralStats={tool:{"Shrunk": 0, "Unchanged": 0, "Expanded": 0} for tool in self.toolsNoRaw}
+            tool2GeneralStats={tool:{"Shrunk": 0, "Unchanged": 0, "Expanded": 0, "Total": 0} for tool in self.toolsNoRaw}
             for tool in self.toolsNoRaw:
                 paralogousGeneFamilySizeAfterCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, tool)
 
@@ -262,6 +262,7 @@ class Plotter:
                                 tool2GeneralStats[tool]["Shrunk"] += 1
                             else:
                                 tool2GeneralStats[tool]["Unchanged"] += 1
+                            tool2GeneralStats[tool]["Total"] += 1
 
 
                 dataPoint2Count={}
@@ -319,13 +320,13 @@ class Plotter:
             labels=["Shrunk", "Unchanged", "Expanded"]
             generalStatsPlotData = [plotly.graph_objs.Bar(
                 x=labels,
-                y=[tool2GeneralStats[tool][label] for label in labels],
+                y=[float(tool2GeneralStats[tool][label])/float(tool2GeneralStats[tool]["Total"])*100 for label in labels],
                 name=tool)
                 for tool in self.toolsNoRaw]
 
             generalStatsPlotLayout = plotly.graph_objs.Layout(
                 xaxis={"title": "Tool's behaviour towards the gene family"},
-                yaxis={"title": "Gene family count"},
+                yaxis={"title": "Gene family count in %"},
                 barmode='group',
                 width=800,
                 height=400
