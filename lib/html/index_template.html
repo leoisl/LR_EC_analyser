@@ -55,8 +55,6 @@
 <!-- Div for the main table -->
 <h1>Main stats</h1>
 
-TODO: Improve the graphs <br/>
-
 <h2>Read stats (compilation from AlignQC reports)</h2>
 
 <p>Transform numbers in:</p>
@@ -67,24 +65,23 @@ TODO: Improve the graphs <br/>
 <table>
     <tr>
         <td><html_TOTAL_READS_Plot></td>
-        <td><html_UNALIGNED_READS_Plot></td>
+        <td><html_MEAN_LENGTH_Plot></td>
     </tr>
     <tr>
         <td><html_ALIGNED_READS_Plot></td>
-        <td><html_MEAN_LENGTH_Plot></td>
+        <td><html_UNALIGNED_READS_Plot></td>
     </tr>
     <tr>
         <td><html_SINGLE_ALIGN_READS_Plot></td>
         <td><html_GAPPED_ALIGN_READS_Plot></td>
     </tr>
+
+    <!-- Removed html_TRANSCHIMERA_ALIGN_READS_Plot and html_SELFCHIMERA_ALIGN_READS_Plot because it does not seem an important measure for now -->
     <tr>
         <td><html_CHIMERA_ALIGN_READS_Plot></td>
-        <td><html_TRANSCHIMERA_ALIGN_READS_Plot></td>
-    </tr>
-    <tr>
-        <td><html_SELFCHIMERA_ALIGN_READS_Plot></td>
         <td>&nbsp;</td>
     </tr>
+
 </table>
 
 
@@ -98,20 +95,17 @@ TODO: Improve the graphs <br/>
 <table>
     <tr>
         <td><html_TOTAL_BASES_Plot></td>
-        <td><html_UNALIGNED_BASES_Plot></td>
+        <td><html_ALIGNED_BASES_Plot></td>
     </tr>
     <tr>
-        <td><html_ALIGNED_BASES_Plot></td>
+        <td><html_UNALIGNED_BASES_Plot></td>
         <td><html_SINGLE_ALIGN_BASES_Plot></td>
     </tr>
     <tr>
         <td><html_GAPPED_ALIGN_BASES_Plot></td>
         <td><html_CHIMERA_ALIGN_BASES_Plot></td>
     </tr>
-    <tr>
-        <td><html_TRANSCHIMERA_ALIGN_BASES_Plot></td>
-        <td><html_SELFCHIMERA_ALIGN_BASES_Plot></td>
-    </tr>
+    <!-- Removed html_TRANSCHIMERA_ALIGN_BASES_Plot and html_SELFCHIMERA_ALIGN_BASES_Plot because it does not seem an important measure for now -->
 </table>
 
 
