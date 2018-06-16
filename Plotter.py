@@ -433,26 +433,10 @@ class Plotter:
         name = metric
 
         #produce the plot
-        data = [plotly.graph_objs.Bar(x=statProfiler.tools, y=[statProfiler.tool2Stats[tool][metric] for tool in statProfiler.tools])]
+        data = [plotly.graph_objs.Bar(x=["Tools"], y=[statProfiler.getStatsForToolAndMetric(tool, metric)], name=tool) for tool in statProfiler.tools]
         layout = plotly.graph_objs.Layout(
             title=metric,
-            xaxis={"title": "Tools"},
-            yaxis={"title": metric}
-        )
-
-        return {
-            "imagePlot": "<img src=plots/%s.png />" % name,
-            "jsPlot": plotly.offline.plot({"data": data, "layout": layout}, include_plotlyjs=False, output_type='div')
-        }
-
-    def makeBarPlotFromStats(self, statProfiler, metric):
-        name = metric
-
-        #produce the plot
-        data = [plotly.graph_objs.Bar(x=["Tools"], y=[statProfiler.tool2Stats[tool][metric]], name=tool) for tool in statProfiler.tools]
-        layout = plotly.graph_objs.Layout(
-            title=metric,
-            yaxis={"title": metric},
+            yaxis={"title": statProfiler.getNiceDescriptionForFeature(metric)},
             barmode="group"
         )
         fig = plotly.graph_objs.Figure(data=data, layout=layout)

@@ -153,6 +153,32 @@ class StatProfiler:
                                   "SELFCHIMERA_ALIGN_BASES"]
         self.errorStatsFeatures = ["ANY_ERROR", "MISMATCHES", "ANY_DELETION", "ANY_INSERTION", "COMPLETE_DELETION", "HOMOPOLYMER_DELETION", "COMPLETE_INSERTION", "HOMOPOLYMER_INSERTION"]
         self.allFeatures = self.readStatsFeatures + self.baseStatsFeatures + self.errorStatsFeatures
+
+        # this stores as key a feature that should be shown as % instead of raw numbers, and which nb to use as %
+        self.feature2UpperLimitToBeUsedInPercentage={
+            "UNALIGNED_READS": "TOTAL_READS",
+            "ALIGNED_READS": "TOTAL_READS",
+            "SINGLE_ALIGN_READS": "ALIGNED_READS",
+            "GAPPED_ALIGN_READS": "ALIGNED_READS",
+            "CHIMERA_ALIGN_READS": "ALIGNED_READS",
+            "TRANSCHIMERA_ALIGN_READS": "ALIGNED_READS",
+            "SELFCHIMERA_ALIGN_READS": "ALIGNED_READS",
+            "UNALIGNED_BASES": "TOTAL_BASES",
+            "ALIGNED_BASES": "TOTAL_BASES",
+            "SINGLE_ALIGN_BASES": "ALIGNED_BASES",
+            "GAPPED_ALIGN_BASES": "ALIGNED_BASES",
+            "CHIMERA_ALIGN_BASES": "ALIGNED_BASES",
+            "TRANSCHIMERA_ALIGN_BASES": "ALIGNED_BASES",
+            "SELFCHIMERA_ALIGN_BASES": "ALIGNED_BASES",
+            "MISMATCHES": "ANY_ERROR",
+            "ANY_DELETION": "ANY_ERROR",
+            "ANY_INSERTION": "ANY_ERROR",
+            "COMPLETE_DELETION": "ANY_DELETION",
+            "HOMOPOLYMER_DELETION": "ANY_DELETION",
+            "COMPLETE_INSERTION": "ANY_INSERTION",
+            "HOMOPOLYMER_INSERTION": "ANY_INSERTION"
+        }
+
         self.parseAlignQCOutputForAllTools()
 
 
@@ -306,14 +332,32 @@ class StatProfiler:
         for tool in self.tools:
             self.__parseAlignQCOutput(tool)
 
+    def getStatsForToolAndMetric(self, tool, metric):
+        if metric not in self.feature2UpperLimitToBeUsedInPercentage:
+            return self.tool2Stats[tool][metric]
+        else:
+            return float(self.tool2Stats[tool][metric]) / float(self.tool2Stats[tool][self.feature2UpperLimitToBeUsedInPercentage[metric]]) * 100
 
+
+    def getNiceDescriptionForFeature(self, feature):
+        if feature not in self.feature2UpperLimitToBeUsedInPercentage:
+            return feature
+        else:
+            return "%s in %% over %s"%(feature, self.feature2UpperLimitToBeUsedInPercentage[feature])
 
     def __toJSArrayForHOT(self, features):
         jsArray=[]
         for feature in features:
-            line=["'%s'"%feature]
+            if feature not in self.feature2UpperLimitToBeUsedInPercentage:
+                line=["'%s'"%feature]
+            else:
+                line = ["'%s (%%)'" % feature]
+
             for tool in self.tools:
-                line.append(str(self.tool2Stats[tool][feature]))
+                if feature not in self.feature2UpperLimitToBeUsedInPercentage:
+                    line.append(str(self.tool2Stats[tool][feature]))
+                else:
+                    line.append("%.2f" % (float(self.tool2Stats[tool][feature]) / float(self.tool2Stats[tool][self.feature2UpperLimitToBeUsedInPercentage[feature]]) * 100))
             jsArray.append("[" + ",".join(line) + "]")
         return "[" + ",".join(jsArray) + "]"
 
