@@ -17,6 +17,12 @@ Bug:
     TypeError: %d format: a number is required, not NoneType
 
 High Priority:
+    -Finish paper, then check the rest
+
+    -How does error correction affects read quantification
+        -True quantification is given by Illumina
+        -Get the scatter plot and r^2 for raw x Illumina, and each tool x Illumina
+
     -I guess the main problem for error correcting are repeats.
         -In DNA, repeats appear in form of repeats themselves.
         -Repeats in RNA differ from DNA
@@ -30,8 +36,6 @@ High Priority:
 
 
     -Focus on the new reads that are produced by the error correctors
-
-    -Work on the text
 
     -Fix  gene track not showing
 
