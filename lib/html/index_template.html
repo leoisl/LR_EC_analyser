@@ -8,6 +8,7 @@
     <script src="lib/js/jquery.min.js"></script>
     <script src="lib/js/handsontable.full.min.js"></script>
     <script src="lib/js/js.js"></script>
+    <script src="lib/js/plotly-latest.min.js"></script>
     <script>
         $(function(){ // on dom ready
             //fill the main subtables
@@ -54,9 +55,6 @@
 <!-- Div for the main table -->
 <h1>Main stats</h1>
 
-TODO: Improve the graphs <br/>
-TODO: Some stats are better presented in % (i.e. # reads aligned, # reads unaligned, etc) <br/>
-
 <h2>Read stats (compilation from AlignQC reports)</h2>
 
 <p>Transform numbers in:</p>
@@ -64,37 +62,27 @@ TODO: Some stats are better presented in % (i.e. # reads aligned, # reads unalig
 <input type="radio" name="LR_EC_read_stats_table_number_format" id="LR_EC_read_stats_table_number_format_K" value="K" checked> Kilos (K) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <input type="radio" name="LR_EC_read_stats_table_number_format" id="LR_EC_read_stats_table_number_format_N" value="N"> None<br>
 <div id="LR_EC_read_stats_table"></div>
-<div>
-    <div style="float: left; width: 50%"><html_TOTAL_READS_Plot></div>
-    <div style="float: left; width: 50%"><html_UNALIGNED_READS_Plot></div>
-</div>
+<table>
+    <tr>
+        <td><html_TOTAL_READS_Plot></td>
+        <td><html_MEAN_LENGTH_Plot></td>
+    </tr>
+    <tr>
+        <td><html_ALIGNED_READS_Plot></td>
+        <td><html_UNALIGNED_READS_Plot></td>
+    </tr>
+    <tr>
+        <td><html_SINGLE_ALIGN_READS_Plot></td>
+        <td><html_GAPPED_ALIGN_READS_Plot></td>
+    </tr>
 
+    <!-- Removed html_TRANSCHIMERA_ALIGN_READS_Plot and html_SELFCHIMERA_ALIGN_READS_Plot because it does not seem an important measure for now -->
+    <tr>
+        <td><html_CHIMERA_ALIGN_READS_Plot></td>
+        <td>&nbsp;</td>
+    </tr>
 
-<div>
-    <div style="float: left; width: 50%"><html_ALIGNED_READS_Plot></div>
-    <div style="float: left; width: 50%"><html_MEAN_LENGTH_Plot></div>
-</div>
-
-<div>
-    <div style="float: left; width: 50%">  <html_SINGLE_ALIGN_READS_Plot>  </div>
-    <div style="float: left; width: 50%">   <html_GAPPED_ALIGN_READS_Plot> </div>
-</div>
-
-<div>
-    <div style="float: left; width: 50%">  <html_CHIMERA_ALIGN_READS_Plot>  </div>
-    <div style="float: left; width: 50%">  <html_TRANSCHIMERA_ALIGN_READS_Plot>  </div>
-</div>
-
-<div>
-    <div style="width: 50%">  <html_SELFCHIMERA_ALIGN_READS_Plot>  </div>
-</div>
-
-
-
-
-
-
-
+</table>
 
 
 <h2>Base stats (compilation from AlignQC reports)</h2>
@@ -103,26 +91,22 @@ TODO: Some stats are better presented in % (i.e. # reads aligned, # reads unalig
 <input type="radio" name="LR_EC_base_stats_table_number_format" id="LR_EC_read_stats_table_number_format_K" value="K" checked> Kilos (K) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <input type="radio" name="LR_EC_base_stats_table_number_format" id="LR_EC_read_stats_table_number_format_N" value="N"> None<br>
 <div id="LR_EC_base_stats_table"></div>
-<div>
-    <div style="float: left; width: 50%">  <html_TOTAL_BASES_Plot>  </div>
-    <div style="float: left; width: 50%">  <html_UNALIGNED_BASES_Plot>  </div>
-</div>
 
-<div>
-    <div style="float: left; width: 50%">  <html_ALIGNED_BASES_Plot>  </div>
-    <div style="float: left; width: 50%">  <html_SINGLE_ALIGN_BASES_Plot>  </div>
-</div>
-
-<div>
-    <div style="float: left; width: 50%">  <html_GAPPED_ALIGN_BASES_Plot>  </div>
-    <div style="float: left; width: 50%">   <html_CHIMERA_ALIGN_BASES_Plot> </div>
-</div>
-
-<div>
-    <div style="float: left; width: 50%">  <html_TRANSCHIMERA_ALIGN_BASES_Plot>  </div>
-    <div style="float: left; width: 50%"> <html_SELFCHIMERA_ALIGN_BASES_Plot>   </div>
-</div>
-
+<table>
+    <tr>
+        <td><html_TOTAL_BASES_Plot></td>
+        <td><html_ALIGNED_BASES_Plot></td>
+    </tr>
+    <tr>
+        <td><html_UNALIGNED_BASES_Plot></td>
+        <td><html_SINGLE_ALIGN_BASES_Plot></td>
+    </tr>
+    <tr>
+        <td><html_GAPPED_ALIGN_BASES_Plot></td>
+        <td><html_CHIMERA_ALIGN_BASES_Plot></td>
+    </tr>
+    <!-- Removed html_TRANSCHIMERA_ALIGN_BASES_Plot and html_SELFCHIMERA_ALIGN_BASES_Plot because it does not seem an important measure for now -->
+</table>
 
 
 <h2>Error stats (compilation from AlignQC reports)</h2>
@@ -132,25 +116,31 @@ TODO: Some stats are better presented in % (i.e. # reads aligned, # reads unalig
 <input type="radio" name="LR_EC_error_stats_table_number_format" id="LR_EC_read_stats_table_number_format_N" value="N"> None<br>
 <div id="LR_EC_error_stats_table"></div>
 
-<div>
-    <div style="float: left; width: 50%">  <html_ANY_ERROR_Plot>  </div>
-    <div style="float: left; width: 50%">  <html_MISMATCHES_Plot>  </div>
-</div>
 
-<div>
-    <div style="float: left; width: 50%">  <html_ANY_DELETION_Plot>  </div>
-    <div style="float: left; width: 50%">   <html_ANY_INSERTION_Plot> </div>
-</div>
+<table>
+    <tr>
+        <td><html_ANY_ERROR_Plot></td>
+        <td><html_MISMATCHES_Plot></td>
+    </tr>
+    <tr>
+        <td><html_ANY_DELETION_Plot></td>
+        <td><html_ANY_INSERTION_Plot></td>
+    </tr>
+    <tr>
+        <td><html_COMPLETE_DELETION_Plot></td>
+        <td><html_HOMOPOLYMER_DELETION_Plot></td>
+    </tr>
+    <tr>
+        <td><html_COMPLETE_INSERTION_Plot></td>
+        <td><html_HOMOPOLYMER_INSERTION_Plot></td>
+    </tr>
+</table>
 
-<div>
-    <div style="float: left; width: 50%">  <html_COMPLETE_DELETION_Plot>  </div>
-    <div style="float: left; width: 50%">  <html_HOMOPOLYMER_DELETION_Plot>  </div>
-</div>
-
-<div>
-    <div style="float: left; width: 50%">  <html_COMPLETE_INSERTION_Plot>  </div>
-    <div style="float: left; width: 50%">  <html_HOMOPOLYMER_INSERTION_Plot>  </div>
-</div>
+<br/><br/>
+<h1>Does a tool cut reads?</h1>
+<htmlTotalReadsCuttingPlot>
+<htmlAlignedReadsCuttingPlot>
+<htmlUnalignedReadsCuttingPlot>
 
 <br/><br/>
 <h1>Corretion collapsing paralogous gene families plots</h1>
@@ -161,6 +151,11 @@ we can say that the size of this gene family before the correction is 8, and aft
 We can then conclude that the correction shrinked the paralogous gene family, probably due to collapsing genes.<br/>
 The color code of a data point is the # of gene families on that data point.<br/>
 To know how we computed the paralogous gene families, see: <a href="https://gitlab.com/leoisl/LR_EC_analyser/blob/master/GettingParalogs.txt" target="_blank">https://gitlab.com/leoisl/LR_EC_analyser/blob/master/GettingParalogs.txt</a></p>
+
+<h2>General view of paralog families change per tool:</h2>
+<htmlGeneralViewParalogFamilies>
+
+<h2>Detailed view of paralog families change per tool:</h2>
 <input type="radio" name="Collapsing_gene_families_show_option" id="Collapsing_gene_families_show_option_ALL" value="A"> Show all paralogous gene families<br/>
 <input type="radio" name="Collapsing_gene_families_show_option" id="Collapsing_gene_families_show_option_NO_DIAG" value="ND" checked> Hide paralogous genes families that were unchanged (diagonal line)<br/>
 <input type="radio" name="Collapsing_gene_families_show_option" id="Collapsing_gene_families_show_option_NO_DIAG_NO_ZERO" value="NDN0"> Hide paralogous genes families that were unchanged (diagonal line) and keep only the ones expressed both before and after correction (hide gene families such that x=0 or y=0)<br/>

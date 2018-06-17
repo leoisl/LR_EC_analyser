@@ -2,3 +2,4 @@
 **/*.pyc
 sample_data/output
 venv
+igv.log

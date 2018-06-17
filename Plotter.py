@@ -1,13 +1,10 @@
-# make the plot nb_of_isoforms_lost_or_won_nb_of_genes.80QC_filter.pdf
-
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import numpy as np
-import mpld3
 import math
 from decimal import Decimal
-import traceback
+import plotly
+from scipy import stats
+import numpy
+
+
 
 class Category:
     def __init__(self, start, end, step):
@@ -19,7 +16,7 @@ class Category:
             self.intervals.append({"min": start, "max": start+step, "count":0})
             start+=step
 
-    def getCategoriesAsString(self, displayInterval=False):
+    def getCategoriesAsString(self, displayInterval=False, displayPlusOnFirstItem=False, displayPlusOnLastItem=False):
         """
         transform the intervals list into a list of string that will be the xlabels of the plot
         Basically, transform a vector like [-2, -1, 0, 1, 2] into ["-2+", "-1", "0", "+1", "+2+"]
@@ -30,18 +27,22 @@ class Category:
             if not displayInterval:
                 lowerBound = interval["min"]
                 # set the prefix
-                prefix = ""
+                prefix = "("
                 if lowerBound > 0:
-                    prefix = "+"
+                    prefix += "+"
 
                 # set the suffix
                 suffix = ""
-                if i == 0 or i == len(self.intervals) - 1:
-                    suffix = "+"
+                if (displayPlusOnFirstItem and i == 0) or (displayPlusOnLastItem and i == len(self.intervals) - 1):
+                    suffix += "+"
+                suffix += ")"
 
                 intervalsAsString.append(prefix + str(lowerBound) + suffix)
             else:
-                intervalsAsString.append("[%s,%s)"%(interval["min"], interval["max"]))
+                if i < len(self.intervals) - 1 or not displayPlusOnLastItem:
+                    intervalsAsString.append("[%s,%s)" % (interval["min"], interval["max"]))
+                else:
+                    intervalsAsString.append("%s+"%(interval["min"]))
 
         return intervalsAsString
 
@@ -83,55 +84,35 @@ class Plotter:
         self.toolsNoRaw.remove("raw.bam")
         self.plotsOutput = plotsOutput
 
-    def __buildFilesAndCleanup(self, fig, name):
+    def __buildPlots(self, fig, name):
         """
-        Save fig as the png file and return the html for the png and the d3 object
-        :param fig:
-        :param name:
-        :return:
+        build the plots and return what needs to be returned
         """
-        #make sure everything in the plot appears
-        plt.tight_layout()
+        plotly.offline.plot(fig, image = 'png', image_filename="%s/%s.png"%(self.plotsOutput, name),
+                            filename="%s/%s.html"%(self.plotsOutput, name), auto_open=False)
 
-        # save plot to png
-        plt.savefig(self.plotsOutput + "/%s.png" % name)
-
-        #produce what we have to return
-        dicToReturn = {
-            "imagePlot": "<img src=plots/%s.png />" % name,
-            "jsPlot": mpld3.fig_to_html(fig, d3_url="lib/js/d3.v3.min.js", mpld3_url="lib/js/mpld3.v0.3.min.js")
+        return {
+            #"imagePlot": "<img src=plots/%s.png />" % name,
+            "imagePlot": "TODO",
+            "jsPlot": plotly.offline.plot(fig, include_plotlyjs=False, output_type='div')
         }
 
-        #cleanup
-        plt.close(fig)
+    def __produceBarPlot(self, name, tool2Categories, xlabel, ylabel, displayInterval=False, displayPlusOnFirstItem=False, displayPlusOnLastItem=False):
+        #produce the plot
+        data = [plotly.graph_objs.Bar(
+                x=tool2Categories[tool].getCategoriesAsString(displayInterval, displayPlusOnFirstItem, displayPlusOnLastItem),
+                y=tool2Categories[tool].getIntervalCount(),
+                name=tool)
+                    for tool in self.toolsNoRaw]
 
-        return dicToReturn
+        layout = plotly.graph_objs.Layout(
+            xaxis={"title": xlabel},
+            yaxis={"title": ylabel},
+            barmode='group'
+        )
 
-    def __produceBarPlot(self, name, tool2Categories, blankSpace, xlabel, ylabel, displayInterval=False):
-        # produce the plot
-        fig = plt.figure(figsize=(10, 5))
-
-        #put the labels
-        plt.xlabel(xlabel)
-        plt.ylabel(ylabel)
-
-        #compute the indexes and bar widths
-        xAxisIndexes = np.arange(len(tool2Categories[self.toolsNoRaw[0]]))
-        barWidth = 1.0 / len(self.toolsNoRaw) - blankSpace/len(self.toolsNoRaw)
-
-        #add each bar
-        for index, tool in enumerate(self.toolsNoRaw):
-            plt.bar(xAxisIndexes + (index * barWidth), tool2Categories[tool].getIntervalCount(),
-                    width=barWidth, label=tool)
-
-        #add the x labels
-        plt.xticks(xAxisIndexes + (len(self.toolsNoRaw) / 2.0 * barWidth - barWidth / 2.0),
-                   tool2Categories[self.toolsNoRaw[0]].getCategoriesAsString(displayInterval))
-
-        #add the tool labels
-        plt.legend()
-
-        return self.__buildFilesAndCleanup(fig, name)
+        fig = plotly.graph_objs.Figure(data=data, layout=layout)
+        return self.__buildPlots(fig, name)
 
     def makeDifferenceOnTheNumberOfIsoformsPlot(self, geneID2gene, lowestCategory=-3, highestCategory=3, step=1, blankSpace=0.1):
         """
@@ -171,7 +152,7 @@ class Plotter:
 
 
         tool2DifferenceCategories = get_tool2DifferenceCategories()
-        return self.__produceBarPlot("DifferenceOnTheNumberOfIsoformsPlot", tool2DifferenceCategories, blankSpace, "Difference on the number of isoforms", "Number of genes")
+        return self.__produceBarPlot("DifferenceOnTheNumberOfIsoformsPlot", tool2DifferenceCategories, "Difference on the number of isoforms", "Number of genes", False, True, True)
 
 
     def makeLostTranscriptInGenesWSP2Plot(self, geneID2gene, blankSpace=0.1):
@@ -200,9 +181,9 @@ class Plotter:
         Helper functions
         '''
         tool2RelativeTranscriptOfLostTranscriptCategories =get_tool2RelativeTranscriptOfLostTranscriptCategories()
-        return self.__produceBarPlot("LostTranscriptInGenesWSP2Plot", tool2RelativeTranscriptOfLostTranscriptCategories, blankSpace, "Relative transcript coverage in relation to gene coverage", "Number of transcripts", True)
+        return self.__produceBarPlot("LostTranscriptInGenesWSP2Plot", tool2RelativeTranscriptOfLostTranscriptCategories, "Relative transcript coverage in relation to gene coverage", "Number of transcripts", True)
 
-    def makeDifferencesInRelativeExpressionsBoxPlot(self, geneID2gene, blankSpace=0.1):
+    def makeDifferencesInRelativeExpressionsBoxPlot(self, geneID2gene):
         def get_tool2DifferencesInRelativeExpressions():
             tool2DifferencesInRelativeExpressions={tool:[] for tool in self.toolsNoRaw}
             for gene in geneID2gene.values():
@@ -220,15 +201,17 @@ class Plotter:
 
         #make the boxplot
         name = "DifferencesInRelativeExpressionsBoxPlot"
-        fig = plt.figure(figsize=(10, 5))
+
 
         #put the labels
-        plt.ylabel("Tools")
-        plt.xlabel("Relative expression")
-        data=[tool2DifferencesInRelativeExpressions[tool] for tool in self.toolsNoRaw]
-        plt.boxplot(data, labels=self.toolsNoRaw, vert=False)
+        data=[plotly.graph_objs.Box(y=tool2DifferencesInRelativeExpressions[tool], name=tool, boxpoints=False) for tool in self.toolsNoRaw]
+        layout = plotly.graph_objs.Layout(
+            xaxis={"title": "Relative expression"},
+            yaxis={"title": "Tools"}
+        )
+        fig = plotly.graph_objs.Figure(data=data, layout=layout)
 
-        return self.__buildFilesAndCleanup(fig, name)
+        return self.__buildPlots(fig, name)
 
     def makeScatterPlotSizeParalogFamilies(self, geneID2gene, paralogous, disregardUnchangedGeneFamilies=False, includeOnlyCommonGenes=False):
         try:
@@ -256,6 +239,7 @@ class Plotter:
 
             #get all the data to plot it
             tool2PlotData={tool:{} for tool in self.toolsNoRaw}
+            tool2GeneralStats={tool:{"Shrunk": 0, "Unchanged": 0, "Expanded": 0, "Total": 0} for tool in self.toolsNoRaw}
             for tool in self.toolsNoRaw:
                 paralogousGeneFamilySizeAfterCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, tool)
 
@@ -272,6 +256,14 @@ class Plotter:
                         if not disregardUnchangedGeneFamilies or \
                            (disregardUnchangedGeneFamilies and paralogousGeneFamilySizeBeforeCorrection[i]!=paralogousGeneFamilySizeAfterCorrection[i]):
                             dataPoints.append((paralogousGeneFamilySizeBeforeCorrection[i], paralogousGeneFamilySizeAfterCorrection[i]))
+                            if paralogousGeneFamilySizeBeforeCorrection[i] < paralogousGeneFamilySizeAfterCorrection[i]:
+                                tool2GeneralStats[tool]["Expanded"]+=1
+                            elif paralogousGeneFamilySizeBeforeCorrection[i] > paralogousGeneFamilySizeAfterCorrection[i]:
+                                tool2GeneralStats[tool]["Shrunk"] += 1
+                            else:
+                                tool2GeneralStats[tool]["Unchanged"] += 1
+                            tool2GeneralStats[tool]["Total"] += 1
+
 
                 dataPoint2Count={}
                 for dataPoint in dataPoints:
@@ -289,32 +281,66 @@ class Plotter:
 
 
             #plot the data
-            nbOfColumnsInSubplot = 3
+            nbOfColumnsInSubplot = 4
             nbRowsInSubplot = int(math.ceil(float(len(self.toolsNoRaw)) / nbOfColumnsInSubplot))
-            fig = plt.figure(figsize=(5 * nbOfColumnsInSubplot, 5 * nbRowsInSubplot))
+            specificPlotFig = plotly.tools.make_subplots(rows=nbRowsInSubplot, cols=nbOfColumnsInSubplot)
             for toolIndex, tool in enumerate(self.toolsNoRaw):
+                row, col = int(toolIndex / nbOfColumnsInSubplot) + 1, toolIndex % nbOfColumnsInSubplot + 1
                 #plot it
-                plt.subplot(nbRowsInSubplot, nbOfColumnsInSubplot, toolIndex+1)
-                plt.scatter(tool2PlotData[tool]["xDataPoints"], tool2PlotData[tool]["yDataPoints"], c=tool2PlotData[tool]["count"],
-                            cmap="bwr", vmin=0, vmax=largestDatapointCount, edgecolors="black")
-                plt.xlim(0, largestFamilySize+1)
-                plt.ylim(0, largestFamilySize+1)
-                plt.xticks(range(0, largestFamilySize + 2, 2))
-                plt.yticks(range(0, largestFamilySize + 2, 2))
-                plt.plot(range(largestFamilySize+1), range(largestFamilySize+1), alpha=0.5, color="black")
+                trace = plotly.graph_objs.Scatter(x=tool2PlotData[tool]["xDataPoints"], y=tool2PlotData[tool]["yDataPoints"],
+                                                  mode='markers',
+                                                  marker={'color': tool2PlotData[tool]["count"],
+                                                          'cmax': largestDatapointCount,
+                                                          'cmin': 0,
+                                                          'colorbar': {'title': 'Count'},
+                                                          'colorscale': 'RdBu'}
+                                                  )
+                specificPlotFig.append_trace(trace, row, col)
+
+                specificPlotFig['layout'].update(height=nbRowsInSubplot*400, width=nbOfColumnsInSubplot*400, showlegend=False)
+
+            for toolIndex, tool  in enumerate(self.toolsNoRaw):
+                specificPlotFig['layout']['xaxis%d'%(toolIndex+1)].update(range=[0, largestFamilySize + 1], title="Raw")
+                specificPlotFig['layout']['yaxis%d'%(toolIndex+1)].update(range=[0, largestFamilySize + 1], title=tool)
+                specificPlotFig['layout']['shapes'].append(dict({
+                        'xref': "x%d"%(toolIndex+1),
+                        'yref': "y%d"%(toolIndex+1),
+                        'type': 'line',
+                        'x0': 0,
+                        'y0': 0,
+                        'x1': largestFamilySize,
+                        'y1': largestFamilySize,
+                        'opacity': 0.5
+                    }))
 
 
-                #putting the labels
-                plt.xlabel("Raw")
-                plt.ylabel(tool)
-                plt.colorbar()
 
+            #build the plots for the general stats
+            # produce the plot
+            labels=["Shrunk", "Unchanged", "Expanded"]
+            generalStatsPlotData = [plotly.graph_objs.Bar(
+                x=labels,
+                y=[float(tool2GeneralStats[tool][label])/float(tool2GeneralStats[tool]["Total"])*100 for label in labels],
+                name=tool)
+                for tool in self.toolsNoRaw]
 
-            return self.__buildFilesAndCleanup(fig, name)
+            generalStatsPlotLayout = plotly.graph_objs.Layout(
+                xaxis={"title": "Tool's behaviour towards the gene family"},
+                yaxis={"title": "Gene family count in %"},
+                barmode='group',
+                width=800,
+                height=400
+            )
+            generalPlotfig = plotly.graph_objs.Figure(data=generalStatsPlotData, layout=generalStatsPlotLayout)
+
+            #return both plots
+            return self.__buildPlots(generalPlotfig, name+"General"), self.__buildPlots(specificPlotFig, name+"Specific")
         except:
-            traceback.print_exc()
-            #TODO: treat this better - we report error on computing all plots even if a single plot fails
+            #traceback.print_exc()
             return {
+                "imagePlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>",
+                "jsPlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>"
+            }, {
                 "imagePlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>",
                 "jsPlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>"
             }
@@ -340,37 +366,109 @@ class Plotter:
         highestExpression = max([max(max(plotData["xDataPoints"]), max(plotData["yDataPoints"])) for plotData in tool2PlotData.values()])
 
         # plot the data
-        nbOfColumnsInSubplot = 3
+        rSquaredAnnotations=[]
+        nbOfColumnsInSubplot = 4
         nbRowsInSubplot = int(math.ceil(float(len(self.toolsNoRaw)) / nbOfColumnsInSubplot))
-        fig = plt.figure(figsize=(5 * nbOfColumnsInSubplot, 5 * nbRowsInSubplot))
+        fig = plotly.tools.make_subplots(rows=nbRowsInSubplot, cols=nbOfColumnsInSubplot,
+                                         subplot_titles=self.toolsNoRaw)
         for toolIndex, tool in enumerate(self.toolsNoRaw):
+            row, col = int(toolIndex / nbOfColumnsInSubplot) + 1, toolIndex % nbOfColumnsInSubplot + 1
             # plot it
-            plt.subplot(nbRowsInSubplot, nbOfColumnsInSubplot, toolIndex + 1)
-            plt.scatter(tool2PlotData[tool]["xDataPoints"], tool2PlotData[tool]["yDataPoints"],
-                        vmin=0, vmax=highestExpression, alpha=0.2, c="black")
-            plt.xlim(0, int(highestExpression*1.1))
-            plt.ylim(0, int(highestExpression*1.1))
-            plt.plot(range(highestExpression + 1), range(highestExpression + 1), color="black")
+            trace = plotly.graph_objs.Scatter(x=tool2PlotData[tool]["xDataPoints"], y=tool2PlotData[tool]["yDataPoints"],
+											  type='scattergl',
+                                              mode='markers',
+                                              marker={
+                                                  'color': 'black',
+                                                  'opacity': 0.2
+                                              }
+                                              )
+            fig.append_trace(trace, row, col)
 
-            # putting the labels
-            plt.xlabel("Main isoform coverage before")
-            plt.ylabel("Main isoform coverage after %s"%tool)
+            # get R squared, from https://plot.ly/python/linear-fits/
+            slope, intercept, r_value, p_value, std_err = stats.linregress(tool2PlotData[tool]["xDataPoints"], tool2PlotData[tool]["yDataPoints"])
+            rSquared = r_value ** 2
+            linearRegressionLine = slope * numpy.array(tool2PlotData[tool]["xDataPoints"]) + intercept
+            linearRegressionTrace = plotly.graph_objs.Scatter(
+                x=tool2PlotData[tool]["xDataPoints"],
+                y=linearRegressionLine,
+                mode='lines',
+                marker=plotly.graph_objs.Marker(color='rgb(31, 119, 180)'),
+                name='Fit'
+            )
+            fig.append_trace(linearRegressionTrace, row, col)
 
-        return self.__buildFilesAndCleanup(fig, name)
+            rSquaredAnnotations.append(plotly.graph_objs.Annotation(
+                xref = "x%d"%(toolIndex + 1),
+                yref = "y%d"%(toolIndex + 1),
+                x = highestExpression/2,
+                y = highestExpression,
+                text="R^2 = %f"%rSquared,
+                showarrow=False,
+                font=plotly.graph_objs.Font(size=14)
+            ))
+
+
+
+        fig['layout'].update(height=nbRowsInSubplot * 400, width=nbOfColumnsInSubplot * 400, showlegend=False)
+
+        for toolIndex, tool in enumerate(self.toolsNoRaw):
+            fig['layout']['xaxis%d' % (toolIndex + 1)].update(range=[0, int(math.ceil(highestExpression*1.1))+1], title="Main isoform coverage before" if toolIndex==0 else "")
+            fig['layout']['yaxis%d' % (toolIndex + 1)].update(range=[0, int(math.ceil(highestExpression*1.1))+1], title="Main isoform coverage after" if toolIndex==0 else "")
+            fig['layout']['shapes'].append(dict({
+                'xref': "x%d"%(toolIndex+1),
+                'yref': "y%d"%(toolIndex+1),
+                'type': 'line',
+                'x0': 0,
+                'y0': 0,
+                'x1': highestExpression,
+                'y1': highestExpression,
+                'opacity': 0.5
+            }))
+
+        #
+        fig['layout']['annotations'].extend(rSquaredAnnotations)
+
+        return self.__buildPlots(fig, name)
 
     def makeBarPlotFromStats(self, statProfiler, metric):
         name = metric
 
-        # produce the plot
-        fig = plt.figure()
+        #produce the plot
+        data = [plotly.graph_objs.Bar(x=["Tools"], y=[statProfiler.getStatsForToolAndMetric(tool, metric)], name=tool) for tool in statProfiler.tools]
+        layout = plotly.graph_objs.Layout(
+            title=metric,
+            yaxis={"title": statProfiler.getNiceDescriptionForFeature(metric)},
+            barmode="group"
+        )
+        fig = plotly.graph_objs.Figure(data=data, layout=layout)
+        return self.__buildPlots(fig, name)
 
-        # put the labels
-        plt.xlabel("Tools")
-        plt.ylabel(metric)
+    def makeReadCountPlotDividedBySize(self, statProfiler, feature, title):
+        #first we get the labels
+        labels = statProfiler.tool2Stats["raw.bam"][feature].getCategoriesAsString(displayInterval=True, displayPlusOnLastItem=True)
 
-        # add each bar
-        for index, tool in enumerate(statProfiler.tools):
-            plt.bar(index, statProfiler.tool2Stats[tool][metric], label=tool, tick_label=tool)
-        plt.xticks(range(len(statProfiler.tools)), statProfiler.tools, rotation="vertical")
 
-        return self.__buildFilesAndCleanup(fig, name)
+        # produce the plot data
+        data=[]
+        for tool in self.tools:
+            data.append(plotly.graph_objs.Scatter(
+                x=range(len(labels)),
+                y=statProfiler.tool2Stats[tool][feature].getIntervalCount(),
+                mode='lines+markers',
+                name="%s"%(tool)
+                ))
+
+
+        layout = plotly.graph_objs.Layout(
+            title=title,
+            xaxis=plotly.graph_objs.XAxis(
+                   title="Read lengths",
+                   showticklabels=True,
+                   tickvals=range(len(labels)),
+                   ticktext=labels
+                ),
+            yaxis={"title": "Read count"}
+        )
+
+        fig = plotly.graph_objs.Figure(data=data, layout=layout)
+        return self.__buildPlots(fig, "ReadCountPlotDividedBySize_%s"%feature)
