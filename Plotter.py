@@ -281,7 +281,7 @@ class Plotter:
 
 
             #plot the data
-            nbOfColumnsInSubplot = 3
+            nbOfColumnsInSubplot = 4
             nbRowsInSubplot = int(math.ceil(float(len(self.toolsNoRaw)) / nbOfColumnsInSubplot))
             specificPlotFig = plotly.tools.make_subplots(rows=nbRowsInSubplot, cols=nbOfColumnsInSubplot)
             for toolIndex, tool in enumerate(self.toolsNoRaw):
@@ -367,7 +367,7 @@ class Plotter:
 
         # plot the data
         rSquaredAnnotations=[]
-        nbOfColumnsInSubplot = 3
+        nbOfColumnsInSubplot = 4
         nbRowsInSubplot = int(math.ceil(float(len(self.toolsNoRaw)) / nbOfColumnsInSubplot))
         fig = plotly.tools.make_subplots(rows=nbRowsInSubplot, cols=nbOfColumnsInSubplot,
                                          subplot_titles=self.toolsNoRaw)
