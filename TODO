@@ -1,3 +1,6 @@
+-When hovering over the plots, it would be nicer just to show the column you are hovering over, not everything (check plotly)
+    -Just press "Show closest data on hover" on the plots' options.
+
 Bug:
     -MISMATCHES IN % OVER ANY ERROR IS KINDA MISLEADING I THINK... FOR EX., NaS has the least % of errors of all correctors,
     but 53% of the few errors it does are mismatches. When we take a first look at the MISMATCHES plot, the one thing that we note is that
@@ -56,8 +59,6 @@ High Priority:
 Normal:
     -Main tables presentation:
         -Coloring, ranking and percentage filter
-
-    -When hovering over the plots, it would be nicer just to show the column you are hovering over, not everything (check plotly)
 
 
     -Checking if the file server is online/verifying the file server

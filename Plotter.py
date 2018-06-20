@@ -78,18 +78,20 @@ class Plotter:
     """
     Makes several plots
     """
-    def __init__(self, tools, plotsOutput):
+    def __init__(self, tools):
         self.tools=tools
         self.toolsNoRaw=list(tools)
         self.toolsNoRaw.remove("raw.bam")
-        self.plotsOutput = plotsOutput
 
     def __buildPlots(self, fig, name):
         """
         build the plots and return what needs to be returned
         """
+        """
+        TODO: removed png plots
         plotly.offline.plot(fig, image = 'png', image_filename="%s/%s.png"%(self.plotsOutput, name),
                             filename="%s/%s.html"%(self.plotsOutput, name), auto_open=False)
+        """
 
         return {
             #"imagePlot": "<img src=plots/%s.png />" % name,

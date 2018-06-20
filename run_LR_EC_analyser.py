@@ -159,10 +159,13 @@ def main():
 
     #create the Plotter and the plots
     print "Computing the plots..."
+    """
+    TODO: removed png plots
     plotsOutput = args.output+"/plots"
     if not os.path.exists(plotsOutput):
         os.makedirs(plotsOutput)
-    plotter = Plotter(tools, plotsOutput)
+    """
+    plotter = Plotter(tools)
 
     #make all stats plots
     allStatsPlots = {feature: plotter.makeBarPlotFromStats(statProfiler, feature) for feature in statProfiler.allFeatures}
@@ -264,10 +267,14 @@ def main():
 
 
     #save the html reports
+    '''
+    TODO: removed the simple report file
+    
     with open(args.output+"/report.html", "w") as indexOutFile:
         for line in linesHTMLReport:
             indexOutFile.write(line)
-    with open(args.output+"/report_high_resolution.html", "w") as indexOutFile:
+    '''
+    with open(args.output+"/report.html", "w") as indexOutFile:
         for line in linesHighResHTMLReport:
             indexOutFile.write(line)
 
