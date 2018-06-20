@@ -1,4 +1,10 @@
 Bug:
+    -MISMATCHES IN % OVER ANY ERROR IS KINDA MISLEADING I THINK... FOR EX., NaS has the least % of errors of all correctors,
+    but 53% of the few errors it does are mismatches. When we take a first look at the MISMATCHES plot, the one thing that we note is that
+    it seems that NaS makes more mismatches than any other tool (which is not true)...
+        -This apply to all other error stats - we gotta check this...
+
+
     Traceback (most recent call last):
       File "/data2/ASTER/error_correction/LR_EC_analyser/run_LR_EC_analyser.py", line 267, in <module>
         main()
