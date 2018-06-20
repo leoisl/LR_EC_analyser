@@ -54,34 +54,35 @@ python serve_files.py <output_folder>
 
 # Parameters
 ```
-usage: run_LR_EC_analyser.py [-h] [--genome GENOME] [--gtf GTF]
-                             [--paralogous PARALOGOUS] [--raw RAWBAM]
+usage: run_LR_EC_analyser.py [-h] --genome GENOME --gtf GTF
+                             [--paralogous PARALOGOUS] --raw RAWBAM
                              [-o OUTPUT] [-t THREADS] [--skip_bam_process]
                              [--skip_alignqc] [--skip_copying]
                              <file.bam> [<file.bam> ...]
 
-Long read error corrector analyser.
+Long reads error corrector analyser.
 
 positional arguments:
-  <file.bam>            BAM files of the Fastas output by the correctors
+  <file.bam>            BAM files of the reads output by the correctors mapped
+                        to the genome (preferably using gmap -n 10 -f samse).
 
 optional arguments:
   -h, --help            show this help message and exit
-  --genome GENOME       The genome in fasta file
-  --gtf GTF             The transcriptome as GTF file
+  --genome GENOME       The genome in Fasta file format.
+  --gtf GTF             The transcriptome in GTF file format.
   --paralogous PARALOGOUS
-                        Path to a file where the first two collumns denote
-                        paralogous genes (see file GettingParalogs.txt to know
-                        how you can get this file)
+                        A file where the first two columns denote paralogous
+                        genes (see file GettingParalogs.txt to know how you
+                        can get this file).
   --raw RAWBAM          The BAM file of the raw reads (i.e. the uncorrected
-                        long reads file)
-  -o OUTPUT             output folder
+                        long reads) mapped to the genome.
+  -o OUTPUT             Output folder
   -t THREADS            Number of threads to use
-  --skip_bam_process    Skips bam processing - assume we had already done
-                        this.
+  --skip_bam_process    Skips BAM processing (i.e. sorting and indexing BAM
+                        files) - assume we had already done this.
   --skip_alignqc        Skips AlignQC calls - assume we had already done this.
   --skip_copying        Skips copying genome and transcriptome to the output
-                        folder.
+                        folder - assume we had already done this.
 ```
 
 # Thirdparties

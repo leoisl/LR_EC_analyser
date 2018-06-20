@@ -65,20 +65,20 @@ python run_LR_EC_analyser --view <path_to_results>
 """
 
 def main():
-    parser = argparse.ArgumentParser(description='Long read error corrector analyser.')
+    parser = argparse.ArgumentParser(description='Long reads error corrector analyser.')
     parser.add_argument('bams', metavar='<file.bam>', type=str, nargs='+',
-                        help='BAM files of the Fastas output by the correctors')
-    parser.add_argument("--genome", dest="genome", help="The genome in fasta file")
-    parser.add_argument("--gtf", dest="gtf", help="The transcriptome as GTF file")
-    parser.add_argument("--paralogous", help="Path to a file where the first two collumns denote paralogous genes (see file GettingParalogs.txt to know how you can get this file)")
-    parser.add_argument("--raw", dest="rawBam", help="The BAM file of the raw reads (i.e. the uncorrected long reads file)")
-    parser.add_argument("-o", dest="output", help="output folder", default="output/")
-    parser.add_argument("-t", dest="threads", type=int, help="Number of threads to use")
-    parser.add_argument("--skip_bam_process", dest="skip_bam", action="store_true", help="Skips bam processing - assume we had already done this.")
+                        help='BAM files of the reads output by the correctors mapped to the genome (preferably using gmap -n 10 -f samse).')
+    parser.add_argument("--genome", dest="genome", help="The genome in Fasta file format.", required=True)
+    parser.add_argument("--gtf", dest="gtf", help="The transcriptome in GTF file format.", required=True)
+    parser.add_argument("--paralogous", help="A file where the first two columns denote paralogous genes (see file GettingParalogs.txt to know how you can get this file).")
+    parser.add_argument("--raw", dest="rawBam", help="The BAM file of the raw reads (i.e. the uncorrected long reads) mapped to the genome.", required=True)
+    parser.add_argument("-o", dest="output", help="Output folder", default="output/")
+    parser.add_argument("-t", dest="threads", type=int, help="Number of threads to use", default=1)
+    parser.add_argument("--skip_bam_process", dest="skip_bam", action="store_true", help="Skips BAM processing (i.e. sorting and indexing BAM files) - assume we had already done this.")
     parser.add_argument("--skip_alignqc", dest="skip_alignqc", action="store_true",
                         help="Skips AlignQC calls - assume we had already done this.")
     parser.add_argument("--skip_copying", dest="skip_copying", action="store_true",
-                        help="Skips copying genome and transcriptome to the output folder.")
+                        help="Skips copying genome and transcriptome to the output folder - assume we had already done this.")
     args=parser.parse_args()
 
     #TODO: Change all paths to absolute paths (otherwise the user can only call the tool from the source dir)

@@ -1,6 +1,8 @@
 -When hovering over the plots, it would be nicer just to show the column you are hovering over, not everything (check plotly)
     -Just press "Show closest data on hover" on the plots' options.
 
+
+
 Bug:
     -MISMATCHES IN % OVER ANY ERROR IS KINDA MISLEADING I THINK... FOR EX., NaS has the least % of errors of all correctors,
     but 53% of the few errors it does are mismatches. When we take a first look at the MISMATCHES plot, the one thing that we note is that
@@ -16,14 +18,7 @@ Bug:
     IOError: [Errno 2] No such file or directory: 'lib/html/index_template.html'
 
 
-    Traceback (most recent call last):
-      File "run_LR_EC_analyser.py", line 267, in <module>
-        main()
-      File "run_LR_EC_analyser.py", line 128, in main
-        processBam(bam, sortedBam, args.threads)
-      File "/data2/ASTER/error_correction/LR_EC_analyser/ExternalTools.py", line 29, in processBam
-        executeCommandLine("samtools sort -@ %d %s -o %s"%(threads, bam, outputBam))
-    TypeError: %d format: a number is required, not NoneType
+
 
 High Priority:
     -Finish paper, then check the rest
