@@ -51,6 +51,8 @@ Normal:
     -Main tables presentation:
         -Coloring, ranking and percentage filter
 
+    -When hovering over the plots, it would be nicer just to show the column you are hovering over, not everything (check plotly)
+
 
     -Checking if the file server is online/verifying the file server
         -When finishing the output, but a 5kb long string in a javascript file - this will be the id of the run
