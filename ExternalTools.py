@@ -4,6 +4,7 @@
 import sys
 import subprocess
 import os
+import shutil
 
 
 scriptDir = os.path.dirname(os.path.realpath(__file__))
@@ -33,8 +34,14 @@ def processBam(bam, outputBam, threads):
 
 def runAlignQC(tool, bam, genome, gtf, outputFolder, threads):
     print "Running AlignQC for %s..." % bam
-    executeCommandLine("alignqc analyze %s -g %s -t %s --output_folder %s/alignqc_out_on_%s --threads %d" % \
-                            (bam, genome, gtf, outputFolder, tool, threads))
+
+    #remove outputfolder if it already exists, otherwise AlignQC bugs
+    outputFolder = "%s/alignqc_out_on_%s"%(outputFolder, tool)
+    if os.path.exists(outputFolder):
+        shutil.rmtree(outputFolder)
+
+    executeCommandLine("alignqc analyze %s -g %s -t %s --output_folder %s --threads %d" % \
+                            (bam, genome, gtf, outputFolder, threads))
     print "Running AlignQC for %s - Done!" % bam
 
 def sortAndIndexGTF(gtfFile):

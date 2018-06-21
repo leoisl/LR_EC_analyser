@@ -1,9 +1,4 @@
--When hovering over the plots, it would be nicer just to show the column you are hovering over, not everything (check plotly)
-    -Just press "Show closest data on hover" on the plots' options.
-
-
-
-Bug:
+Bugs:
     -MISMATCHES IN % OVER ANY ERROR IS KINDA MISLEADING I THINK... FOR EX., NaS has the least % of errors of all correctors,
     but 53% of the few errors it does are mismatches. When we take a first look at the MISMATCHES plot, the one thing that we note is that
     it seems that NaS makes more mismatches than any other tool (which is not true)...
@@ -25,6 +20,10 @@ High Priority:
 
     -How does error correction affects read quantification
         -True quantification is given by Illumina
+            -Then we always need the Illumina data, which might not be available.
+            -In this case, true quantification is given by raw long reads?
+        -Or should we simply receive a file with <transcript> <quant> and assume it as the quantification?
+            -Like this, the user can use any method he/she relies for quantification.
         -Get the scatter plot and r^2 for raw x Illumina, and each tool x Illumina
 
     -I guess the main problem for error correcting are repeats.
@@ -42,9 +41,6 @@ High Priority:
     -Focus on the new reads that are produced by the error correctors
 
     -Fix  gene track not showing
-
-    -Add all plots from the paper
-        -Low-priority possible stuff (for the paper, L): isolate the part of AlignQC that plots the read length histogram, make it plot with consistent y axis.
 
     -Make all plots interactive
         -When clicking on a bar or on a point, open an IGV plot showing the alignment of the reads to the concerned gene/transcript

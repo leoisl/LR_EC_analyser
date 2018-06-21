@@ -8,6 +8,7 @@ from ExternalTools import *
 from Parsers import *
 from Plotter import *
 from Paralogous import *
+import os
 
 
 """
@@ -80,8 +81,6 @@ def main():
     parser.add_argument("--skip_copying", dest="skip_copying", action="store_true",
                         help="Skips copying genome and transcriptome to the output folder - assume we had already done this.")
     args=parser.parse_args()
-
-    #TODO: Change all paths to absolute paths (otherwise the user can only call the tool from the source dir)
 
     #create output dir
     if not os.path.exists(args.output):
@@ -175,7 +174,7 @@ def main():
     alignedReadsCuttingPlot = plotter.makeReadCountPlotDividedBySize(statProfiler, "ALIGNED_SIZE_BINS", "Aligned reads length line plot")
     unalignedReadsCuttingPlot = plotter.makeReadCountPlotDividedBySize(statProfiler, "UNALIGNED_SIZE_BINS", "Unaligned reads length line plot")
 
-    htmlDifferenceOnTheNumberOfIsoformsPlot = plotter.makeDifferenceOnTheNumberOfIsoformsPlot(geneID2gene, -3, 3)
+    htmlDifferenceOnTheNumberOfIsoformsPlotUnion, htmlDifferenceOnTheNumberOfIsoformsPlotIntersection = plotter.makeDifferenceOnTheNumberOfIsoformsPlot(geneID2gene, -3, 3)
     htmlLostTranscriptInGenesWSP2Plot = plotter.makeLostTranscriptInGenesWSP2Plot(geneID2gene)
     htmlDifferencesInRelativeExpressionsBoxPlot = plotter.makeDifferencesInRelativeExpressionsBoxPlot(geneID2gene)
     htmlScatterPlotCoverageOfMainIsoform = plotter.makeScatterPlotCoverageOfMainIsoform(geneID2gene)
@@ -206,7 +205,8 @@ def main():
             else:
                 linesHighResHTMLReport[index] = linesHighResHTMLReport[index].replace(htmlTag, str(plots))
 
-    with open("lib/html/index_template.html") as indexTemplateFile:
+    scriptDir = os.path.dirname(os.path.realpath(__file__))
+    with open(scriptDir+"/lib/html/index_template.html") as indexTemplateFile:
         linesHTMLReport = indexTemplateFile.readlines()
         linesHighResHTMLReport = list(linesHTMLReport)
 
@@ -225,8 +225,10 @@ def main():
                                           geneProfiler, "geneProfileToJSArrayForHOT")
         callFunctionAndPopulateTheReports(i, "<geneProfiler.transcriptProfileToJSArrayForHOT()>", linesHTMLReport, linesHighResHTMLReport, \
                                           geneProfiler, "transcriptProfileToJSArrayForHOT")
-        callFunctionAndPopulateTheReports(i, "<htmlDifferenceOnTheNumberOfIsoformsPlot>", linesHTMLReport, linesHighResHTMLReport, \
-                                          htmlDifferenceOnTheNumberOfIsoformsPlot)
+        callFunctionAndPopulateTheReports(i, "<htmlDifferenceOnTheNumberOfIsoformsPlotUnion>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlDifferenceOnTheNumberOfIsoformsPlotUnion)
+        callFunctionAndPopulateTheReports(i, "<htmlDifferenceOnTheNumberOfIsoformsPlotIntersection>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlDifferenceOnTheNumberOfIsoformsPlotIntersection)
         callFunctionAndPopulateTheReports(i, "<htmlLostTranscriptInGenesWSP2Plot>", linesHTMLReport, linesHighResHTMLReport, \
                                           htmlLostTranscriptInGenesWSP2Plot)
         callFunctionAndPopulateTheReports(i, "<htmlDifferencesInRelativeExpressionsBoxPlot>", linesHTMLReport, linesHighResHTMLReport, \
@@ -281,7 +283,7 @@ def main():
     #copy lib to the output
     if os.path.exists(args.output+"/lib"):
         shutil.rmtree(args.output+"/lib")
-    shutil.copytree("lib", args.output+"/lib")
+    shutil.copytree(scriptDir+"/lib", args.output+"/lib")
     print "Creating HTML report... - Done!"
 
     print "We are finished!"

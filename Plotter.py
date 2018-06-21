@@ -116,26 +116,27 @@ class Plotter:
         fig = plotly.graph_objs.Figure(data=data, layout=layout)
         return self.__buildPlots(fig, name)
 
-    def makeDifferenceOnTheNumberOfIsoformsPlot(self, geneID2gene, lowestCategory=-3, highestCategory=3, step=1, blankSpace=0.1):
+    def __makeDifferenceOnTheNumberOfIsoformsPlotCore(self, geneID2gene, lowestCategory, highestCategory, step, unionOrIntersection):
         """
-
-        :param geneID2gene:
-        :param lowestCategory:
-        :param highestCategory:
-        :param blankSpace:
         :return: a string with html code to be put in the html report
         """
-
-
         '''
         Helper functions
         '''
-        def addDifferenceOfIsoformNumber(gene, tool, tool2DifferencesCategories):
+        def addDifferenceOfIsoformNumber(gene, tool, tool2DifferencesCategories, unionOrIntersection):
             nbOfIsoformsExpressedInRaw = gene.getNbOfIsoformsExpressedInTool("raw.bam")
             nbOfIsoformsExpressedInTool = gene.getNbOfIsoformsExpressedInTool(tool)
-            if nbOfIsoformsExpressedInRaw > 0 or nbOfIsoformsExpressedInTool > 0:
-                # if there is any expression in raw or tool, we add it!
-                tool2DifferencesCategories[tool].addDataPoint(nbOfIsoformsExpressedInTool - nbOfIsoformsExpressedInRaw)
+
+            if unionOrIntersection == "union":
+                if nbOfIsoformsExpressedInRaw > 0 or nbOfIsoformsExpressedInTool > 0:
+                    # if there is any expression in raw or tool, we add it!
+                    tool2DifferencesCategories[tool].addDataPoint(nbOfIsoformsExpressedInTool - nbOfIsoformsExpressedInRaw)
+            elif unionOrIntersection == "intersection":
+                if nbOfIsoformsExpressedInRaw > 0 and nbOfIsoformsExpressedInTool > 0:
+                    # if there is expression in both raw and tool, we add it!
+                    tool2DifferencesCategories[tool].addDataPoint(nbOfIsoformsExpressedInTool - nbOfIsoformsExpressedInRaw)
+            else:
+                raise Exception("unionOrIntersection in makeDifferenceOnTheNumberOfIsoformsPlot() should be union or intersection")
 
         #builds tool2DifferencesCategories - for each tool, we have an array with (tool.expression - raw.expression) for each gene and transcript
         def get_tool2DifferenceCategories():
@@ -145,7 +146,7 @@ class Plotter:
             for gene in geneID2gene.values():
                 if gene.profile.isExpressedInAnyTool():
                     for tool in self.toolsNoRaw:
-                        addDifferenceOfIsoformNumber(gene, tool, tool2DifferenceCategories)
+                        addDifferenceOfIsoformNumber(gene, tool, tool2DifferenceCategories, unionOrIntersection)
 
             return tool2DifferenceCategories
         '''
@@ -155,6 +156,13 @@ class Plotter:
 
         tool2DifferenceCategories = get_tool2DifferenceCategories()
         return self.__produceBarPlot("DifferenceOnTheNumberOfIsoformsPlot", tool2DifferenceCategories, "Difference on the number of isoforms", "Number of genes", False, True, True)
+
+    def makeDifferenceOnTheNumberOfIsoformsPlot(self, geneID2gene, lowestCategory=-3, highestCategory=3, step=1):
+        """
+        :return: Two plots, one with the union (genes in the raw or in the tool) and the other with the intersection
+        """
+        return self.__makeDifferenceOnTheNumberOfIsoformsPlotCore(geneID2gene, lowestCategory, highestCategory, step, "union"), \
+               self.__makeDifferenceOnTheNumberOfIsoformsPlotCore(geneID2gene, lowestCategory, highestCategory, step, "intersection")
 
 
     def makeLostTranscriptInGenesWSP2Plot(self, geneID2gene, blankSpace=0.1):
