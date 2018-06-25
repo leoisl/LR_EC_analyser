@@ -3,6 +3,7 @@ from decimal import Decimal
 import plotly
 from scipy import stats
 import numpy
+import matplotlib.colors as colors
 
 
 
@@ -78,10 +79,26 @@ class Plotter:
     """
     Makes several plots
     """
-    def __init__(self, tools):
+    def __init__(self, tools, hybridTools, selfTools):
         self.tools=tools
         self.toolsNoRaw=list(tools)
         self.toolsNoRaw.remove("raw.bam")
+        self.hybridTools = hybridTools
+        self.selfTools = selfTools
+
+        # get the color lists
+        self.colorsList = list(colors._colors_full_map.values())
+        self.categories2Color = {"raw": "green", "hybrid": "blue", "self": "red"}
+
+    def __getToolCategory(self, tool):
+        if tool=="raw.bam":
+            return "raw"
+        elif tool in self.hybridTools:
+            return "hybrid"
+        elif tool in self.selfTools:
+            return "self"
+        else:
+            raise Exception("Unknown category for tool %s"%tool)
 
     def __buildPlots(self, fig, name):
         """
@@ -99,24 +116,26 @@ class Plotter:
             "jsPlot": plotly.offline.plot(fig, include_plotlyjs=False, output_type='div')
         }
 
-    def __produceBarPlot(self, name, tool2Categories, xlabel, ylabel, displayInterval=False, displayPlusOnFirstItem=False, displayPlusOnLastItem=False):
+    def __produceBarPlot(self, name, tool2Categories, xlabel, ylabel, displayInterval=False, displayPlusOnFirstItem=False, displayPlusOnLastItem=False, useToolCategories = False):
         #produce the plot
         data = [plotly.graph_objs.Bar(
                 x=tool2Categories[tool].getCategoriesAsString(displayInterval, displayPlusOnFirstItem, displayPlusOnLastItem),
                 y=tool2Categories[tool].getIntervalCount(),
-                name=tool)
-                    for tool in self.toolsNoRaw]
+                name=tool if not useToolCategories else self.__getToolCategory(tool),
+                marker = {
+                    "color": self.colorsList[toolIndex] if not useToolCategories else self.categories2Color[self.__getToolCategory(tool)]
+                })
+                for toolIndex, tool in enumerate(self.toolsNoRaw)]
 
         layout = plotly.graph_objs.Layout(
             xaxis={"title": xlabel},
-            yaxis={"title": ylabel},
-            barmode='group'
+            yaxis={"title": ylabel}
         )
 
         fig = plotly.graph_objs.Figure(data=data, layout=layout)
         return self.__buildPlots(fig, name)
 
-    def __makeDifferenceOnTheNumberOfIsoformsPlotCore(self, geneID2gene, lowestCategory, highestCategory, step, unionOrIntersection):
+    def __makeDifferenceOnTheNumberOfIsoformsPlotCore(self, geneID2gene, lowestCategory, highestCategory, step, unionOrIntersection, useToolCategories):
         """
         :return: a string with html code to be put in the html report
         """
@@ -155,14 +174,16 @@ class Plotter:
 
 
         tool2DifferenceCategories = get_tool2DifferenceCategories()
-        return self.__produceBarPlot("DifferenceOnTheNumberOfIsoformsPlot", tool2DifferenceCategories, "Difference on the number of isoforms", "Number of genes", False, True, True)
+        return self.__produceBarPlot("DifferenceOnTheNumberOfIsoformsPlot", tool2DifferenceCategories, "Difference on the number of isoforms", "Number of genes", False, True, True, useToolCategories)
 
     def makeDifferenceOnTheNumberOfIsoformsPlot(self, geneID2gene, lowestCategory=-3, highestCategory=3, step=1):
         """
         :return: Two plots, one with the union (genes in the raw or in the tool) and the other with the intersection
         """
-        return self.__makeDifferenceOnTheNumberOfIsoformsPlotCore(geneID2gene, lowestCategory, highestCategory, step, "union"), \
-               self.__makeDifferenceOnTheNumberOfIsoformsPlotCore(geneID2gene, lowestCategory, highestCategory, step, "intersection")
+        return self.__makeDifferenceOnTheNumberOfIsoformsPlotCore(geneID2gene, lowestCategory, highestCategory, step, "union", False), \
+               self.__makeDifferenceOnTheNumberOfIsoformsPlotCore(geneID2gene, lowestCategory, highestCategory, step, "union", True), \
+               self.__makeDifferenceOnTheNumberOfIsoformsPlotCore(geneID2gene, lowestCategory, highestCategory, step, "intersection", False), \
+               self.__makeDifferenceOnTheNumberOfIsoformsPlotCore(geneID2gene, lowestCategory, highestCategory, step, "intersection", True)
 
 
     def makeLostTranscriptInGenesWSP2Plot(self, geneID2gene, blankSpace=0.1):

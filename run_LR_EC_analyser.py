@@ -67,14 +67,19 @@ python run_LR_EC_analyser --view <path_to_results>
 
 def main():
     parser = argparse.ArgumentParser(description='Long reads error corrector analyser.')
-    parser.add_argument('bams', metavar='<file.bam>', type=str, nargs='+',
-                        help='BAM files of the reads output by the correctors mapped to the genome (preferably using gmap -n 10 -f samse).')
+    parser.add_argument("--raw", dest="rawBam", help="The BAM file of the raw reads (i.e. the uncorrected long reads) mapped to the genome (preferably using gmap -n 10 -f samse).", required=True)
+    parser.add_argument('--self', metavar='<self.bam>', type=str, nargs='+',
+                        help='BAM files of the reads output by the SELF correctors mapped to the genome (preferably using gmap -n 10 -f samse).')
+    parser.add_argument('--hybrid', metavar='<hybrid.bam>', type=str, nargs='+',
+                        help='BAM files of the reads output by the HYBRID correctors mapped to the genome (preferably using gmap -n 10 -f samse).')
+
     parser.add_argument("--genome", dest="genome", help="The genome in Fasta file format.", required=True)
     parser.add_argument("--gtf", dest="gtf", help="The transcriptome in GTF file format.", required=True)
     parser.add_argument("--paralogous", help="A file where the first two columns denote paralogous genes (see file GettingParalogs.txt to know how you can get this file).")
-    parser.add_argument("--raw", dest="rawBam", help="The BAM file of the raw reads (i.e. the uncorrected long reads) mapped to the genome.", required=True)
+
     parser.add_argument("-o", dest="output", help="Output folder", default="output/")
     parser.add_argument("-t", dest="threads", type=int, help="Number of threads to use", default=1)
+
     parser.add_argument("--skip_bam_process", dest="skip_bam", action="store_true", help="Skips BAM processing (i.e. sorting and indexing BAM files) - assume we had already done this.")
     parser.add_argument("--skip_alignqc", dest="skip_alignqc", action="store_true",
                         help="Skips AlignQC calls - assume we had already done this.")
@@ -86,10 +91,12 @@ def main():
     if not os.path.exists(args.output):
         os.makedirs(args.output)
 
-
     #get some useful vars
-    bams = [args.rawBam] + args.bams
-    tools = ["raw.bam"] + [os.path.basename(bam) for bam in args.bams]
+    bams = [args.rawBam] + args.hybrid + args.self
+    hybridTools = [os.path.basename(bam) for bam in args.hybrid]
+    selfTools = [os.path.basename(bam) for bam in args.self]
+    tools = ["raw.bam"] + hybridTools + selfTools
+
 
     #copy genome to output and index it
     genome = args.output + "/" + os.path.basename(args.genome)
@@ -120,7 +127,6 @@ def main():
     #sort and index bam
     if args.skip_bam:
         print "Skipping bam processing..."
-
     sortedBams = []
     for bam in bams:
         sortedBam = args.output+"/"+os.path.basename((bam)+".sorted.bam")
@@ -164,7 +170,7 @@ def main():
     if not os.path.exists(plotsOutput):
         os.makedirs(plotsOutput)
     """
-    plotter = Plotter(tools)
+    plotter = Plotter(tools, hybridTools, selfTools)
 
     #make all stats plots
     allStatsPlots = {feature: plotter.makeBarPlotFromStats(statProfiler, feature) for feature in statProfiler.allFeatures}
@@ -174,7 +180,9 @@ def main():
     alignedReadsCuttingPlot = plotter.makeReadCountPlotDividedBySize(statProfiler, "ALIGNED_SIZE_BINS", "Aligned reads length line plot")
     unalignedReadsCuttingPlot = plotter.makeReadCountPlotDividedBySize(statProfiler, "UNALIGNED_SIZE_BINS", "Unaligned reads length line plot")
 
-    htmlDifferenceOnTheNumberOfIsoformsPlotUnion, htmlDifferenceOnTheNumberOfIsoformsPlotIntersection = plotter.makeDifferenceOnTheNumberOfIsoformsPlot(geneID2gene, -3, 3)
+    htmlDifferenceOnTheNumberOfIsoformsPlotUnionTools, htmlDifferenceOnTheNumberOfIsoformsPlotUnionCategories, \
+    htmlDifferenceOnTheNumberOfIsoformsPlotIntersectionTools, htmlDifferenceOnTheNumberOfIsoformsPlotIntersectionCategories \
+        = plotter.makeDifferenceOnTheNumberOfIsoformsPlot(geneID2gene, -3, 3)
     htmlLostTranscriptInGenesWSP2Plot = plotter.makeLostTranscriptInGenesWSP2Plot(geneID2gene)
     htmlDifferencesInRelativeExpressionsBoxPlot = plotter.makeDifferencesInRelativeExpressionsBoxPlot(geneID2gene)
     htmlScatterPlotCoverageOfMainIsoform = plotter.makeScatterPlotCoverageOfMainIsoform(geneID2gene)
@@ -225,10 +233,14 @@ def main():
                                           geneProfiler, "geneProfileToJSArrayForHOT")
         callFunctionAndPopulateTheReports(i, "<geneProfiler.transcriptProfileToJSArrayForHOT()>", linesHTMLReport, linesHighResHTMLReport, \
                                           geneProfiler, "transcriptProfileToJSArrayForHOT")
-        callFunctionAndPopulateTheReports(i, "<htmlDifferenceOnTheNumberOfIsoformsPlotUnion>", linesHTMLReport, linesHighResHTMLReport, \
-                                          htmlDifferenceOnTheNumberOfIsoformsPlotUnion)
-        callFunctionAndPopulateTheReports(i, "<htmlDifferenceOnTheNumberOfIsoformsPlotIntersection>", linesHTMLReport, linesHighResHTMLReport, \
-                                          htmlDifferenceOnTheNumberOfIsoformsPlotIntersection)
+        callFunctionAndPopulateTheReports(i, "<htmlDifferenceOnTheNumberOfIsoformsPlotUnionTools>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlDifferenceOnTheNumberOfIsoformsPlotUnionTools)
+        callFunctionAndPopulateTheReports(i, "<htmlDifferenceOnTheNumberOfIsoformsPlotUnionCategories>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlDifferenceOnTheNumberOfIsoformsPlotUnionCategories)
+        callFunctionAndPopulateTheReports(i, "<htmlDifferenceOnTheNumberOfIsoformsPlotIntersectionTools>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlDifferenceOnTheNumberOfIsoformsPlotIntersectionTools)
+        callFunctionAndPopulateTheReports(i, "<htmlDifferenceOnTheNumberOfIsoformsPlotIntersectionCategories>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlDifferenceOnTheNumberOfIsoformsPlotIntersectionCategories)
         callFunctionAndPopulateTheReports(i, "<htmlLostTranscriptInGenesWSP2Plot>", linesHTMLReport, linesHighResHTMLReport, \
                                           htmlLostTranscriptInGenesWSP2Plot)
         callFunctionAndPopulateTheReports(i, "<htmlDifferencesInRelativeExpressionsBoxPlot>", linesHTMLReport, linesHighResHTMLReport, \

@@ -3,7 +3,6 @@
 
 import gzip
 import urllib
-from ExternalTools import *
 from Plotter import Category
 
 class FeatureProfiler:
