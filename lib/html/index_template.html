@@ -62,6 +62,13 @@
 <input type="radio" name="LR_EC_read_stats_table_number_format" id="LR_EC_read_stats_table_number_format_K" value="K" checked> Kilos (K) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <input type="radio" name="LR_EC_read_stats_table_number_format" id="LR_EC_read_stats_table_number_format_N" value="N"> None<br>
 <div id="LR_EC_read_stats_table"></div>
+*Notes (from <a href="https://www.ncbi.nlm.nih.gov/pubmed/28868132" target="_blank">AlignQC publication</a>):<br/>
+If two or more alignment paths are reasonably spaced across the read, and can together generate a longer alignment, they will be combined and classified as:<br/>
+(a) a gapped alignment of a gene if paths occur within close proximity to each other on the same strand (GAPPED_ALIGN_READS);<br/>
+(b) a trans-chimeric alignment if paths occur on different loci (TRANSCHIMERA_ALIGN_READS and CHIMERA_ALIGN_READS);<br/>
+(c) a self-chimeric alignment if paths align to an overlapping genomic position (SELFCHIMERA_ALIGN_READS AND CHIMERA_ALIGN_READS);<br/>
+(d) otherwise, the read is defined as a single alignment (SINGLE_ALIGN_READS).<br/>
+
 <table>
     <tr>
         <td><html_TOTAL_READS_Plot></td>
@@ -76,9 +83,13 @@
         <td><html_GAPPED_ALIGN_READS_Plot></td>
     </tr>
 
-    <!-- Removed html_TRANSCHIMERA_ALIGN_READS_Plot and html_SELFCHIMERA_ALIGN_READS_Plot because it does not seem an important measure for now -->
     <tr>
         <td><html_CHIMERA_ALIGN_READS_Plot></td>
+        <td><html_TRANSCHIMERA_ALIGN_READS_Plot></td>
+    </tr>
+
+    <tr>
+        <td><html_SELFCHIMERA_ALIGN_READS_Plot></td>
         <td>&nbsp;</td>
     </tr>
 
@@ -91,6 +102,12 @@
 <input type="radio" name="LR_EC_base_stats_table_number_format" id="LR_EC_read_stats_table_number_format_K" value="K"> Kilos (K) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <input type="radio" name="LR_EC_base_stats_table_number_format" id="LR_EC_read_stats_table_number_format_N" value="N"> None<br>
 <div id="LR_EC_base_stats_table"></div>
+*Notes (from <a href="https://www.ncbi.nlm.nih.gov/pubmed/28868132" target="_blank">AlignQC publication</a>):<br/>
+If two or more alignment paths are reasonably spaced across the read, and can together generate a longer alignment, they will be combined and classified as:<br/>
+(a) a gapped alignment of a gene if paths occur within close proximity to each other on the same strand (GAPPED_ALIGN_BASES);<br/>
+(b) a trans-chimeric alignment if paths occur on different loci (TRANSCHIMERA_ALIGN_BASES and CHIMERA_ALIGN_BASES);<br/>
+(c) a self-chimeric alignment if paths align to an overlapping genomic position (SELFCHIMERA_ALIGN_BASES and CHIMERA_ALIGN_BASES);<br/>
+(d) otherwise, the read is defined as a single alignment (SINGLE_ALIGN_BASES).<br/>
 
 <table>
     <tr>
@@ -105,7 +122,11 @@
         <td><html_GAPPED_ALIGN_BASES_Plot></td>
         <td><html_CHIMERA_ALIGN_BASES_Plot></td>
     </tr>
-    <!-- Removed html_TRANSCHIMERA_ALIGN_BASES_Plot and html_SELFCHIMERA_ALIGN_BASES_Plot because it does not seem an important measure for now -->
+
+    <tr>
+        <td><html_TRANSCHIMERA_ALIGN_BASES_Plot></td>
+        <td><html_SELFCHIMERA_ALIGN_BASES_Plot></td>
+    </tr>
 </table>
 
 
