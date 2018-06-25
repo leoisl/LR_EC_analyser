@@ -93,8 +93,8 @@ def main():
 
     #get some useful vars
     bams = [args.rawBam] + args.hybrid + args.self
-    hybridTools = [os.path.basename(bam) for bam in args.hybrid]
-    selfTools = [os.path.basename(bam) for bam in args.self]
+    hybridTools = [os.path.basename(bam) for bam in args.hybrid] if args.hybrid != None else []
+    selfTools = [os.path.basename(bam) for bam in args.self] if args.self != None else []
     tools = ["raw.bam"] + hybridTools + selfTools
 
 
