@@ -92,9 +92,11 @@ def main():
         os.makedirs(args.output)
 
     #get some useful vars
-    bams = [args.rawBam] + args.hybrid + args.self
-    hybridTools = [os.path.basename(bam) for bam in args.hybrid] if args.hybrid != None else []
-    selfTools = [os.path.basename(bam) for bam in args.self] if args.self != None else []
+    hybridBams = args.hybrid if args.hybrid != None else []
+    selfBams = args.self if args.self != None else []
+    bams = [args.rawBam] + hybridBams + selfBams
+    hybridTools = [os.path.basename(bam) for bam in hybridBams]
+    selfTools = [os.path.basename(bam) for bam in selfBams]
     tools = ["raw.bam"] + hybridTools + selfTools
 
 
