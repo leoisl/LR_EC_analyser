@@ -5,11 +5,19 @@
     <title>Long Read Error Corrector Analyser</title>
     <link href="lib/css/handsontable.full.min.css" rel="stylesheet" type="text/css" />
     <link href="lib/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="lib/css/iziModal.min.css" rel="stylesheet" type="text/css" />
+
     <script src="lib/js/jquery.min.js"></script>
     <script src="lib/js/handsontable.full.min.js"></script>
     <script src="lib/js/js.js"></script>
     <script src="lib/js/plotly-latest.min.js"></script>
+    <script src="lib/js/iziModal.min.js"></script>
+
+
+
     <script>
+        var plotInfo = {}; //will store all the data to be shown on clicking
+
         $(function(){ // on dom ready
             //fill the main subtables
             fillMainSubtable('LR_EC_read_stats_table', <statProfiler.getReadStatsAsJSArrayForHOT()>, <tools>);
@@ -46,9 +54,9 @@
             //fill the gene and transcript tables
             fillFeatureTable('Gene', 'LR_EC_gene_table', <geneProfiler.geneProfileToJSArrayForHOT()>, <tools>);
             fillFeatureTable('Transcript', 'LR_EC_transcript_table', <geneProfiler.transcriptProfileToJSArrayForHOT()>, <tools>);
-
-
         })
+
+
     </script>
 </head>
 <body>

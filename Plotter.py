@@ -3,6 +3,9 @@ from decimal import Decimal
 import plotly
 from scipy import stats
 import numpy
+import re
+import json
+divIdCapturePattern = re.compile("id=\"(.*?)\"")
 
 class Category:
     def __init__(self, start, end, step):
@@ -128,7 +131,7 @@ class Plotter:
         else:
             raise Exception("Unknown category for tool %s"%tool)
 
-    def __buildPlots(self, fig, name):
+    def __buildPlots(self, fig, name, label2ToolIndex2Data=None):
         """
         build the plots and return what needs to be returned
         """
@@ -137,20 +140,32 @@ class Plotter:
         plotly.offline.plot(fig, image = 'png', image_filename="%s/%s.png"%(self.plotsOutput, name),
                             filename="%s/%s.html"%(self.plotsOutput, name), auto_open=False)
         """
+        fig["layout"]["hovermode"] = "closest"
+
+
+        #change the html plot code so that we can register mouse events
+        #TODO: this is SO BAD, but the only way to make it work...
+        #TODO: if it is bad, but works, is it really bad?
+        htmlPlotCode = plotly.offline.plot(fig, include_plotlyjs=False, output_type='div')
+        match = re.search(divIdCapturePattern, htmlPlotCode)
+        divId = match.group(1)
+        htmlPlotCode = htmlPlotCode.replace("</script>", "; myPlot = document.getElementById('%s'); myPlot.on('plotly_click', function(data){ \
+            showDataOnModal('%s', data);}); plotInfo['%s']=jQuery.parseJSON(%s); console.log(plotInfo); </script>" % (divId, name, name, json.dumps(json.dumps(label2ToolIndex2Data)))) #json.dumps 2 times to encode
+
 
         return {
             #"imagePlot": "<img src=plots/%s.png />" % name,
             "imagePlot": "TODO",
-            "jsPlot": plotly.offline.plot(fig, include_plotlyjs=False, output_type='div')
+            "jsPlot": htmlPlotCode
         }
 
-    def __produceBarPlot(self, name, tool2Categories, xlabel, ylabel, displayInterval=False, displayPlusOnFirstItem=False, displayPlusOnLastItem=False):
+    def __produceBarPlot(self, name, tool2Categories, xlabel, ylabel, displayInterval=False, displayPlusOnFirstItem=False, displayPlusOnLastItem=False, label2ToolIndex2Data=None):
         #produce the plot
         data = [plotly.graph_objs.Bar(
                 x=tool2Categories[tool].getCategoriesAsString(displayInterval, displayPlusOnFirstItem, displayPlusOnLastItem),
                 y=tool2Categories[tool].getIntervalCount(),
                 name=tool)
-                for tool in self.toolsNoRaw]
+                for indexTool, tool in enumerate(self.toolsNoRaw)]
 
         layout = plotly.graph_objs.Layout(
             xaxis={"title": xlabel},
@@ -159,7 +174,7 @@ class Plotter:
         )
 
         fig = plotly.graph_objs.Figure(data=data, layout=layout)
-        return self.__buildPlots(fig, name)
+        return self.__buildPlots(fig, name, label2ToolIndex2Data)
 
     def __makeDifferenceOnTheNumberOfIsoformsPlotCore(self, geneID2gene, lowestCategory, highestCategory, step, unionOrIntersection):
         """
@@ -287,14 +302,14 @@ class Plotter:
 
                 return paralogousGenesFamilySize
 
-
             paralogousGroups = paralogous.getParalogousGroups()
 
             paralogousGeneFamilySizeBeforeCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, "raw.bam")
 
             #get all the data to plot it
             tool2PlotData={tool:{} for tool in self.toolsNoRaw}
-            tool2GeneralStats={tool:{"Shrunk": 0, "Unchanged": 0, "Expanded": 0, "Total": 0} for tool in self.toolsNoRaw}
+            tool2GeneralStats={tool:{"Shrunk": [], "Unchanged": [], "Expanded": []} for tool in self.toolsNoRaw}
+            totalGeneFamilies = 0
             for tool in self.toolsNoRaw:
                 paralogousGeneFamilySizeAfterCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, tool)
 
@@ -312,12 +327,12 @@ class Plotter:
                            (disregardUnchangedGeneFamilies and paralogousGeneFamilySizeBeforeCorrection[i]!=paralogousGeneFamilySizeAfterCorrection[i]):
                             dataPoints.append((paralogousGeneFamilySizeBeforeCorrection[i], paralogousGeneFamilySizeAfterCorrection[i]))
                             if paralogousGeneFamilySizeBeforeCorrection[i] < paralogousGeneFamilySizeAfterCorrection[i]:
-                                tool2GeneralStats[tool]["Expanded"]+=1
+                                tool2GeneralStats[tool]["Expanded"].append("Family %d: %s"%(i, ", ".join(paralogousGroups[i])))
                             elif paralogousGeneFamilySizeBeforeCorrection[i] > paralogousGeneFamilySizeAfterCorrection[i]:
-                                tool2GeneralStats[tool]["Shrunk"] += 1
+                                tool2GeneralStats[tool]["Shrunk"].append("Family %d: %s"%(i, ", ".join(paralogousGroups[i])))
                             else:
-                                tool2GeneralStats[tool]["Unchanged"] += 1
-                            tool2GeneralStats[tool]["Total"] += 1
+                                tool2GeneralStats[tool]["Unchanged"].append("Family %d: %s"%(i, ", ".join(paralogousGroups[i])))
+                            totalGeneFamilies += 1
 
 
                 dataPoint2Count={}
@@ -377,13 +392,21 @@ class Plotter:
 
             for tool in self.toolsNoRaw:
                 for label in labels:
-                    tool2GeneralStatsCategories[tool].setCategoryCount(label, float(tool2GeneralStats[tool][label])/float(tool2GeneralStats[tool]["Total"])*100)
+                    tool2GeneralStatsCategories[tool].setCategoryCount(label, float(len(tool2GeneralStats[tool][label]))/float(totalGeneFamilies)*100)
 
-            return self.__produceBarPlot(name + "General", tool2GeneralStatsCategories, "Tool's behaviour towards the gene family", "Gene family count in %"), self.__buildPlots(specificPlotFig, name+"Specific")
+
+            #generate label2ToolIndex2Data to put in the plot
+            label2ToolIndex2Data = {}
+            for label in labels:
+                label2ToolIndex2Data[label]={}
+                for toolIndex, tool in enumerate(self.toolsNoRaw):
+                    label2ToolIndex2Data[label][toolIndex]="<br/>".join(tool2GeneralStats[tool][label])
+
+            return self.__produceBarPlot(name + "General", tool2GeneralStatsCategories, "Tool's behaviour towards the gene family", "Gene family count in %", label2ToolIndex2Data=label2ToolIndex2Data), self.__buildPlots(specificPlotFig, name+"Specific")
 
         except:
-            #import traceback
-            #traceback.print_exc()
+            import traceback
+            traceback.print_exc()
             return {
                 "imagePlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>",
                 "jsPlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>"
