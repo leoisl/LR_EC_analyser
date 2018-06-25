@@ -184,6 +184,14 @@ class StatProfiler:
             "HOMOPOLYMER_INSERTION": "ALIGNMENT_BASES"
         }
 
+        self.feature2Translations={
+            "ANY_ERROR": "ERROR_RATE",
+            "ANY_DELETION": "DELETION",
+            "ANY_INSERTION": "INSERTION",
+            "COMPLETE_DELETION": "NON_HOMOPOLYMER_DELETION",
+            "COMPLETE_INSERTION": "NON_HOMOPOLYMER_INSERTION"
+        }
+
         self.parseAlignQCOutputForAllTools()
 
 
@@ -344,25 +352,32 @@ class StatProfiler:
             return float(self.tool2Stats[tool][metric]) / float(self.tool2Stats[tool][self.feature2UpperLimitToBeUsedInPercentage[metric]]) * 100
 
 
+    def getFeatureName(self, feature):
+        """
+        Returns a nicer name for the feature
+        """
+        return feature if feature not in self.feature2Translations else self.feature2Translations[feature]
+
+
     def getNiceDescriptionForFeature(self, feature):
         if feature not in self.feature2UpperLimitToBeUsedInPercentage:
-            return feature
+            return self.getFeatureName(feature)
         else:
-            return "%s in %% over %s"%(feature, self.feature2UpperLimitToBeUsedInPercentage[feature])
+            return "%s in %% over %s"%(self.getFeatureName(feature), self.getFeatureName(self.feature2UpperLimitToBeUsedInPercentage[feature]))
 
     def __toJSArrayForHOT(self, features):
         jsArray=[]
         for feature in features:
             if feature not in self.feature2UpperLimitToBeUsedInPercentage:
-                line=["'%s'"%feature]
+                line=["'%s'" % self.getFeatureName(feature)]
             else:
-                line = ["'%s (%%)'" % feature]
+                line = ["'%s (%%)'" % self.getFeatureName(feature)]
 
             for tool in self.tools:
                 if feature not in self.feature2UpperLimitToBeUsedInPercentage:
                     line.append(str(self.tool2Stats[tool][feature]))
                 else:
-                    line.append("%.2f" % (float(self.tool2Stats[tool][feature]) / float(self.tool2Stats[tool][self.feature2UpperLimitToBeUsedInPercentage[feature]]) * 100))
+                    line.append("%.3f" % (float(self.tool2Stats[tool][feature]) / float(self.tool2Stats[tool][self.feature2UpperLimitToBeUsedInPercentage[feature]]) * 100))
             jsArray.append("[" + ",".join(line) + "]")
         return "[" + ",".join(jsArray) + "]"
 

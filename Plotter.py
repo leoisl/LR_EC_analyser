@@ -462,12 +462,12 @@ class Plotter:
         return self.__buildPlots(fig, name)
 
     def makeBarPlotFromStats(self, statProfiler, metric):
-        name = metric
+        name = statProfiler.getFeatureName(metric)
 
         #produce the plot
         data = [plotly.graph_objs.Bar(x=["Tools"], y=[statProfiler.getStatsForToolAndMetric(tool, metric)], name=tool) for tool in statProfiler.tools]
         layout = plotly.graph_objs.Layout(
-            title=metric,
+            title=name,
             yaxis={"title": statProfiler.getNiceDescriptionForFeature(metric)},
             barmode="group"
         )
