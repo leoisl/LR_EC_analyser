@@ -3,9 +3,6 @@ from decimal import Decimal
 import plotly
 from scipy import stats
 import numpy
-import matplotlib.colors as colors
-
-
 
 class Category:
     def __init__(self, start, end, step):
@@ -75,6 +72,41 @@ class Category:
     def getIntervalCount(self):
         return [ interval["count"] for interval in self.intervals ]
 
+#TODO: refactor this by making a base class for Category and TextCategory
+class TextCategory:
+    """
+    Class that represent categories, but as text
+    """
+    def __init__(self, categories):
+        self.intervals=[{"category": category, "count": 0} for category in categories]
+
+    def getCategoriesAsString(self, displayInterval=False, displayPlusOnFirstItem=False, displayPlusOnLastItem=False):
+        return [interval["category"] for interval in self.intervals]
+
+    def addDataPoint(self, category):
+        """
+        :param point: add a number to a category
+        :return:
+        """
+        categoriesAsString = self.getCategoriesAsString()
+        if category not in categoriesAsString:
+            raise Exception("ERROR: non-existing category: %s..." % category)
+        else:
+            self.intervals[categoriesAsString.index(category)]["count"]+=1
+
+    def setCategoryCount(self, category, value):
+        categoriesAsString = self.getCategoriesAsString()
+        if category not in categoriesAsString:
+            raise Exception("ERROR: non-existing category: %s..." % category)
+        else:
+            self.intervals[categoriesAsString.index(category)]["count"] = value
+
+    def __len__(self):
+        return len(self.intervals)
+
+    def getIntervalCount(self):
+        return [ interval["count"] for interval in self.intervals ]
+
 class Plotter:
     """
     Makes several plots
@@ -85,10 +117,6 @@ class Plotter:
         self.toolsNoRaw.remove("raw.bam")
         self.hybridTools = hybridTools
         self.selfTools = selfTools
-
-        # get the color lists
-        self.colorsList = list(colors._colors_full_map.values())
-        self.categories2Color = {"raw": "green", "hybrid": "blue", "self": "red"}
 
     def __getToolCategory(self, tool):
         if tool=="raw.bam":
@@ -116,26 +144,24 @@ class Plotter:
             "jsPlot": plotly.offline.plot(fig, include_plotlyjs=False, output_type='div')
         }
 
-    def __produceBarPlot(self, name, tool2Categories, xlabel, ylabel, displayInterval=False, displayPlusOnFirstItem=False, displayPlusOnLastItem=False, useToolCategories = False):
+    def __produceBarPlot(self, name, tool2Categories, xlabel, ylabel, displayInterval=False, displayPlusOnFirstItem=False, displayPlusOnLastItem=False):
         #produce the plot
         data = [plotly.graph_objs.Bar(
                 x=tool2Categories[tool].getCategoriesAsString(displayInterval, displayPlusOnFirstItem, displayPlusOnLastItem),
                 y=tool2Categories[tool].getIntervalCount(),
-                name=tool if not useToolCategories else self.__getToolCategory(tool),
-                marker = {
-                    "color": self.colorsList[toolIndex] if not useToolCategories else self.categories2Color[self.__getToolCategory(tool)]
-                })
-                for toolIndex, tool in enumerate(self.toolsNoRaw)]
+                name=tool)
+                for tool in self.toolsNoRaw]
 
         layout = plotly.graph_objs.Layout(
             xaxis={"title": xlabel},
-            yaxis={"title": ylabel}
+            yaxis={"title": ylabel},
+            barmode='group'
         )
 
         fig = plotly.graph_objs.Figure(data=data, layout=layout)
         return self.__buildPlots(fig, name)
 
-    def __makeDifferenceOnTheNumberOfIsoformsPlotCore(self, geneID2gene, lowestCategory, highestCategory, step, unionOrIntersection, useToolCategories):
+    def __makeDifferenceOnTheNumberOfIsoformsPlotCore(self, geneID2gene, lowestCategory, highestCategory, step, unionOrIntersection):
         """
         :return: a string with html code to be put in the html report
         """
@@ -174,16 +200,14 @@ class Plotter:
 
 
         tool2DifferenceCategories = get_tool2DifferenceCategories()
-        return self.__produceBarPlot("DifferenceOnTheNumberOfIsoformsPlot", tool2DifferenceCategories, "Difference on the number of isoforms", "Number of genes", False, True, True, useToolCategories)
+        return self.__produceBarPlot("DifferenceOnTheNumberOfIsoformsPlot", tool2DifferenceCategories, "Difference on the number of isoforms", "Number of genes", False, True, True)
 
     def makeDifferenceOnTheNumberOfIsoformsPlot(self, geneID2gene, lowestCategory=-3, highestCategory=3, step=1):
         """
         :return: Two plots, one with the union (genes in the raw or in the tool) and the other with the intersection
         """
-        return self.__makeDifferenceOnTheNumberOfIsoformsPlotCore(geneID2gene, lowestCategory, highestCategory, step, "union", False), \
-               self.__makeDifferenceOnTheNumberOfIsoformsPlotCore(geneID2gene, lowestCategory, highestCategory, step, "union", True), \
-               self.__makeDifferenceOnTheNumberOfIsoformsPlotCore(geneID2gene, lowestCategory, highestCategory, step, "intersection", False), \
-               self.__makeDifferenceOnTheNumberOfIsoformsPlotCore(geneID2gene, lowestCategory, highestCategory, step, "intersection", True)
+        return self.__makeDifferenceOnTheNumberOfIsoformsPlotCore(geneID2gene, lowestCategory, highestCategory, step, "union"), \
+               self.__makeDifferenceOnTheNumberOfIsoformsPlotCore(geneID2gene, lowestCategory, highestCategory, step, "intersection")
 
 
     def makeLostTranscriptInGenesWSP2Plot(self, geneID2gene, blankSpace=0.1):
@@ -349,24 +373,16 @@ class Plotter:
             #build the plots for the general stats
             # produce the plot
             labels=["Shrunk", "Unchanged", "Expanded"]
-            generalStatsPlotData = [plotly.graph_objs.Bar(
-                x=labels,
-                y=[float(tool2GeneralStats[tool][label])/float(tool2GeneralStats[tool]["Total"])*100 for label in labels],
-                name=tool)
-                for tool in self.toolsNoRaw]
+            tool2GeneralStatsCategories = {tool : TextCategory(labels) for tool in self.toolsNoRaw}
 
-            generalStatsPlotLayout = plotly.graph_objs.Layout(
-                xaxis={"title": "Tool's behaviour towards the gene family"},
-                yaxis={"title": "Gene family count in %"},
-                barmode='group',
-                width=800,
-                height=400
-            )
-            generalPlotfig = plotly.graph_objs.Figure(data=generalStatsPlotData, layout=generalStatsPlotLayout)
+            for tool in self.toolsNoRaw:
+                for label in labels:
+                    tool2GeneralStatsCategories[tool].setCategoryCount(label, float(tool2GeneralStats[tool][label])/float(tool2GeneralStats[tool]["Total"])*100)
 
-            #return both plots
-            return self.__buildPlots(generalPlotfig, name+"General"), self.__buildPlots(specificPlotFig, name+"Specific")
+            return self.__produceBarPlot(name + "General", tool2GeneralStatsCategories, "Tool's behaviour towards the gene family", "Gene family count in %"), self.__buildPlots(specificPlotFig, name+"Specific")
+
         except:
+            #import traceback
             #traceback.print_exc()
             return {
                 "imagePlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>",

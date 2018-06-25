@@ -182,8 +182,7 @@ def main():
     alignedReadsCuttingPlot = plotter.makeReadCountPlotDividedBySize(statProfiler, "ALIGNED_SIZE_BINS", "Aligned reads length line plot")
     unalignedReadsCuttingPlot = plotter.makeReadCountPlotDividedBySize(statProfiler, "UNALIGNED_SIZE_BINS", "Unaligned reads length line plot")
 
-    htmlDifferenceOnTheNumberOfIsoformsPlotUnionTools, htmlDifferenceOnTheNumberOfIsoformsPlotUnionCategories, \
-    htmlDifferenceOnTheNumberOfIsoformsPlotIntersectionTools, htmlDifferenceOnTheNumberOfIsoformsPlotIntersectionCategories \
+    htmlDifferenceOnTheNumberOfIsoformsPlotUnion, htmlDifferenceOnTheNumberOfIsoformsPlotIntersection \
         = plotter.makeDifferenceOnTheNumberOfIsoformsPlot(geneID2gene, -3, 3)
     htmlLostTranscriptInGenesWSP2Plot = plotter.makeLostTranscriptInGenesWSP2Plot(geneID2gene)
     htmlDifferencesInRelativeExpressionsBoxPlot = plotter.makeDifferencesInRelativeExpressionsBoxPlot(geneID2gene)
@@ -235,14 +234,10 @@ def main():
                                           geneProfiler, "geneProfileToJSArrayForHOT")
         callFunctionAndPopulateTheReports(i, "<geneProfiler.transcriptProfileToJSArrayForHOT()>", linesHTMLReport, linesHighResHTMLReport, \
                                           geneProfiler, "transcriptProfileToJSArrayForHOT")
-        callFunctionAndPopulateTheReports(i, "<htmlDifferenceOnTheNumberOfIsoformsPlotUnionTools>", linesHTMLReport, linesHighResHTMLReport, \
-                                          htmlDifferenceOnTheNumberOfIsoformsPlotUnionTools)
-        callFunctionAndPopulateTheReports(i, "<htmlDifferenceOnTheNumberOfIsoformsPlotUnionCategories>", linesHTMLReport, linesHighResHTMLReport, \
-                                          htmlDifferenceOnTheNumberOfIsoformsPlotUnionCategories)
-        callFunctionAndPopulateTheReports(i, "<htmlDifferenceOnTheNumberOfIsoformsPlotIntersectionTools>", linesHTMLReport, linesHighResHTMLReport, \
-                                          htmlDifferenceOnTheNumberOfIsoformsPlotIntersectionTools)
-        callFunctionAndPopulateTheReports(i, "<htmlDifferenceOnTheNumberOfIsoformsPlotIntersectionCategories>", linesHTMLReport, linesHighResHTMLReport, \
-                                          htmlDifferenceOnTheNumberOfIsoformsPlotIntersectionCategories)
+        callFunctionAndPopulateTheReports(i, "<htmlDifferenceOnTheNumberOfIsoformsPlotUnion>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlDifferenceOnTheNumberOfIsoformsPlotUnion)
+        callFunctionAndPopulateTheReports(i, "<htmlDifferenceOnTheNumberOfIsoformsPlotIntersection>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlDifferenceOnTheNumberOfIsoformsPlotIntersection)
         callFunctionAndPopulateTheReports(i, "<htmlLostTranscriptInGenesWSP2Plot>", linesHTMLReport, linesHighResHTMLReport, \
                                           htmlLostTranscriptInGenesWSP2Plot)
         callFunctionAndPopulateTheReports(i, "<htmlDifferencesInRelativeExpressionsBoxPlot>", linesHTMLReport, linesHighResHTMLReport, \
