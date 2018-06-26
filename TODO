@@ -1,20 +1,5 @@
 TODO:
-    -Add 2 parameters, --self and --hybrid
-        -Will receive several files separated by comma representing the self ECs and the Hybrid ones
-    -For each plot, produce an additional one, grouped by corrector type (self/hybrid)
-
-
-    -by the way, regarding improving the HTML report, could you add a sentence in the report to explain some of the more cryptic metrics like "SINGLE_ALIGN_READS (%)" and "COMPLETE_DELETION (%)"? Also in the report, I think that reporting the % of complete deletions with respect to % of all deletions is a bit misleading, because the % of all deletions is already itself reported as the % of all errors. Maybe absolute %'s would be nice. e.g. with 13.72% errors, the report would show 13.72%*53.96%*39.97%=2.95% of homopolymer deletions instead of 39.97% currently shown
-
-
-Bugs:
-    -MISMATCHES IN % OVER ANY ERROR IS KINDA MISLEADING I THINK... FOR EX., NaS has the least % of errors of all correctors,
-    but 53% of the few errors it does are mismatches. When we take a first look at the MISMATCHES plot, the one thing that we note is that
-    it seems that NaS makes more mismatches than any other tool (which is not true)...
-        -This apply to all other error stats - we gotta check this...
-
-
-
+    -Add a plot with the nb of genes detected before and after correction
 
 High Priority:
     -Finish paper, then check the rest
