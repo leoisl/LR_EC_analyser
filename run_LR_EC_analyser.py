@@ -94,6 +94,12 @@ def main():
     #get some useful vars
     hybridBams = args.hybrid if args.hybrid != None else []
     selfBams = args.self if args.self != None else []
+
+    if len(hybridBams) + len(selfBams) == 0:
+        parser.print_help()
+        print "\n[PARAMETER ERROR] - Please specify at least one BAM file for --self or --hybrid."
+        sys.exit(1)
+
     bams = [args.rawBam] + hybridBams + selfBams
     hybridTools = [os.path.basename(bam) for bam in hybridBams]
     selfTools = [os.path.basename(bam) for bam in selfBams]
