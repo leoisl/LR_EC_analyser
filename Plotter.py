@@ -150,7 +150,7 @@ class Plotter:
         match = re.search(divIdCapturePattern, htmlPlotCode)
         divId = match.group(1)
         htmlPlotCode = htmlPlotCode.replace("</script>", "; myPlot = document.getElementById('%s'); myPlot.on('plotly_click', function(data){ \
-            showDataOnModal('%s', data);}); plotInfo['%s']=jQuery.parseJSON(%s); console.log(plotInfo); </script>" % (divId, name, name, json.dumps(json.dumps(label2ToolIndex2Data)))) #json.dumps 2 times to encode
+            showDataOnModal('%s', data);}); plotInfo['%s']=jQuery.parseJSON(%s);</script>" % (divId, name, name, json.dumps(json.dumps(label2ToolIndex2Data)))) #json.dumps 2 times to encode
 
 
         return {
@@ -400,7 +400,7 @@ class Plotter:
             for label in labels:
                 label2ToolIndex2Data[label]={}
                 for toolIndex, tool in enumerate(self.toolsNoRaw):
-                    label2ToolIndex2Data[label][toolIndex]="<br/>".join(tool2GeneralStats[tool][label])
+                    label2ToolIndex2Data[label][toolIndex]="\n".join(tool2GeneralStats[tool][label])
 
             return self.__produceBarPlot(name + "General", tool2GeneralStatsCategories, "Tool's behaviour towards the gene family", "Gene family count in %", label2ToolIndex2Data=label2ToolIndex2Data), self.__buildPlots(specificPlotFig, name+"Specific")
 
