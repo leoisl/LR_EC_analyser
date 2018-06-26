@@ -54,28 +54,35 @@ python serve_files.py <output_folder>
 
 # Parameters
 ```
-usage: run_LR_EC_analyser.py [-h] --genome GENOME --gtf GTF
-                             [--paralogous PARALOGOUS] --raw RAWBAM
-                             [-o OUTPUT] [-t THREADS] [--skip_bam_process]
+usage: run_LR_EC_analyser.py [-h] --raw RAWBAM
+                             [--self <self.bam> [<self.bam> ...]]
+                             [--hybrid <hybrid.bam> [<hybrid.bam> ...]]
+                             --genome GENOME --gtf GTF
+                             [--paralogous PARALOGOUS] [-o OUTPUT]
+                             [-t THREADS] [--skip_bam_process]
                              [--skip_alignqc] [--skip_copying]
-                             <file.bam> [<file.bam> ...]
 
 Long reads error corrector analyser.
 
-positional arguments:
-  <file.bam>            BAM files of the reads output by the correctors mapped
-                        to the genome (preferably using gmap -n 10 -f samse).
-
 optional arguments:
   -h, --help            show this help message and exit
+  --raw RAWBAM          The BAM file of the raw reads (i.e. the uncorrected
+                        long reads) mapped to the genome (preferably using
+                        gmap -n 10 -f samse).
+  --self <self.bam> [<self.bam> ...]
+                        BAM files of the reads output by the SELF correctors
+                        mapped to the genome (preferably using gmap -n 10 -f
+                        samse).
+  --hybrid <hybrid.bam> [<hybrid.bam> ...]
+                        BAM files of the reads output by the HYBRID correctors
+                        mapped to the genome (preferably using gmap -n 10 -f
+                        samse).
   --genome GENOME       The genome in Fasta file format.
   --gtf GTF             The transcriptome in GTF file format.
   --paralogous PARALOGOUS
                         A file where the first two columns denote paralogous
                         genes (see file GettingParalogs.txt to know how you
                         can get this file).
-  --raw RAWBAM          The BAM file of the raw reads (i.e. the uncorrected
-                        long reads) mapped to the genome.
   -o OUTPUT             Output folder
   -t THREADS            Number of threads to use
   --skip_bam_process    Skips BAM processing (i.e. sorting and indexing BAM
@@ -88,13 +95,15 @@ optional arguments:
 # Thirdparties
 1. AlignQC (https://github.com/jason-weirather/AlignQC)
 2. IGV.js (https://github.com/igvteam/igv.js)
-3. IGVTools (https://software.broadinstitute.org/software/igv/igvtools)
-4. samtools (http://www.htslib.org)
-5. handsontable (https://handsontable.com/)
-6. matplotlib (https://matplotlib.org/) and mpld3 (http://mpld3.github.io/)
-7. node.js (https://nodejs.org/)
-8. npm (https://www.npmjs.com/)
-9. http-server (https://www.npmjs.com/package/http-server)
-10. nodeenv (https://github.com/ekalinin/nodeenv)
-11. querystring (https://github.com/jgallen23/querystring)
-12. jQuery (http://jquery.com/)
+3. Plotly (https://plot.ly/python/)
+4. IGVTools (https://software.broadinstitute.org/software/igv/igvtools)
+5. samtools (http://www.htslib.org)
+6. handsontable (https://handsontable.com/)
+7. matplotlib (https://matplotlib.org/) and mpld3 (http://mpld3.github.io/)
+8. node.js (https://nodejs.org/)
+9. npm (https://www.npmjs.com/)
+10. http-server (https://www.npmjs.com/package/http-server)
+11. nodeenv (https://github.com/ekalinin/nodeenv)
+12. querystring (https://github.com/jgallen23/querystring)
+13. jQuery (http://jquery.com/)
+14. iziModal (http://izimodal.marcelodolce.com/)
