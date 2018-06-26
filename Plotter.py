@@ -3,8 +3,9 @@ from decimal import Decimal
 import plotly
 from scipy import stats
 import numpy
-
-
+import re
+import json
+divIdCapturePattern = re.compile("id=\"(.*?)\"")
 
 class Category:
     def __init__(self, start, end, step):
@@ -13,7 +14,7 @@ class Category:
 
         self.intervals=[]
         while start<end:
-            self.intervals.append({"min": start, "max": start+step, "count":0})
+            self.intervals.append({"min": start, "max": start+step, "data": []})
             start+=step
 
     def getCategoriesAsString(self, displayInterval=False, displayPlusOnFirstItem=False, displayPlusOnLastItem=False):
@@ -46,23 +47,23 @@ class Category:
 
         return intervalsAsString
 
-    def addDataPoint(self, point):
+    def addDataPoint(self, point, dataToSave):
         """
-        :param point: add a number to a category
+        :param point: it is the value of the dataToSave - we use this to infer the category
         :return:
         """
         nbOfCategoriesItFit = 0
 
         if point < self.intervals[0]["min"]:
-            self.intervals[0]["count"]+=1
+            self.intervals[0]["data"].append(dataToSave)
             nbOfCategoriesItFit += 1
         if point >= self.intervals[-1]["max"]:
-            self.intervals[-1]["count"]+=1
+            self.intervals[-1]["data"].append(dataToSave)
             nbOfCategoriesItFit += 1
 
         for i, interval in enumerate(self.intervals):
             if point >= interval['min'] and point < interval['max']:
-                interval["count"] += 1
+                interval["data"].append(dataToSave)
                 nbOfCategoriesItFit += 1
 
         if nbOfCategoriesItFit != 1:
@@ -71,69 +72,151 @@ class Category:
     def __len__(self):
         return len(self.intervals)
 
-    def getIntervalCount(self):
-        return [ interval["count"] for interval in self.intervals ]
+    def getIntervalCount(self, inPercentage=False):
+        if not inPercentage:
+            return [ len(interval["data"]) for interval in self.intervals ]
+        else:
+            total = sum( [ len(interval["data"]) for interval in self.intervals ] )
+            return [ float(len(interval["data"]))/float(total) for interval in self.intervals]
+
+    def __repr__(self):
+        return self.intervals.__repr__()
+
+    def __str__(self):
+        return str(self.intervals)
+
+#TODO: refactor this by making a base class for Category and TextCategory
+class TextCategory:
+    """
+    Class that represent categories, but as text
+    """
+    def __init__(self, categories):
+        self.intervals=[{"category": category, "data": []} for category in categories]
+
+    def getCategoriesAsString(self, displayInterval=False, displayPlusOnFirstItem=False, displayPlusOnLastItem=False):
+        return [interval["category"] for interval in self.intervals]
+
+    def addDataPointAndIAlreadyKnowTheCategory(self, category, dataToSave):
+        categoriesAsString = self.getCategoriesAsString()
+        if category not in categoriesAsString:
+            raise Exception("ERROR: non-existing category: %s..." % category)
+        else:
+            self.intervals[categoriesAsString.index(category)]["data"].append(dataToSave)
+
+    def __len__(self):
+        return len(self.intervals)
+
+    def getIntervalCount(self, inPercentage=False):
+        if not inPercentage:
+            return [ len(interval["data"]) for interval in self.intervals ]
+        else:
+            total = sum( [ len(interval["data"]) for interval in self.intervals ] )
+            return [ float(len(interval["data"]))/float(total) for interval in self.intervals]
+
+    def __repr__(self):
+        return self.intervals.__repr__()
+
+    def __str__(self):
+        return str(self.intervals)
 
 class Plotter:
     """
     Makes several plots
     """
-    def __init__(self, tools, plotsOutput):
+    def __init__(self, tools, hybridTools, selfTools):
         self.tools=tools
         self.toolsNoRaw=list(tools)
         self.toolsNoRaw.remove("raw.bam")
-        self.plotsOutput = plotsOutput
+        self.hybridTools = hybridTools
+        self.selfTools = selfTools
 
-    def __buildPlots(self, fig, name):
+    def __getToolCategory(self, tool):
+        if tool=="raw.bam":
+            return "raw"
+        elif tool in self.hybridTools:
+            return "hybrid"
+        elif tool in self.selfTools:
+            return "self"
+        else:
+            raise Exception("Unknown category for tool %s"%tool)
+
+    def __buildPlots(self, fig, name, label2ToolIndex2Data=None):
         """
         build the plots and return what needs to be returned
         """
+        """
+        TODO: removed png plots
         plotly.offline.plot(fig, image = 'png', image_filename="%s/%s.png"%(self.plotsOutput, name),
                             filename="%s/%s.html"%(self.plotsOutput, name), auto_open=False)
+        """
+        fig["layout"]["hovermode"] = "closest"
+
+
+        #change the html plot code so that we can register mouse events
+        #TODO: this is SO BAD, but the only way to make it work...
+        #TODO: if it is bad, but works, is it really bad?
+        htmlPlotCode = plotly.offline.plot(fig, include_plotlyjs=False, output_type='div')
+        match = re.search(divIdCapturePattern, htmlPlotCode)
+        divId = match.group(1)
+        htmlPlotCode = htmlPlotCode.replace("</script>", "; myPlot = document.getElementById('%s'); myPlot.on('plotly_click', function(data){ \
+            showDataOnModal('%s', data);}); plotInfo['%s']=jQuery.parseJSON(%s);</script>" % (divId, name, name, json.dumps(json.dumps(label2ToolIndex2Data)))) #json.dumps 2 times to encode
+
 
         return {
             #"imagePlot": "<img src=plots/%s.png />" % name,
             "imagePlot": "TODO",
-            "jsPlot": plotly.offline.plot(fig, include_plotlyjs=False, output_type='div')
+            "jsPlot": htmlPlotCode
         }
 
-    def __produceBarPlot(self, name, tool2Categories, xlabel, ylabel, displayInterval=False, displayPlusOnFirstItem=False, displayPlusOnLastItem=False):
+    def __produceBarPlot(self, name, tool2Categories, xlabel, ylabel, displayInterval=False, displayPlusOnFirstItem=False, displayPlusOnLastItem=False, generateDataToBeShown=False, inPercentage=False):
         #produce the plot
+        xLabels = tool2Categories.values()[0].getCategoriesAsString(displayInterval, displayPlusOnFirstItem, displayPlusOnLastItem)
+
         data = [plotly.graph_objs.Bar(
-                x=tool2Categories[tool].getCategoriesAsString(displayInterval, displayPlusOnFirstItem, displayPlusOnLastItem),
-                y=tool2Categories[tool].getIntervalCount(),
+                x=xLabels,
+                y=tool2Categories[tool].getIntervalCount(inPercentage),
                 name=tool)
-                    for tool in self.toolsNoRaw]
+                for tool in self.toolsNoRaw]
 
         layout = plotly.graph_objs.Layout(
             xaxis={"title": xlabel},
             yaxis={"title": ylabel},
             barmode='group'
         )
-
         fig = plotly.graph_objs.Figure(data=data, layout=layout)
-        return self.__buildPlots(fig, name)
 
-    def makeDifferenceOnTheNumberOfIsoformsPlot(self, geneID2gene, lowestCategory=-3, highestCategory=3, step=1, blankSpace=0.1):
+        # generate label2ToolIndex2Data to put in the plot, if generateDataToBeShown is True
+        label2ToolIndex2Data = None
+        if generateDataToBeShown:
+            label2ToolIndex2Data = {}
+            for intervalIndex, xLabel in enumerate(xLabels):
+                label2ToolIndex2Data[xLabel]={}
+                for toolIndex, tool in enumerate(self.toolsNoRaw):
+                    label2ToolIndex2Data[xLabel][toolIndex]="\n".join(tool2Categories[tool].intervals[intervalIndex]["data"])
+
+        return self.__buildPlots(fig, name, label2ToolIndex2Data)
+
+    def __makeDifferenceOnTheNumberOfIsoformsPlotCore(self, geneID2gene, lowestCategory, highestCategory, step, unionOrIntersection):
         """
-
-        :param geneID2gene:
-        :param lowestCategory:
-        :param highestCategory:
-        :param blankSpace:
         :return: a string with html code to be put in the html report
         """
-
-
         '''
         Helper functions
         '''
-        def addDifferenceOfIsoformNumber(gene, tool, tool2DifferencesCategories):
+        def addDifferenceOfIsoformNumber(gene, tool, tool2DifferencesCategories, unionOrIntersection):
             nbOfIsoformsExpressedInRaw = gene.getNbOfIsoformsExpressedInTool("raw.bam")
             nbOfIsoformsExpressedInTool = gene.getNbOfIsoformsExpressedInTool(tool)
-            if nbOfIsoformsExpressedInRaw > 0 or nbOfIsoformsExpressedInTool > 0:
-                # if there is any expression in raw or tool, we add it!
-                tool2DifferencesCategories[tool].addDataPoint(nbOfIsoformsExpressedInTool - nbOfIsoformsExpressedInRaw)
+
+            if unionOrIntersection == "Union":
+                if nbOfIsoformsExpressedInRaw > 0 or nbOfIsoformsExpressedInTool > 0:
+                    # if there is any expression in raw or tool, we add it!
+                    tool2DifferencesCategories[tool].addDataPoint(nbOfIsoformsExpressedInTool - nbOfIsoformsExpressedInRaw, gene.id)
+            elif unionOrIntersection == "Intersection":
+                if nbOfIsoformsExpressedInRaw > 0 and nbOfIsoformsExpressedInTool > 0:
+                    # if there is expression in both raw and tool, we add it!
+                    tool2DifferencesCategories[tool].addDataPoint(nbOfIsoformsExpressedInTool - nbOfIsoformsExpressedInRaw, gene.id)
+            else:
+                raise Exception("unionOrIntersection in makeDifferenceOnTheNumberOfIsoformsPlot() should be union or intersection")
 
         #builds tool2DifferencesCategories - for each tool, we have an array with (tool.expression - raw.expression) for each gene and transcript
         def get_tool2DifferenceCategories():
@@ -143,7 +226,7 @@ class Plotter:
             for gene in geneID2gene.values():
                 if gene.profile.isExpressedInAnyTool():
                     for tool in self.toolsNoRaw:
-                        addDifferenceOfIsoformNumber(gene, tool, tool2DifferenceCategories)
+                        addDifferenceOfIsoformNumber(gene, tool, tool2DifferenceCategories, unionOrIntersection)
 
             return tool2DifferenceCategories
         '''
@@ -152,7 +235,16 @@ class Plotter:
 
 
         tool2DifferenceCategories = get_tool2DifferenceCategories()
-        return self.__produceBarPlot("DifferenceOnTheNumberOfIsoformsPlot", tool2DifferenceCategories, "Difference on the number of isoforms", "Number of genes", False, True, True)
+        return self.__produceBarPlot("DifferenceOnTheNumberOfIsoforms%sPlot"%unionOrIntersection, tool2DifferenceCategories, "Difference on the number of isoforms", "Number of genes", \
+                                     displayPlusOnFirstItem=True, displayPlusOnLastItem=True, generateDataToBeShown=True)
+
+
+    def makeDifferenceOnTheNumberOfIsoformsPlot(self, geneID2gene, lowestCategory=-3, highestCategory=3, step=1):
+        """
+        :return: Two plots, one with the union (genes in the raw or in the tool) and the other with the intersection
+        """
+        return self.__makeDifferenceOnTheNumberOfIsoformsPlotCore(geneID2gene, lowestCategory, highestCategory, step, "Union"), \
+               self.__makeDifferenceOnTheNumberOfIsoformsPlotCore(geneID2gene, lowestCategory, highestCategory, step, "Intersection")
 
 
     def makeLostTranscriptInGenesWSP2Plot(self, geneID2gene, blankSpace=0.1):
@@ -172,7 +264,7 @@ class Plotter:
                                 if transcript.profile.isExpressedInTool("raw.bam") and not transcript.profile.isExpressedInTool(tool):
                                     #if the transcript is in raw, but it is not in the tool, then this transcript "disappeared"
                                     #add the relative transcript coverage in raw dataset
-                                    tool2RelativeTranscriptOfLostTranscriptCategories[tool].addDataPoint(transcript.computeRelativeExpression("raw.bam"))
+                                    tool2RelativeTranscriptOfLostTranscriptCategories[tool].addDataPoint(transcript.computeRelativeExpression("raw.bam"), transcript.id)
 
 
             return tool2RelativeTranscriptOfLostTranscriptCategories
@@ -180,8 +272,8 @@ class Plotter:
         '''
         Helper functions
         '''
-        tool2RelativeTranscriptOfLostTranscriptCategories =get_tool2RelativeTranscriptOfLostTranscriptCategories()
-        return self.__produceBarPlot("LostTranscriptInGenesWSP2Plot", tool2RelativeTranscriptOfLostTranscriptCategories, "Relative transcript coverage in relation to gene coverage", "Number of transcripts", True)
+        tool2RelativeTranscriptOfLostTranscriptCategories = get_tool2RelativeTranscriptOfLostTranscriptCategories()
+        return self.__produceBarPlot("LostTranscriptInGenesWSP2Plot", tool2RelativeTranscriptOfLostTranscriptCategories, "Relative transcript coverage in relation to gene coverage", "Number of transcripts", displayInterval=True, generateDataToBeShown=True)
 
     def makeDifferencesInRelativeExpressionsBoxPlot(self, geneID2gene):
         def get_tool2DifferencesInRelativeExpressions():
@@ -232,14 +324,14 @@ class Plotter:
 
                 return paralogousGenesFamilySize
 
-
             paralogousGroups = paralogous.getParalogousGroups()
 
             paralogousGeneFamilySizeBeforeCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, "raw.bam")
 
             #get all the data to plot it
             tool2PlotData={tool:{} for tool in self.toolsNoRaw}
-            tool2GeneralStats={tool:{"Shrunk": 0, "Unchanged": 0, "Expanded": 0, "Total": 0} for tool in self.toolsNoRaw}
+            labels = ["Shrunk", "Unchanged", "Expanded"]
+            tool2GeneralStatsCategories = {tool : TextCategory(labels) for tool in self.toolsNoRaw}
             for tool in self.toolsNoRaw:
                 paralogousGeneFamilySizeAfterCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, tool)
 
@@ -256,13 +348,13 @@ class Plotter:
                         if not disregardUnchangedGeneFamilies or \
                            (disregardUnchangedGeneFamilies and paralogousGeneFamilySizeBeforeCorrection[i]!=paralogousGeneFamilySizeAfterCorrection[i]):
                             dataPoints.append((paralogousGeneFamilySizeBeforeCorrection[i], paralogousGeneFamilySizeAfterCorrection[i]))
+                            familyDescription = "Family %d: %s"%(i, ", ".join(paralogousGroups[i]))
                             if paralogousGeneFamilySizeBeforeCorrection[i] < paralogousGeneFamilySizeAfterCorrection[i]:
-                                tool2GeneralStats[tool]["Expanded"]+=1
+                                tool2GeneralStatsCategories[tool].addDataPointAndIAlreadyKnowTheCategory("Expanded", familyDescription)
                             elif paralogousGeneFamilySizeBeforeCorrection[i] > paralogousGeneFamilySizeAfterCorrection[i]:
-                                tool2GeneralStats[tool]["Shrunk"] += 1
+                                tool2GeneralStatsCategories[tool].addDataPointAndIAlreadyKnowTheCategory("Shrunk", familyDescription)
                             else:
-                                tool2GeneralStats[tool]["Unchanged"] += 1
-                            tool2GeneralStats[tool]["Total"] += 1
+                                tool2GeneralStatsCategories[tool].addDataPointAndIAlreadyKnowTheCategory("Unchanged", familyDescription)
 
 
                 dataPoint2Count={}
@@ -313,37 +405,22 @@ class Plotter:
                         'opacity': 0.5
                     }))
 
-
-
             #build the plots for the general stats
-            # produce the plot
-            labels=["Shrunk", "Unchanged", "Expanded"]
-            generalStatsPlotData = [plotly.graph_objs.Bar(
-                x=labels,
-                y=[float(tool2GeneralStats[tool][label])/float(tool2GeneralStats[tool]["Total"])*100 for label in labels],
-                name=tool)
-                for tool in self.toolsNoRaw]
+            return self.__produceBarPlot(name + "General", tool2GeneralStatsCategories, "Tool's behaviour towards the gene family", "Gene family count in %", generateDataToBeShown=True, inPercentage=True), \
+                   self.__buildPlots(specificPlotFig, name+"Specific")
 
-            generalStatsPlotLayout = plotly.graph_objs.Layout(
-                xaxis={"title": "Tool's behaviour towards the gene family"},
-                yaxis={"title": "Gene family count in %"},
-                barmode='group',
-                width=800,
-                height=400
-            )
-            generalPlotfig = plotly.graph_objs.Figure(data=generalStatsPlotData, layout=generalStatsPlotLayout)
-
-            #return both plots
-            return self.__buildPlots(generalPlotfig, name+"General"), self.__buildPlots(specificPlotFig, name+"Specific")
-        except:
-            #traceback.print_exc()
-            return {
-                "imagePlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>",
-                "jsPlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>"
-            }, {
-                "imagePlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>",
-                "jsPlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>"
-            }
+        except ValueError as exception:
+            if exception.message == "max() arg is an empty sequence":
+                #expected error in some situations
+                return {
+                    "imagePlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>",
+                    "jsPlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>"
+                }, {
+                    "imagePlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>",
+                    "jsPlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>"
+                }
+            else:
+                raise exception #unexpected error
 
 
     def makeScatterPlotCoverageOfMainIsoform(self, geneID2gene):
@@ -431,12 +508,12 @@ class Plotter:
         return self.__buildPlots(fig, name)
 
     def makeBarPlotFromStats(self, statProfiler, metric):
-        name = metric
+        name = statProfiler.getFeatureName(metric)
 
         #produce the plot
         data = [plotly.graph_objs.Bar(x=["Tools"], y=[statProfiler.getStatsForToolAndMetric(tool, metric)], name=tool) for tool in statProfiler.tools]
         layout = plotly.graph_objs.Layout(
-            title=metric,
+            title=name,
             yaxis={"title": statProfiler.getNiceDescriptionForFeature(metric)},
             barmode="group"
         )

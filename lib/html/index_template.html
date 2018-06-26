@@ -5,11 +5,19 @@
     <title>Long Read Error Corrector Analyser</title>
     <link href="lib/css/handsontable.full.min.css" rel="stylesheet" type="text/css" />
     <link href="lib/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="lib/css/iziModal.min.css" rel="stylesheet" type="text/css" />
+
     <script src="lib/js/jquery.min.js"></script>
     <script src="lib/js/handsontable.full.min.js"></script>
     <script src="lib/js/js.js"></script>
     <script src="lib/js/plotly-latest.min.js"></script>
+    <script src="lib/js/iziModal.min.js"></script>
+
+
+
     <script>
+        var plotInfo = {}; //will store all the data to be shown on clicking
+
         $(function(){ // on dom ready
             //fill the main subtables
             fillMainSubtable('LR_EC_read_stats_table', <statProfiler.getReadStatsAsJSArrayForHOT()>, <tools>);
@@ -46,9 +54,9 @@
             //fill the gene and transcript tables
             fillFeatureTable('Gene', 'LR_EC_gene_table', <geneProfiler.geneProfileToJSArrayForHOT()>, <tools>);
             fillFeatureTable('Transcript', 'LR_EC_transcript_table', <geneProfiler.transcriptProfileToJSArrayForHOT()>, <tools>);
-
-
         })
+
+
     </script>
 </head>
 <body>
@@ -62,6 +70,13 @@
 <input type="radio" name="LR_EC_read_stats_table_number_format" id="LR_EC_read_stats_table_number_format_K" value="K" checked> Kilos (K) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <input type="radio" name="LR_EC_read_stats_table_number_format" id="LR_EC_read_stats_table_number_format_N" value="N"> None<br>
 <div id="LR_EC_read_stats_table"></div>
+*Notes (from <a href="https://www.ncbi.nlm.nih.gov/pubmed/28868132" target="_blank">AlignQC publication</a>):<br/>
+If two or more alignment paths are reasonably spaced across the read, and can together generate a longer alignment, they will be combined and classified as:<br/>
+(a) a gapped alignment of a gene if paths occur within close proximity to each other on the same strand (GAPPED_ALIGN_READS);<br/>
+(b) a trans-chimeric alignment if paths occur on different loci (TRANSCHIMERA_ALIGN_READS and CHIMERA_ALIGN_READS);<br/>
+(c) a self-chimeric alignment if paths align to an overlapping genomic position (SELFCHIMERA_ALIGN_READS and CHIMERA_ALIGN_READS);<br/>
+(d) otherwise, the read is defined as a single alignment (SINGLE_ALIGN_READS).<br/>
+
 <table>
     <tr>
         <td><html_TOTAL_READS_Plot></td>
@@ -76,9 +91,13 @@
         <td><html_GAPPED_ALIGN_READS_Plot></td>
     </tr>
 
-    <!-- Removed html_TRANSCHIMERA_ALIGN_READS_Plot and html_SELFCHIMERA_ALIGN_READS_Plot because it does not seem an important measure for now -->
     <tr>
         <td><html_CHIMERA_ALIGN_READS_Plot></td>
+        <td><html_TRANSCHIMERA_ALIGN_READS_Plot></td>
+    </tr>
+
+    <tr>
+        <td><html_SELFCHIMERA_ALIGN_READS_Plot></td>
         <td>&nbsp;</td>
     </tr>
 
@@ -87,10 +106,16 @@
 
 <h2>Base stats (compilation from AlignQC reports)</h2>
 <p>Transform numbers in:</p>
-<input type="radio" name="LR_EC_base_stats_table_number_format" id="LR_EC_read_stats_table_number_format_M" value="M"> Millions (M) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<input type="radio" name="LR_EC_base_stats_table_number_format" id="LR_EC_read_stats_table_number_format_K" value="K" checked> Kilos (K) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="radio" name="LR_EC_base_stats_table_number_format" id="LR_EC_read_stats_table_number_format_M" value="M" checked> Millions (M) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="radio" name="LR_EC_base_stats_table_number_format" id="LR_EC_read_stats_table_number_format_K" value="K"> Kilos (K) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <input type="radio" name="LR_EC_base_stats_table_number_format" id="LR_EC_read_stats_table_number_format_N" value="N"> None<br>
 <div id="LR_EC_base_stats_table"></div>
+*Notes (from <a href="https://www.ncbi.nlm.nih.gov/pubmed/28868132" target="_blank">AlignQC publication</a>):<br/>
+If two or more alignment paths are reasonably spaced across the read, and can together generate a longer alignment, they will be combined and classified as:<br/>
+(a) a gapped alignment of a gene if paths occur within close proximity to each other on the same strand (GAPPED_ALIGN_BASES);<br/>
+(b) a trans-chimeric alignment if paths occur on different loci (TRANSCHIMERA_ALIGN_BASES and CHIMERA_ALIGN_BASES);<br/>
+(c) a self-chimeric alignment if paths align to an overlapping genomic position (SELFCHIMERA_ALIGN_BASES and CHIMERA_ALIGN_BASES);<br/>
+(d) otherwise, the read is defined as a single alignment (SINGLE_ALIGN_BASES).<br/>
 
 <table>
     <tr>
@@ -105,15 +130,15 @@
         <td><html_GAPPED_ALIGN_BASES_Plot></td>
         <td><html_CHIMERA_ALIGN_BASES_Plot></td>
     </tr>
-    <!-- Removed html_TRANSCHIMERA_ALIGN_BASES_Plot and html_SELFCHIMERA_ALIGN_BASES_Plot because it does not seem an important measure for now -->
+
+    <tr>
+        <td><html_TRANSCHIMERA_ALIGN_BASES_Plot></td>
+        <td><html_SELFCHIMERA_ALIGN_BASES_Plot></td>
+    </tr>
 </table>
 
 
 <h2>Error stats (compilation from AlignQC reports)</h2>
-<p>Transform numbers in:</p>
-<input type="radio" name="LR_EC_error_stats_table_number_format" id="LR_EC_read_stats_table_number_format_M" value="M"> Millions (M) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<input type="radio" name="LR_EC_error_stats_table_number_format" id="LR_EC_read_stats_table_number_format_K" value="K" checked> Kilos (K) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<input type="radio" name="LR_EC_error_stats_table_number_format" id="LR_EC_read_stats_table_number_format_N" value="N"> None<br>
 <div id="LR_EC_error_stats_table"></div>
 
 
@@ -153,6 +178,7 @@ The color code of a data point is the # of gene families on that data point.<br/
 To know how we computed the paralogous gene families, see: <a href="https://gitlab.com/leoisl/LR_EC_analyser/blob/master/GettingParalogs.txt" target="_blank">https://gitlab.com/leoisl/LR_EC_analyser/blob/master/GettingParalogs.txt</a></p>
 
 <h2>General view of paralog families change per tool:</h2>
+<h3 style="color: red">Click on a bar to retrieve all gene families belonging to it!</h3>
 <htmlGeneralViewParalogFamilies>
 
 <h2>Detailed view of paralog families change per tool:</h2>
@@ -173,16 +199,24 @@ To know how we computed the paralogous gene families, see: <a href="https://gitl
 </div>
 
 <br/><br/>
-<h1>Corretion towards major isoform plots</h1>
+<h1>Correction towards major isoform plots</h1>
 
 <h2>Difference on the number of isoforms of a gene before and after correction</h2>
-The genes taken into account here must be expressed in either the raw or the tool taken into consideration.<br/>
 Negative values: isoforms were lost. Positive values: isoforms were gained.<br/>
-<htmlDifferenceOnTheNumberOfIsoformsPlot>
+
+<h3>Considering union (i.e. the genes taken into account here must be expressed in either the raw or the tool)</h3>
+<h4 style="color: red">Click on a bar to retrieve all genes belonging to it!</h4>
+<htmlDifferenceOnTheNumberOfIsoformsPlotUnion>
+
+<h3>Considering intersection (i.e. the genes taken into account here must be expressed in BOTH the raw AND the tool)</h3>
+<h4 style="color: red">Click on a bar to retrieve all genes belonging to it!</h4>
+<htmlDifferenceOnTheNumberOfIsoformsPlotIntersection>
 
 <h2>Lost transcripts in genes with Splicing Complexity 2+</h2>
 The genes taken into account here must be expressed in BOTH the raw AND the tool taken into consideration.<br/>
 Otherwise we could account for lost genes, and these would inflate the high relative transcript coverage bins (which is not what we want, since here we are investigating isoforms that were lost, not genes, probably corrected towards the main isoform)<br/>
+<h3 style="color: red">Click on a bar to retrieve all transcripts belonging to it!</h3>
+
 <htmlLostTranscriptInGenesWSP2Plot>
 
 <h2>Distribution of the difference of relative expression in the transcripts</h2>
@@ -198,18 +232,14 @@ This plot shows how the coverage of the main isoform changes after the correctio
 
 <br/><br/>
 <h1>Gene stats</h1>
-This is supposed to be a feature that allows users to see some genes in details, but I am not sure if it is good...<br/>
 Delta value is the largest difference between the # of reads mapping to a gene in a tool and in raw reads<br/>
-I guess sorting by it could be interesting...<br/>
 <span style="color: red;">BE SURE TO DO THIS IF YOU WANT TO SEE THE IGV PLOTS: <a href="https://gitlab.com/leoisl/LR_EC_analyser#viewing-igv-plots-gene-stats-and-transcript-stats" target="_blank">https://gitlab.com/leoisl/LR_EC_analyser#viewing-igv-plots-gene-stats-and-transcript-stats</a> </span>
 
 <div id="LR_EC_gene_table" class="scrollableTable"></div>
 
 <br/><br/>
 <h1>Transcript stats</h1>
-This is supposed to be a feature that allows users to see some transcripts in details, but I am not sure if it is good...<br/>
 Delta value is the largest difference between the # of reads mapping to a gene in a tool and in raw reads.<br/>
-I guess sorting by it could be interesting...<br/>
 <span style="color: red;">BE SURE TO DO THIS IF YOU WANT TO SEE THE IGV PLOTS: <a href="https://gitlab.com/leoisl/LR_EC_analyser#viewing-igv-plots-gene-stats-and-transcript-stats" target="_blank">https://gitlab.com/leoisl/LR_EC_analyser#viewing-igv-plots-gene-stats-and-transcript-stats</a> </span>
 
 <div id="LR_EC_transcript_table" class="scrollableTable"></div>

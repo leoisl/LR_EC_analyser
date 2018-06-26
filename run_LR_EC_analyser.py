@@ -8,6 +8,7 @@ from ExternalTools import *
 from Parsers import *
 from Plotter import *
 from Paralogous import *
+import os
 
 
 """
@@ -65,32 +66,39 @@ python run_LR_EC_analyser --view <path_to_results>
 """
 
 def main():
-    parser = argparse.ArgumentParser(description='Long read error corrector analyser.')
-    parser.add_argument('bams', metavar='<file.bam>', type=str, nargs='+',
-                        help='BAM files of the Fastas output by the correctors')
-    parser.add_argument("--genome", dest="genome", help="The genome in fasta file")
-    parser.add_argument("--gtf", dest="gtf", help="The transcriptome as GTF file")
-    parser.add_argument("--paralogous", help="Path to a file where the first two collumns denote paralogous genes (see file GettingParalogs.txt to know how you can get this file)")
-    parser.add_argument("--raw", dest="rawBam", help="The BAM file of the raw reads (i.e. the uncorrected long reads file)")
-    parser.add_argument("-o", dest="output", help="output folder", default="output/")
-    parser.add_argument("-t", dest="threads", type=int, help="Number of threads to use")
-    parser.add_argument("--skip_bam_process", dest="skip_bam", action="store_true", help="Skips bam processing - assume we had already done this.")
+    parser = argparse.ArgumentParser(description='Long reads error corrector analyser.')
+    parser.add_argument("--raw", dest="rawBam", help="The BAM file of the raw reads (i.e. the uncorrected long reads) mapped to the genome (preferably using gmap -n 10 -f samse).", required=True)
+    parser.add_argument('--self', metavar='<self.bam>', type=str, nargs='+',
+                        help='BAM files of the reads output by the SELF correctors mapped to the genome (preferably using gmap -n 10 -f samse).')
+    parser.add_argument('--hybrid', metavar='<hybrid.bam>', type=str, nargs='+',
+                        help='BAM files of the reads output by the HYBRID correctors mapped to the genome (preferably using gmap -n 10 -f samse).')
+
+    parser.add_argument("--genome", dest="genome", help="The genome in Fasta file format.", required=True)
+    parser.add_argument("--gtf", dest="gtf", help="The transcriptome in GTF file format.", required=True)
+    parser.add_argument("--paralogous", help="A file where the first two columns denote paralogous genes (see file GettingParalogs.txt to know how you can get this file).")
+
+    parser.add_argument("-o", dest="output", help="Output folder", default="output/")
+    parser.add_argument("-t", dest="threads", type=int, help="Number of threads to use", default=1)
+
+    parser.add_argument("--skip_bam_process", dest="skip_bam", action="store_true", help="Skips BAM processing (i.e. sorting and indexing BAM files) - assume we had already done this.")
     parser.add_argument("--skip_alignqc", dest="skip_alignqc", action="store_true",
                         help="Skips AlignQC calls - assume we had already done this.")
     parser.add_argument("--skip_copying", dest="skip_copying", action="store_true",
-                        help="Skips copying genome and transcriptome to the output folder.")
+                        help="Skips copying genome and transcriptome to the output folder - assume we had already done this.")
     args=parser.parse_args()
-
-    #TODO: Change all paths to absolute paths (otherwise the user can only call the tool from the source dir)
 
     #create output dir
     if not os.path.exists(args.output):
         os.makedirs(args.output)
 
-
     #get some useful vars
-    bams = [args.rawBam] + args.bams
-    tools = ["raw.bam"] + [os.path.basename(bam) for bam in args.bams]
+    hybridBams = args.hybrid if args.hybrid != None else []
+    selfBams = args.self if args.self != None else []
+    bams = [args.rawBam] + hybridBams + selfBams
+    hybridTools = [os.path.basename(bam) for bam in hybridBams]
+    selfTools = [os.path.basename(bam) for bam in selfBams]
+    tools = ["raw.bam"] + hybridTools + selfTools
+
 
     #copy genome to output and index it
     genome = args.output + "/" + os.path.basename(args.genome)
@@ -121,7 +129,6 @@ def main():
     #sort and index bam
     if args.skip_bam:
         print "Skipping bam processing..."
-
     sortedBams = []
     for bam in bams:
         sortedBam = args.output+"/"+os.path.basename((bam)+".sorted.bam")
@@ -159,10 +166,13 @@ def main():
 
     #create the Plotter and the plots
     print "Computing the plots..."
+    """
+    TODO: removed png plots
     plotsOutput = args.output+"/plots"
     if not os.path.exists(plotsOutput):
         os.makedirs(plotsOutput)
-    plotter = Plotter(tools, plotsOutput)
+    """
+    plotter = Plotter(tools, hybridTools, selfTools)
 
     #make all stats plots
     allStatsPlots = {feature: plotter.makeBarPlotFromStats(statProfiler, feature) for feature in statProfiler.allFeatures}
@@ -172,7 +182,8 @@ def main():
     alignedReadsCuttingPlot = plotter.makeReadCountPlotDividedBySize(statProfiler, "ALIGNED_SIZE_BINS", "Aligned reads length line plot")
     unalignedReadsCuttingPlot = plotter.makeReadCountPlotDividedBySize(statProfiler, "UNALIGNED_SIZE_BINS", "Unaligned reads length line plot")
 
-    htmlDifferenceOnTheNumberOfIsoformsPlot = plotter.makeDifferenceOnTheNumberOfIsoformsPlot(geneID2gene, -3, 3)
+    htmlDifferenceOnTheNumberOfIsoformsPlotUnion, htmlDifferenceOnTheNumberOfIsoformsPlotIntersection \
+        = plotter.makeDifferenceOnTheNumberOfIsoformsPlot(geneID2gene, -3, 3)
     htmlLostTranscriptInGenesWSP2Plot = plotter.makeLostTranscriptInGenesWSP2Plot(geneID2gene)
     htmlDifferencesInRelativeExpressionsBoxPlot = plotter.makeDifferencesInRelativeExpressionsBoxPlot(geneID2gene)
     htmlScatterPlotCoverageOfMainIsoform = plotter.makeScatterPlotCoverageOfMainIsoform(geneID2gene)
@@ -203,7 +214,8 @@ def main():
             else:
                 linesHighResHTMLReport[index] = linesHighResHTMLReport[index].replace(htmlTag, str(plots))
 
-    with open("lib/html/index_template.html") as indexTemplateFile:
+    scriptDir = os.path.dirname(os.path.realpath(__file__))
+    with open(scriptDir+"/lib/html/index_template.html") as indexTemplateFile:
         linesHTMLReport = indexTemplateFile.readlines()
         linesHighResHTMLReport = list(linesHTMLReport)
 
@@ -222,8 +234,10 @@ def main():
                                           geneProfiler, "geneProfileToJSArrayForHOT")
         callFunctionAndPopulateTheReports(i, "<geneProfiler.transcriptProfileToJSArrayForHOT()>", linesHTMLReport, linesHighResHTMLReport, \
                                           geneProfiler, "transcriptProfileToJSArrayForHOT")
-        callFunctionAndPopulateTheReports(i, "<htmlDifferenceOnTheNumberOfIsoformsPlot>", linesHTMLReport, linesHighResHTMLReport, \
-                                          htmlDifferenceOnTheNumberOfIsoformsPlot)
+        callFunctionAndPopulateTheReports(i, "<htmlDifferenceOnTheNumberOfIsoformsPlotUnion>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlDifferenceOnTheNumberOfIsoformsPlotUnion)
+        callFunctionAndPopulateTheReports(i, "<htmlDifferenceOnTheNumberOfIsoformsPlotIntersection>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlDifferenceOnTheNumberOfIsoformsPlotIntersection)
         callFunctionAndPopulateTheReports(i, "<htmlLostTranscriptInGenesWSP2Plot>", linesHTMLReport, linesHighResHTMLReport, \
                                           htmlLostTranscriptInGenesWSP2Plot)
         callFunctionAndPopulateTheReports(i, "<htmlDifferencesInRelativeExpressionsBoxPlot>", linesHTMLReport, linesHighResHTMLReport, \
@@ -264,17 +278,21 @@ def main():
 
 
     #save the html reports
+    '''
+    TODO: removed the simple report file
+    
     with open(args.output+"/report.html", "w") as indexOutFile:
         for line in linesHTMLReport:
             indexOutFile.write(line)
-    with open(args.output+"/report_high_resolution.html", "w") as indexOutFile:
+    '''
+    with open(args.output+"/report.html", "w") as indexOutFile:
         for line in linesHighResHTMLReport:
             indexOutFile.write(line)
 
     #copy lib to the output
     if os.path.exists(args.output+"/lib"):
         shutil.rmtree(args.output+"/lib")
-    shutil.copytree("lib", args.output+"/lib")
+    shutil.copytree(scriptDir+"/lib", args.output+"/lib")
     print "Creating HTML report... - Done!"
 
     print "We are finished!"

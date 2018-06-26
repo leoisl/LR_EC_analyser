@@ -3,7 +3,6 @@
 
 import gzip
 import urllib
-from ExternalTools import *
 from Plotter import Category
 
 class FeatureProfiler:
@@ -148,14 +147,8 @@ class StatProfiler:
         self.end = end
         self.step = step
 
-        #self.readStatsFeatures = ["TOTAL_READS", "UNALIGNED_READS", "ALIGNED_READS", "MEAN_LENGTH", "SINGLE_ALIGN_READS", "GAPPED_ALIGN_READS", "CHIMERA_ALIGN_READS", "TRANSCHIMERA_ALIGN_READS", "SELFCHIMERA_ALIGN_READS"]
-        #removed "TRANSCHIMERA_ALIGN_READS" "SELFCHIMERA_ALIGN_READS"
-        self.readStatsFeatures = ["TOTAL_READS", "MEAN_LENGTH", "ALIGNED_READS", "UNALIGNED_READS", "SINGLE_ALIGN_READS", "GAPPED_ALIGN_READS", "CHIMERA_ALIGN_READS"]
-
-        # removed "TRANSCHIMERA_ALIGN_BASES" "SELFCHIMERA_ALIGN_BASES"
-        #self.baseStatsFeatures = ["TOTAL_BASES", "UNALIGNED_BASES", "ALIGNED_BASES", "SINGLE_ALIGN_BASES", "GAPPED_ALIGN_BASES", "CHIMERA_ALIGN_BASES", "TRANSCHIMERA_ALIGN_BASES", "SELFCHIMERA_ALIGN_BASES"]
-        self.baseStatsFeatures = ["TOTAL_BASES", "ALIGNED_BASES", "UNALIGNED_BASES", "SINGLE_ALIGN_BASES", "GAPPED_ALIGN_BASES", "CHIMERA_ALIGN_BASES"]
-
+        self.readStatsFeatures = ["TOTAL_READS", "UNALIGNED_READS", "ALIGNED_READS", "MEAN_LENGTH", "SINGLE_ALIGN_READS", "GAPPED_ALIGN_READS", "CHIMERA_ALIGN_READS", "TRANSCHIMERA_ALIGN_READS", "SELFCHIMERA_ALIGN_READS"]
+        self.baseStatsFeatures = ["TOTAL_BASES", "UNALIGNED_BASES", "ALIGNED_BASES", "SINGLE_ALIGN_BASES", "GAPPED_ALIGN_BASES", "CHIMERA_ALIGN_BASES", "TRANSCHIMERA_ALIGN_BASES", "SELFCHIMERA_ALIGN_BASES"]
         self.errorStatsFeatures = ["ANY_ERROR", "MISMATCHES", "ANY_DELETION", "ANY_INSERTION", "COMPLETE_DELETION", "HOMOPOLYMER_DELETION", "COMPLETE_INSERTION", "HOMOPOLYMER_INSERTION"]
         self.allFeatures = self.readStatsFeatures + self.baseStatsFeatures + self.errorStatsFeatures
 
@@ -176,13 +169,21 @@ class StatProfiler:
             "TRANSCHIMERA_ALIGN_BASES": "ALIGNED_BASES",
             "SELFCHIMERA_ALIGN_BASES": "ALIGNED_BASES",
             "ANY_ERROR": "ALIGNMENT_BASES",
-            "MISMATCHES": "ANY_ERROR",
-            "ANY_DELETION": "ANY_ERROR",
-            "ANY_INSERTION": "ANY_ERROR",
-            "COMPLETE_DELETION": "ANY_DELETION",
-            "HOMOPOLYMER_DELETION": "ANY_DELETION",
-            "COMPLETE_INSERTION": "ANY_INSERTION",
-            "HOMOPOLYMER_INSERTION": "ANY_INSERTION"
+            "MISMATCHES": "ALIGNMENT_BASES",
+            "ANY_DELETION": "ALIGNMENT_BASES",
+            "ANY_INSERTION": "ALIGNMENT_BASES",
+            "COMPLETE_DELETION": "ALIGNMENT_BASES",
+            "HOMOPOLYMER_DELETION": "ALIGNMENT_BASES",
+            "COMPLETE_INSERTION": "ALIGNMENT_BASES",
+            "HOMOPOLYMER_INSERTION": "ALIGNMENT_BASES"
+        }
+
+        self.feature2Translations={
+            "ANY_ERROR": "ERROR_RATE",
+            "ANY_DELETION": "DELETION",
+            "ANY_INSERTION": "INSERTION",
+            "COMPLETE_DELETION": "NON_HOMOPOLYMER_DELETION",
+            "COMPLETE_INSERTION": "NON_HOMOPOLYMER_INSERTION"
         }
 
         self.parseAlignQCOutputForAllTools()
@@ -258,12 +259,12 @@ class StatProfiler:
 
                 #add the read to the appropriate size bin
                 if classification in alignedReadsClassifications:
-                    alignedSizeBins.addDataPoint(length)
+                    alignedSizeBins.addDataPoint(length, None)
                 elif classification in unalignedReadsClassifications:
-                    unalignedSizeBins.addDataPoint(length)
+                    unalignedSizeBins.addDataPoint(length, None)
                 else:
                     raise Exception("Unknown classification %s in __processLengthsFile()" % classification)
-                totalSizeBins.addDataPoint(length)
+                totalSizeBins.addDataPoint(length, None)
 
 
                 #add length to lengths
@@ -345,25 +346,32 @@ class StatProfiler:
             return float(self.tool2Stats[tool][metric]) / float(self.tool2Stats[tool][self.feature2UpperLimitToBeUsedInPercentage[metric]]) * 100
 
 
+    def getFeatureName(self, feature):
+        """
+        Returns a nicer name for the feature
+        """
+        return feature if feature not in self.feature2Translations else self.feature2Translations[feature]
+
+
     def getNiceDescriptionForFeature(self, feature):
         if feature not in self.feature2UpperLimitToBeUsedInPercentage:
-            return feature
+            return self.getFeatureName(feature)
         else:
-            return "%s in %% over %s"%(feature, self.feature2UpperLimitToBeUsedInPercentage[feature])
+            return "%s in %% over %s"%(self.getFeatureName(feature), self.getFeatureName(self.feature2UpperLimitToBeUsedInPercentage[feature]))
 
     def __toJSArrayForHOT(self, features):
         jsArray=[]
         for feature in features:
             if feature not in self.feature2UpperLimitToBeUsedInPercentage:
-                line=["'%s'"%feature]
+                line=["'%s'" % self.getFeatureName(feature)]
             else:
-                line = ["'%s (%%)'" % feature]
+                line = ["'%s (%%)'" % self.getFeatureName(feature)]
 
             for tool in self.tools:
                 if feature not in self.feature2UpperLimitToBeUsedInPercentage:
                     line.append(str(self.tool2Stats[tool][feature]))
                 else:
-                    line.append("%.2f" % (float(self.tool2Stats[tool][feature]) / float(self.tool2Stats[tool][self.feature2UpperLimitToBeUsedInPercentage[feature]]) * 100))
+                    line.append("%.3f" % (float(self.tool2Stats[tool][feature]) / float(self.tool2Stats[tool][self.feature2UpperLimitToBeUsedInPercentage[feature]]) * 100))
             jsArray.append("[" + ",".join(line) + "]")
         return "[" + ",".join(jsArray) + "]"
 
