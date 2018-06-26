@@ -1,0 +1,7 @@
+v0.0.5:
+    -Plots are more interactive: now we can click on the bar of some plots and retrieve list of gene families/genes/transcripts
+    -Hybrid EC now come always before Self EC
+    -Adding back trans_chimera and self_chimera plots, and explanations to some features
+    -Errors are now reported in % over the total # of bases
+    -Improved main tables presentation
+    -Solved some bugs
