@@ -14,7 +14,7 @@ class Category:
 
         self.intervals=[]
         while start<end:
-            self.intervals.append({"min": start, "max": start+step, "count":0})
+            self.intervals.append({"min": start, "max": start+step, "data": []})
             start+=step
 
     def getCategoriesAsString(self, displayInterval=False, displayPlusOnFirstItem=False, displayPlusOnLastItem=False):
@@ -47,23 +47,23 @@ class Category:
 
         return intervalsAsString
 
-    def addDataPoint(self, point):
+    def addDataPoint(self, point, dataToSave):
         """
-        :param point: add a number to a category
+        :param point: it is the value of the dataToSave - we use this to infer the category
         :return:
         """
         nbOfCategoriesItFit = 0
 
         if point < self.intervals[0]["min"]:
-            self.intervals[0]["count"]+=1
+            self.intervals[0]["data"].append(dataToSave)
             nbOfCategoriesItFit += 1
         if point >= self.intervals[-1]["max"]:
-            self.intervals[-1]["count"]+=1
+            self.intervals[-1]["data"].append(dataToSave)
             nbOfCategoriesItFit += 1
 
         for i, interval in enumerate(self.intervals):
             if point >= interval['min'] and point < interval['max']:
-                interval["count"] += 1
+                interval["data"].append(dataToSave)
                 nbOfCategoriesItFit += 1
 
         if nbOfCategoriesItFit != 1:
@@ -72,8 +72,18 @@ class Category:
     def __len__(self):
         return len(self.intervals)
 
-    def getIntervalCount(self):
-        return [ interval["count"] for interval in self.intervals ]
+    def getIntervalCount(self, inPercentage=False):
+        if not inPercentage:
+            return [ len(interval["data"]) for interval in self.intervals ]
+        else:
+            total = sum( [ len(interval["data"]) for interval in self.intervals ] )
+            return [ float(len(interval["data"]))/float(total) for interval in self.intervals]
+
+    def __repr__(self):
+        return self.intervals.__repr__()
+
+    def __str__(self):
+        return str(self.intervals)
 
 #TODO: refactor this by making a base class for Category and TextCategory
 class TextCategory:
@@ -81,34 +91,33 @@ class TextCategory:
     Class that represent categories, but as text
     """
     def __init__(self, categories):
-        self.intervals=[{"category": category, "count": 0} for category in categories]
+        self.intervals=[{"category": category, "data": []} for category in categories]
 
     def getCategoriesAsString(self, displayInterval=False, displayPlusOnFirstItem=False, displayPlusOnLastItem=False):
         return [interval["category"] for interval in self.intervals]
 
-    def addDataPoint(self, category):
-        """
-        :param point: add a number to a category
-        :return:
-        """
+    def addDataPointAndIAlreadyKnowTheCategory(self, category, dataToSave):
         categoriesAsString = self.getCategoriesAsString()
         if category not in categoriesAsString:
             raise Exception("ERROR: non-existing category: %s..." % category)
         else:
-            self.intervals[categoriesAsString.index(category)]["count"]+=1
-
-    def setCategoryCount(self, category, value):
-        categoriesAsString = self.getCategoriesAsString()
-        if category not in categoriesAsString:
-            raise Exception("ERROR: non-existing category: %s..." % category)
-        else:
-            self.intervals[categoriesAsString.index(category)]["count"] = value
+            self.intervals[categoriesAsString.index(category)]["data"].append(dataToSave)
 
     def __len__(self):
         return len(self.intervals)
 
-    def getIntervalCount(self):
-        return [ interval["count"] for interval in self.intervals ]
+    def getIntervalCount(self, inPercentage=False):
+        if not inPercentage:
+            return [ len(interval["data"]) for interval in self.intervals ]
+        else:
+            total = sum( [ len(interval["data"]) for interval in self.intervals ] )
+            return [ float(len(interval["data"]))/float(total) for interval in self.intervals]
+
+    def __repr__(self):
+        return self.intervals.__repr__()
+
+    def __str__(self):
+        return str(self.intervals)
 
 class Plotter:
     """
@@ -159,21 +168,32 @@ class Plotter:
             "jsPlot": htmlPlotCode
         }
 
-    def __produceBarPlot(self, name, tool2Categories, xlabel, ylabel, displayInterval=False, displayPlusOnFirstItem=False, displayPlusOnLastItem=False, label2ToolIndex2Data=None):
+    def __produceBarPlot(self, name, tool2Categories, xlabel, ylabel, displayInterval=False, displayPlusOnFirstItem=False, displayPlusOnLastItem=False, generateDataToBeShown=False, inPercentage=False):
         #produce the plot
+        xLabels = tool2Categories.values()[0].getCategoriesAsString(displayInterval, displayPlusOnFirstItem, displayPlusOnLastItem)
+
         data = [plotly.graph_objs.Bar(
-                x=tool2Categories[tool].getCategoriesAsString(displayInterval, displayPlusOnFirstItem, displayPlusOnLastItem),
-                y=tool2Categories[tool].getIntervalCount(),
+                x=xLabels,
+                y=tool2Categories[tool].getIntervalCount(inPercentage),
                 name=tool)
-                for indexTool, tool in enumerate(self.toolsNoRaw)]
+                for tool in self.toolsNoRaw]
 
         layout = plotly.graph_objs.Layout(
             xaxis={"title": xlabel},
             yaxis={"title": ylabel},
             barmode='group'
         )
-
         fig = plotly.graph_objs.Figure(data=data, layout=layout)
+
+        # generate label2ToolIndex2Data to put in the plot, if generateDataToBeShown is True
+        label2ToolIndex2Data = None
+        if generateDataToBeShown:
+            label2ToolIndex2Data = {}
+            for intervalIndex, xLabel in enumerate(xLabels):
+                label2ToolIndex2Data[xLabel]={}
+                for toolIndex, tool in enumerate(self.toolsNoRaw):
+                    label2ToolIndex2Data[xLabel][toolIndex]="\n".join(tool2Categories[tool].intervals[intervalIndex]["data"])
+
         return self.__buildPlots(fig, name, label2ToolIndex2Data)
 
     def __makeDifferenceOnTheNumberOfIsoformsPlotCore(self, geneID2gene, lowestCategory, highestCategory, step, unionOrIntersection):
@@ -187,14 +207,14 @@ class Plotter:
             nbOfIsoformsExpressedInRaw = gene.getNbOfIsoformsExpressedInTool("raw.bam")
             nbOfIsoformsExpressedInTool = gene.getNbOfIsoformsExpressedInTool(tool)
 
-            if unionOrIntersection == "union":
+            if unionOrIntersection == "Union":
                 if nbOfIsoformsExpressedInRaw > 0 or nbOfIsoformsExpressedInTool > 0:
                     # if there is any expression in raw or tool, we add it!
-                    tool2DifferencesCategories[tool].addDataPoint(nbOfIsoformsExpressedInTool - nbOfIsoformsExpressedInRaw)
-            elif unionOrIntersection == "intersection":
+                    tool2DifferencesCategories[tool].addDataPoint(nbOfIsoformsExpressedInTool - nbOfIsoformsExpressedInRaw, gene.id)
+            elif unionOrIntersection == "Intersection":
                 if nbOfIsoformsExpressedInRaw > 0 and nbOfIsoformsExpressedInTool > 0:
                     # if there is expression in both raw and tool, we add it!
-                    tool2DifferencesCategories[tool].addDataPoint(nbOfIsoformsExpressedInTool - nbOfIsoformsExpressedInRaw)
+                    tool2DifferencesCategories[tool].addDataPoint(nbOfIsoformsExpressedInTool - nbOfIsoformsExpressedInRaw, gene.id)
             else:
                 raise Exception("unionOrIntersection in makeDifferenceOnTheNumberOfIsoformsPlot() should be union or intersection")
 
@@ -215,14 +235,16 @@ class Plotter:
 
 
         tool2DifferenceCategories = get_tool2DifferenceCategories()
-        return self.__produceBarPlot("DifferenceOnTheNumberOfIsoformsPlot", tool2DifferenceCategories, "Difference on the number of isoforms", "Number of genes", False, True, True)
+        return self.__produceBarPlot("DifferenceOnTheNumberOfIsoforms%sPlot"%unionOrIntersection, tool2DifferenceCategories, "Difference on the number of isoforms", "Number of genes", \
+                                     displayPlusOnFirstItem=True, displayPlusOnLastItem=True, generateDataToBeShown=True)
+
 
     def makeDifferenceOnTheNumberOfIsoformsPlot(self, geneID2gene, lowestCategory=-3, highestCategory=3, step=1):
         """
         :return: Two plots, one with the union (genes in the raw or in the tool) and the other with the intersection
         """
-        return self.__makeDifferenceOnTheNumberOfIsoformsPlotCore(geneID2gene, lowestCategory, highestCategory, step, "union"), \
-               self.__makeDifferenceOnTheNumberOfIsoformsPlotCore(geneID2gene, lowestCategory, highestCategory, step, "intersection")
+        return self.__makeDifferenceOnTheNumberOfIsoformsPlotCore(geneID2gene, lowestCategory, highestCategory, step, "Union"), \
+               self.__makeDifferenceOnTheNumberOfIsoformsPlotCore(geneID2gene, lowestCategory, highestCategory, step, "Intersection")
 
 
     def makeLostTranscriptInGenesWSP2Plot(self, geneID2gene, blankSpace=0.1):
@@ -242,7 +264,7 @@ class Plotter:
                                 if transcript.profile.isExpressedInTool("raw.bam") and not transcript.profile.isExpressedInTool(tool):
                                     #if the transcript is in raw, but it is not in the tool, then this transcript "disappeared"
                                     #add the relative transcript coverage in raw dataset
-                                    tool2RelativeTranscriptOfLostTranscriptCategories[tool].addDataPoint(transcript.computeRelativeExpression("raw.bam"))
+                                    tool2RelativeTranscriptOfLostTranscriptCategories[tool].addDataPoint(transcript.computeRelativeExpression("raw.bam"), transcript.id)
 
 
             return tool2RelativeTranscriptOfLostTranscriptCategories
@@ -250,8 +272,8 @@ class Plotter:
         '''
         Helper functions
         '''
-        tool2RelativeTranscriptOfLostTranscriptCategories =get_tool2RelativeTranscriptOfLostTranscriptCategories()
-        return self.__produceBarPlot("LostTranscriptInGenesWSP2Plot", tool2RelativeTranscriptOfLostTranscriptCategories, "Relative transcript coverage in relation to gene coverage", "Number of transcripts", True)
+        tool2RelativeTranscriptOfLostTranscriptCategories = get_tool2RelativeTranscriptOfLostTranscriptCategories()
+        return self.__produceBarPlot("LostTranscriptInGenesWSP2Plot", tool2RelativeTranscriptOfLostTranscriptCategories, "Relative transcript coverage in relation to gene coverage", "Number of transcripts", displayInterval=True, generateDataToBeShown=True)
 
     def makeDifferencesInRelativeExpressionsBoxPlot(self, geneID2gene):
         def get_tool2DifferencesInRelativeExpressions():
@@ -308,8 +330,8 @@ class Plotter:
 
             #get all the data to plot it
             tool2PlotData={tool:{} for tool in self.toolsNoRaw}
-            tool2GeneralStats={tool:{"Shrunk": [], "Unchanged": [], "Expanded": []} for tool in self.toolsNoRaw}
-            totalGeneFamilies = 0
+            labels = ["Shrunk", "Unchanged", "Expanded"]
+            tool2GeneralStatsCategories = {tool : TextCategory(labels) for tool in self.toolsNoRaw}
             for tool in self.toolsNoRaw:
                 paralogousGeneFamilySizeAfterCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, tool)
 
@@ -326,13 +348,13 @@ class Plotter:
                         if not disregardUnchangedGeneFamilies or \
                            (disregardUnchangedGeneFamilies and paralogousGeneFamilySizeBeforeCorrection[i]!=paralogousGeneFamilySizeAfterCorrection[i]):
                             dataPoints.append((paralogousGeneFamilySizeBeforeCorrection[i], paralogousGeneFamilySizeAfterCorrection[i]))
+                            familyDescription = "Family %d: %s"%(i, ", ".join(paralogousGroups[i]))
                             if paralogousGeneFamilySizeBeforeCorrection[i] < paralogousGeneFamilySizeAfterCorrection[i]:
-                                tool2GeneralStats[tool]["Expanded"].append("Family %d: %s"%(i, ", ".join(paralogousGroups[i])))
+                                tool2GeneralStatsCategories[tool].addDataPointAndIAlreadyKnowTheCategory("Expanded", familyDescription)
                             elif paralogousGeneFamilySizeBeforeCorrection[i] > paralogousGeneFamilySizeAfterCorrection[i]:
-                                tool2GeneralStats[tool]["Shrunk"].append("Family %d: %s"%(i, ", ".join(paralogousGroups[i])))
+                                tool2GeneralStatsCategories[tool].addDataPointAndIAlreadyKnowTheCategory("Shrunk", familyDescription)
                             else:
-                                tool2GeneralStats[tool]["Unchanged"].append("Family %d: %s"%(i, ", ".join(paralogousGroups[i])))
-                            totalGeneFamilies += 1
+                                tool2GeneralStatsCategories[tool].addDataPointAndIAlreadyKnowTheCategory("Unchanged", familyDescription)
 
 
                 dataPoint2Count={}
@@ -383,37 +405,22 @@ class Plotter:
                         'opacity': 0.5
                     }))
 
-
-
             #build the plots for the general stats
-            # produce the plot
-            labels=["Shrunk", "Unchanged", "Expanded"]
-            tool2GeneralStatsCategories = {tool : TextCategory(labels) for tool in self.toolsNoRaw}
+            return self.__produceBarPlot(name + "General", tool2GeneralStatsCategories, "Tool's behaviour towards the gene family", "Gene family count in %", generateDataToBeShown=True, inPercentage=True), \
+                   self.__buildPlots(specificPlotFig, name+"Specific")
 
-            for tool in self.toolsNoRaw:
-                for label in labels:
-                    tool2GeneralStatsCategories[tool].setCategoryCount(label, float(len(tool2GeneralStats[tool][label]))/float(totalGeneFamilies)*100)
-
-
-            #generate label2ToolIndex2Data to put in the plot
-            label2ToolIndex2Data = {}
-            for label in labels:
-                label2ToolIndex2Data[label]={}
-                for toolIndex, tool in enumerate(self.toolsNoRaw):
-                    label2ToolIndex2Data[label][toolIndex]="\n".join(tool2GeneralStats[tool][label])
-
-            return self.__produceBarPlot(name + "General", tool2GeneralStatsCategories, "Tool's behaviour towards the gene family", "Gene family count in %", label2ToolIndex2Data=label2ToolIndex2Data), self.__buildPlots(specificPlotFig, name+"Specific")
-
-        except:
-            import traceback
-            traceback.print_exc()
-            return {
-                "imagePlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>",
-                "jsPlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>"
-            }, {
-                "imagePlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>",
-                "jsPlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>"
-            }
+        except ValueError as exception:
+            if exception.message == "max() arg is an empty sequence":
+                #expected error in some situations
+                return {
+                    "imagePlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>",
+                    "jsPlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>"
+                }, {
+                    "imagePlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>",
+                    "jsPlot": "<p style='color: red; font-size: large;'>Error on computing this plot...</p>"
+                }
+            else:
+                raise exception #unexpected error
 
 
     def makeScatterPlotCoverageOfMainIsoform(self, geneID2gene):

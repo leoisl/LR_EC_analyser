@@ -178,6 +178,7 @@ The color code of a data point is the # of gene families on that data point.<br/
 To know how we computed the paralogous gene families, see: <a href="https://gitlab.com/leoisl/LR_EC_analyser/blob/master/GettingParalogs.txt" target="_blank">https://gitlab.com/leoisl/LR_EC_analyser/blob/master/GettingParalogs.txt</a></p>
 
 <h2>General view of paralog families change per tool:</h2>
+<h3 style="color: red">Click on a bar to retrieve all gene families belonging to it!</h3>
 <htmlGeneralViewParalogFamilies>
 
 <h2>Detailed view of paralog families change per tool:</h2>
@@ -198,20 +199,24 @@ To know how we computed the paralogous gene families, see: <a href="https://gitl
 </div>
 
 <br/><br/>
-<h1>Corretion towards major isoform plots</h1>
+<h1>Correction towards major isoform plots</h1>
 
 <h2>Difference on the number of isoforms of a gene before and after correction</h2>
 Negative values: isoforms were lost. Positive values: isoforms were gained.<br/>
 
 <h3>Considering union (i.e. the genes taken into account here must be expressed in either the raw or the tool)</h3>
+<h4 style="color: red">Click on a bar to retrieve all genes belonging to it!</h4>
 <htmlDifferenceOnTheNumberOfIsoformsPlotUnion>
 
 <h3>Considering intersection (i.e. the genes taken into account here must be expressed in BOTH the raw AND the tool)</h3>
+<h4 style="color: red">Click on a bar to retrieve all genes belonging to it!</h4>
 <htmlDifferenceOnTheNumberOfIsoformsPlotIntersection>
 
 <h2>Lost transcripts in genes with Splicing Complexity 2+</h2>
 The genes taken into account here must be expressed in BOTH the raw AND the tool taken into consideration.<br/>
 Otherwise we could account for lost genes, and these would inflate the high relative transcript coverage bins (which is not what we want, since here we are investigating isoforms that were lost, not genes, probably corrected towards the main isoform)<br/>
+<h3 style="color: red">Click on a bar to retrieve all transcripts belonging to it!</h3>
+
 <htmlLostTranscriptInGenesWSP2Plot>
 
 <h2>Distribution of the difference of relative expression in the transcripts</h2>

@@ -259,12 +259,12 @@ class StatProfiler:
 
                 #add the read to the appropriate size bin
                 if classification in alignedReadsClassifications:
-                    alignedSizeBins.addDataPoint(length)
+                    alignedSizeBins.addDataPoint(length, None)
                 elif classification in unalignedReadsClassifications:
-                    unalignedSizeBins.addDataPoint(length)
+                    unalignedSizeBins.addDataPoint(length, None)
                 else:
                     raise Exception("Unknown classification %s in __processLengthsFile()" % classification)
-                totalSizeBins.addDataPoint(length)
+                totalSizeBins.addDataPoint(length, None)
 
 
                 #add length to lengths
