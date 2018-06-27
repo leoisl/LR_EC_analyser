@@ -77,7 +77,7 @@ class Category:
             return [ len(interval["data"]) for interval in self.intervals ]
         else:
             total = sum( [ len(interval["data"]) for interval in self.intervals ] )
-            return [ float(len(interval["data"]))/float(total) for interval in self.intervals]
+            return [float(len(interval["data"])) / float(total) * 100 for interval in self.intervals]
 
     def __repr__(self):
         return self.intervals.__repr__()
@@ -111,7 +111,7 @@ class TextCategory:
             return [ len(interval["data"]) for interval in self.intervals ]
         else:
             total = sum( [ len(interval["data"]) for interval in self.intervals ] )
-            return [ float(len(interval["data"]))/float(total) for interval in self.intervals]
+            return [float(len(interval["data"])) / float(total) * 100 for interval in self.intervals]
 
     def __repr__(self):
         return self.intervals.__repr__()
