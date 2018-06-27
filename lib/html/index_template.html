@@ -25,6 +25,7 @@
             fillMainSubtable('LR_EC_read_stats_table', <statProfiler.getReadStatsAsJSArrayForHOT()>, <tools>);
             fillMainSubtable('LR_EC_base_stats_table', <statProfiler.getBaseStatsAsJSArrayForHOT()>, <tools>);
             fillMainSubtable('LR_EC_error_stats_table', <statProfiler.getErrorStatsAsJSArrayForHOT()>, <tools>);
+            fillMainSubtable('LR_EC_annotation_stats_table', <statProfiler.getAnnotationStatsAsJSArrayForHOT()>, <tools>);
 
             //register the event when changing the format of the units in the main subtables
             infixes=["read", "base", "error"]
@@ -171,6 +172,19 @@ If two or more alignment paths are reasonably spaced across the read, and can to
     </tr>
 </table>
 
+<h2>Annotation stats (compilation from AlignQC reports)</h2>
+<div id="LR_EC_annotation_stats_table"></div>
+<table>
+    <tr>
+        <td><html_GENES_DETECTED_ANY_MATCH_Plot></td>
+        <td><html_GENES_DETECTED_FULL_MATCH_Plot></td>
+    </tr>
+    <tr>
+        <td><html_TRANSCRIPTS_DETECTED_ANY_MATCH_Plot></td>
+        <td><html_TRANSCRIPTS_DETECTED_FULL_MATCH_Plot></td>
+    </tr>
+</table>
+
 <br/><br/>
 <h1>Does a tool cut reads?</h1>
 <htmlTotalReadsCuttingPlot>
@@ -241,14 +255,14 @@ This plot shows how the coverage of the main isoform changes after the correctio
 <htmlScatterPlotCoverageOfMainIsoform>
 
 <br/><br/>
-<h1>Gene stats</h1>
+<h1>Gene read alignment viewer</h1>
 Delta value is the largest difference between the # of reads mapping to a gene in a tool and in raw reads<br/>
 <span style="color: red;">BE SURE TO DO THIS IF YOU WANT TO SEE THE IGV PLOTS: <a href="https://gitlab.com/leoisl/LR_EC_analyser#viewing-igv-plots-gene-stats-and-transcript-stats" target="_blank">https://gitlab.com/leoisl/LR_EC_analyser#viewing-igv-plots-gene-stats-and-transcript-stats</a> </span>
 
 <div id="LR_EC_gene_table" class="scrollableTable"></div>
 
 <br/><br/>
-<h1>Transcript stats</h1>
+<h1>Transcript read alignment viewer</h1>
 Delta value is the largest difference between the # of reads mapping to a gene in a tool and in raw reads.<br/>
 <span style="color: red;">BE SURE TO DO THIS IF YOU WANT TO SEE THE IGV PLOTS: <a href="https://gitlab.com/leoisl/LR_EC_analyser#viewing-igv-plots-gene-stats-and-transcript-stats" target="_blank">https://gitlab.com/leoisl/LR_EC_analyser#viewing-igv-plots-gene-stats-and-transcript-stats</a> </span>
 

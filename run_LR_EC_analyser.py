@@ -236,6 +236,8 @@ def main():
                                           statProfiler, "getBaseStatsAsJSArrayForHOT")
         callFunctionAndPopulateTheReports(i, "<statProfiler.getErrorStatsAsJSArrayForHOT()>", linesHTMLReport, linesHighResHTMLReport, \
                                           statProfiler, "getErrorStatsAsJSArrayForHOT")
+        callFunctionAndPopulateTheReports(i, "<statProfiler.getAnnotationStatsAsJSArrayForHOT()>", linesHTMLReport, linesHighResHTMLReport, \
+                                          statProfiler, "getAnnotationStatsAsJSArrayForHOT")
         callFunctionAndPopulateTheReports(i, "<geneProfiler.geneProfileToJSArrayForHOT()>", linesHTMLReport, linesHighResHTMLReport, \
                                           geneProfiler, "geneProfileToJSArrayForHOT")
         callFunctionAndPopulateTheReports(i, "<geneProfiler.transcriptProfileToJSArrayForHOT()>", linesHTMLReport, linesHighResHTMLReport, \
