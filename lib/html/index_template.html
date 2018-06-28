@@ -14,6 +14,7 @@
     <script src="lib/js/js.js"></script>
     <script src="lib/js/plotly-latest.min.js"></script>
     <script src="lib/js/iziModal.min.js"></script>
+    <script src="lib/js/anchorific.min.js"></script>
 
 
 
@@ -57,6 +58,9 @@
             //fill the gene and transcript tables
             fillFeatureTable('Gene', 'LR_EC_gene_table', <geneProfiler.geneProfileToJSArrayForHOT()>, <tools>);
             fillFeatureTable('Transcript', 'LR_EC_transcript_table', <geneProfiler.transcriptProfileToJSArrayForHOT()>, <tools>);
+
+            //anchorify it
+            $('body').anchorific();
 
             //all set - unblock the UI()
             unblockUI();
@@ -202,7 +206,7 @@ The color code of a data point is the # of gene families on that data point.<br/
 To know how we computed the paralogous gene families, see: <a href="https://gitlab.com/leoisl/LR_EC_analyser/blob/master/GettingParalogs.txt" target="_blank">https://gitlab.com/leoisl/LR_EC_analyser/blob/master/GettingParalogs.txt</a></p>
 
 <h2>General view of paralog families change per tool:</h2>
-<h3 style="color: red">Click on a bar to retrieve all gene families belonging to it!</h3>
+<p style="color: red">Click on a bar to retrieve all gene families belonging to it!</p>
 <htmlGeneralViewParalogFamilies>
 
 <h2>Detailed view of paralog families change per tool:</h2>
@@ -225,26 +229,25 @@ To know how we computed the paralogous gene families, see: <a href="https://gitl
 <br/><br/>
 <h1>Correction towards major isoform plots</h1>
 
-<h2>Difference on the number of isoforms of a gene before and after correction</h2>
-<h3>Gene scale</h3>
+<h2>Difference on the number of isoforms of a gene before and after correction - Gene scale</h2>
 The genes taken into account here must be expressed in BOTH the raw reads AND the tool.<br/>
 Negative values: isoforms of a gene were lost - it could be that they were just removed by the correction, or after correction all reads mapped to another gene.<br/>
 Positive values: isoforms of a gene were gained.<br/>
-<h4 style="color: red">Click on a bar to retrieve all genes belonging to it!</h4>
+<p style="color: red">Click on a bar to retrieve all genes belonging to it!</p>
 <htmlDifferenceOnTheNumberOfIsoformsPlotIntersection>
 
-<h3>Gene-family scale</h3>
+<h2>Difference on the number of isoforms of a gene before and after correction - Gene-family scale</h2>
 The gene <b>families</b> taken into account here must be expressed in BOTH the raw reads AND the tool.<br/>
 Negative values: isoforms of a gene-family were lost - it could be that they were just removed by the correction, or after correction all reads mapped to another gene-family.<br/>
 Positive values: isoforms of a gene-family were gained.<br/>
 In comparison with the previous plot, it allows to check if paralogs "exchange" their isoforms after error-correction
-<h4 style="color: red">Click on a bar to retrieve all genes belonging to it!</h4>
+<p style="color: red">Click on a bar to retrieve all genes belonging to it!</p>
 <htmlDifferenceOnTheNumberOfIsoformsGeneFamilyPlotIntersection>
 
 <h2>Lost transcripts in genes with Splicing Complexity 2+</h2>
 The genes taken into account here must be expressed in BOTH the raw AND the tool taken into consideration.<br/>
 Otherwise we could account for lost genes, and these would inflate the high relative transcript coverage bins (which is not what we want, since here we are investigating isoforms that were lost, not genes, probably corrected towards the main isoform)<br/>
-<h3 style="color: red">Click on a bar to retrieve all transcripts belonging to it!</h3>
+<p style="color: red">Click on a bar to retrieve all transcripts belonging to it!</p>
 
 <htmlLostTranscriptInGenesWSP2Plot>
 
