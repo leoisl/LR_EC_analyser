@@ -1,8 +1,7 @@
-TODO:
-    -Add a plot with the nb of genes detected before and after correction
-
 High Priority:
     -Finish paper, then check the rest
+
+    -Annotation stats plots to become interactive showing the genes/transcripts when clicking on the bars?
 
     -How does error correction affects read quantification
         -True quantification is given by Illumina

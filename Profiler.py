@@ -150,7 +150,8 @@ class StatProfiler:
         self.readStatsFeatures = ["TOTAL_READS", "UNALIGNED_READS", "ALIGNED_READS", "MEAN_LENGTH", "SINGLE_ALIGN_READS", "GAPPED_ALIGN_READS", "CHIMERA_ALIGN_READS", "TRANSCHIMERA_ALIGN_READS", "SELFCHIMERA_ALIGN_READS"]
         self.baseStatsFeatures = ["TOTAL_BASES", "UNALIGNED_BASES", "ALIGNED_BASES", "SINGLE_ALIGN_BASES", "GAPPED_ALIGN_BASES", "CHIMERA_ALIGN_BASES", "TRANSCHIMERA_ALIGN_BASES", "SELFCHIMERA_ALIGN_BASES"]
         self.errorStatsFeatures = ["ANY_ERROR", "MISMATCHES", "ANY_DELETION", "ANY_INSERTION", "COMPLETE_DELETION", "HOMOPOLYMER_DELETION", "COMPLETE_INSERTION", "HOMOPOLYMER_INSERTION"]
-        self.allFeatures = self.readStatsFeatures + self.baseStatsFeatures + self.errorStatsFeatures
+        self.annotationStatsFeatures = ["GENES_DETECTED_ANY_MATCH", "GENES_DETECTED_FULL_MATCH", "TRANSCRIPTS_DETECTED_ANY_MATCH", "TRANSCRIPTS_DETECTED_FULL_MATCH"]
+        self.allFeatures = self.readStatsFeatures + self.baseStatsFeatures + self.errorStatsFeatures + self.annotationStatsFeatures
 
         # this stores as key a feature that should be shown as % instead of raw numbers, and which nb to use as %
         self.feature2UpperLimitToBeUsedInPercentage={
@@ -323,6 +324,10 @@ class StatProfiler:
                                                                                                  self.tool2Stats[tool]["TOTAL_READS"])
         self.tool2Stats[tool]["GENES_DETECTED_FULL_MATCH"] = StatProfiler.processRarefractionFile(dataFolder + "/gene_full_rarefraction.txt",
                                                                                                   self.tool2Stats[tool]["TOTAL_READS"])
+        self.tool2Stats[tool]["TRANSCRIPTS_DETECTED_ANY_MATCH"] = StatProfiler.processRarefractionFile(dataFolder + "/transcript_rarefraction.txt",
+                                                                                                 self.tool2Stats[tool]["TOTAL_READS"])
+        self.tool2Stats[tool]["TRANSCRIPTS_DETECTED_FULL_MATCH"] = StatProfiler.processRarefractionFile(dataFolder + "/transcript_full_rarefraction.txt",
+                                                                                                  self.tool2Stats[tool]["TOTAL_READS"])
         '''
         Added the following fields:
         self.tool2Stats[tool]["MEAN_LENGTH"]
@@ -383,3 +388,6 @@ class StatProfiler:
 
     def getErrorStatsAsJSArrayForHOT(self):
         return self.__toJSArrayForHOT(self.errorStatsFeatures)
+
+    def getAnnotationStatsAsJSArrayForHOT(self):
+        return self.__toJSArrayForHOT(self.annotationStatsFeatures)

@@ -107,3 +107,5 @@ optional arguments:
 12. querystring (https://github.com/jgallen23/querystring)
 13. jQuery (http://jquery.com/)
 14. iziModal (http://izimodal.marcelodolce.com/)
+15. jQuery BlockUI (http://malsup.com/jquery/block/)
+16. anchorific.js (https://github.com/renettarenula/anchorific.js/)

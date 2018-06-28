@@ -1,10 +1,12 @@
 import math
-from decimal import Decimal
 import plotly
-from scipy import stats
 import numpy
 import re
 import json
+from decimal import Decimal
+from scipy import stats
+from Paralogous import Paralogous
+
 divIdCapturePattern = re.compile("id=\"(.*?)\"")
 
 class Category:
@@ -77,7 +79,7 @@ class Category:
             return [ len(interval["data"]) for interval in self.intervals ]
         else:
             total = sum( [ len(interval["data"]) for interval in self.intervals ] )
-            return [ float(len(interval["data"]))/float(total) for interval in self.intervals]
+            return [float(len(interval["data"])) / float(total) * 100 for interval in self.intervals]
 
     def __repr__(self):
         return self.intervals.__repr__()
@@ -111,7 +113,7 @@ class TextCategory:
             return [ len(interval["data"]) for interval in self.intervals ]
         else:
             total = sum( [ len(interval["data"]) for interval in self.intervals ] )
-            return [ float(len(interval["data"]))/float(total) for interval in self.intervals]
+            return [float(len(interval["data"])) / float(total) * 100 for interval in self.intervals]
 
     def __repr__(self):
         return self.intervals.__repr__()
@@ -196,25 +198,25 @@ class Plotter:
 
         return self.__buildPlots(fig, name, label2ToolIndex2Data)
 
-    def __makeDifferenceOnTheNumberOfIsoformsPlotCore(self, geneID2gene, lowestCategory, highestCategory, step, unionOrIntersection):
+    def __makeDifferenceOnTheNumberOfIsoformsPlotCore(self, geneID2gene, lowestCategory, highestCategory, step, unionOrIntersection, paralogous):
         """
         :return: a string with html code to be put in the html report
         """
         '''
         Helper functions
         '''
-        def addDifferenceOfIsoformNumber(gene, tool, tool2DifferencesCategories, unionOrIntersection):
-            nbOfIsoformsExpressedInRaw = gene.getNbOfIsoformsExpressedInTool("raw.bam")
-            nbOfIsoformsExpressedInTool = gene.getNbOfIsoformsExpressedInTool(tool)
+        def addDifferenceOfIsoformNumber(geneOrParalogousGroup, tool, tool2DifferencesCategories):
+            nbOfIsoformsExpressedInRaw = geneOrParalogousGroup.getNbOfIsoformsExpressedInTool("raw.bam")
+            nbOfIsoformsExpressedInTool = geneOrParalogousGroup.getNbOfIsoformsExpressedInTool(tool)
 
             if unionOrIntersection == "Union":
                 if nbOfIsoformsExpressedInRaw > 0 or nbOfIsoformsExpressedInTool > 0:
                     # if there is any expression in raw or tool, we add it!
-                    tool2DifferencesCategories[tool].addDataPoint(nbOfIsoformsExpressedInTool - nbOfIsoformsExpressedInRaw, gene.id)
+                    tool2DifferencesCategories[tool].addDataPoint(nbOfIsoformsExpressedInTool - nbOfIsoformsExpressedInRaw, geneOrParalogousGroup.getDataToShowInPlot())
             elif unionOrIntersection == "Intersection":
                 if nbOfIsoformsExpressedInRaw > 0 and nbOfIsoformsExpressedInTool > 0:
                     # if there is expression in both raw and tool, we add it!
-                    tool2DifferencesCategories[tool].addDataPoint(nbOfIsoformsExpressedInTool - nbOfIsoformsExpressedInRaw, gene.id)
+                    tool2DifferencesCategories[tool].addDataPoint(nbOfIsoformsExpressedInTool - nbOfIsoformsExpressedInRaw, geneOrParalogousGroup.getDataToShowInPlot())
             else:
                 raise Exception("unionOrIntersection in makeDifferenceOnTheNumberOfIsoformsPlot() should be union or intersection")
 
@@ -223,10 +225,18 @@ class Plotter:
             tool2DifferenceCategories={tool:Category(lowestCategory, highestCategory+1, step) for tool in self.toolsNoRaw}
 
             #populate tool2DifferenceCategories
-            for gene in geneID2gene.values():
-                if gene.profile.isExpressedInAnyTool():
-                    for tool in self.toolsNoRaw:
-                        addDifferenceOfIsoformNumber(gene, tool, tool2DifferenceCategories, unionOrIntersection)
+            if paralogous == None:
+                #we should just use the genes, since paralogous is None
+                for gene in geneID2gene.values():
+                    if gene.profile.isExpressedInAnyTool():
+                        for tool in self.toolsNoRaw:
+                            addDifferenceOfIsoformNumber(gene, tool, tool2DifferenceCategories)
+            else:
+                #we should use the paralogous families
+                for paralogousGroup in paralogous.getParalogousGroups():
+                    if paralogousGroup.isExpressedInAnyTool():
+                        for tool in self.toolsNoRaw:
+                            addDifferenceOfIsoformNumber(paralogousGroup, tool, tool2DifferenceCategories)
 
             return tool2DifferenceCategories
         '''
@@ -235,16 +245,18 @@ class Plotter:
 
 
         tool2DifferenceCategories = get_tool2DifferenceCategories()
-        return self.__produceBarPlot("DifferenceOnTheNumberOfIsoforms%sPlot"%unionOrIntersection, tool2DifferenceCategories, "Difference on the number of isoforms", "Number of genes", \
+        geneOrFamily = "Gene" if paralogous==None else "Family"
+        return self.__produceBarPlot("DifferenceOnTheNumberOfIsoforms%s%sPlot"%(geneOrFamily, unionOrIntersection), tool2DifferenceCategories, "Difference on the number of isoforms", "Number of %s"%geneOrFamily, \
                                      displayPlusOnFirstItem=True, displayPlusOnLastItem=True, generateDataToBeShown=True)
 
 
-    def makeDifferenceOnTheNumberOfIsoformsPlot(self, geneID2gene, lowestCategory=-3, highestCategory=3, step=1):
+    def makeDifferenceOnTheNumberOfIsoformsPlot(self, geneID2gene, lowestCategory=-3, highestCategory=3, step=1, paralogous=None):
         """
         :return: Two plots, one with the union (genes in the raw or in the tool) and the other with the intersection
         """
-        return self.__makeDifferenceOnTheNumberOfIsoformsPlotCore(geneID2gene, lowestCategory, highestCategory, step, "Union"), \
-               self.__makeDifferenceOnTheNumberOfIsoformsPlotCore(geneID2gene, lowestCategory, highestCategory, step, "Intersection")
+        return self.__makeDifferenceOnTheNumberOfIsoformsPlotCore(geneID2gene, lowestCategory, highestCategory, step, "Intersection", None), \
+               self.__makeDifferenceOnTheNumberOfIsoformsPlotCore(geneID2gene, lowestCategory, highestCategory, step, "Intersection", paralogous) if paralogous != None else Paralogous.getErrorMessage()
+
 
 
     def makeLostTranscriptInGenesWSP2Plot(self, geneID2gene, blankSpace=0.1):
@@ -306,6 +318,15 @@ class Plotter:
         return self.__buildPlots(fig, name)
 
     def makeScatterPlotSizeParalogFamilies(self, geneID2gene, paralogous, disregardUnchangedGeneFamilies=False, includeOnlyCommonGenes=False):
+        if paralogous==None:
+            return {
+                    "imagePlot": Paralogous.getErrorMessage(),
+                    "jsPlot": Paralogous.getErrorMessage()
+                }, {
+                    "imagePlot": Paralogous.getErrorMessage(),
+                    "jsPlot": Paralogous.getErrorMessage()
+                }
+
         try:
             name = "ScatterPlotSizeParalogFamilies"
             if disregardUnchangedGeneFamilies:
@@ -313,27 +334,16 @@ class Plotter:
             if includeOnlyCommonGenes:
                 name += "_OnlyCommonGenes"
 
-            def get_paralogousGenesFamilySizeInTool(paralogousGroups, tool):
-                paralogousGenesFamilySize=[]
-                for paralogousGroup in paralogousGroups:
-                    paralogousGeneFamilySize = 0
-                    for geneId in paralogousGroup:
-                        if geneID2gene[geneId].profile.isExpressedInTool(tool):
-                            paralogousGeneFamilySize += 1
-                    paralogousGenesFamilySize.append(paralogousGeneFamilySize)
-
-                return paralogousGenesFamilySize
-
             paralogousGroups = paralogous.getParalogousGroups()
 
-            paralogousGeneFamilySizeBeforeCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, "raw.bam")
+            paralogousGeneFamilySizeBeforeCorrection = [paralogousGroup.getGeneFamilySizeInTool("raw.bam") for paralogousGroup in paralogousGroups]
 
             #get all the data to plot it
             tool2PlotData={tool:{} for tool in self.toolsNoRaw}
             labels = ["Shrunk", "Unchanged", "Expanded"]
             tool2GeneralStatsCategories = {tool : TextCategory(labels) for tool in self.toolsNoRaw}
             for tool in self.toolsNoRaw:
-                paralogousGeneFamilySizeAfterCorrection = get_paralogousGenesFamilySizeInTool(paralogousGroups, tool)
+                paralogousGeneFamilySizeAfterCorrection = [paralogousGroup.getGeneFamilySizeInTool(tool) for paralogousGroup in paralogousGroups]
 
                 #get the data points:
                 #x = family size before correction
@@ -348,7 +358,7 @@ class Plotter:
                         if not disregardUnchangedGeneFamilies or \
                            (disregardUnchangedGeneFamilies and paralogousGeneFamilySizeBeforeCorrection[i]!=paralogousGeneFamilySizeAfterCorrection[i]):
                             dataPoints.append((paralogousGeneFamilySizeBeforeCorrection[i], paralogousGeneFamilySizeAfterCorrection[i]))
-                            familyDescription = "Family %d: %s"%(i, ", ".join(paralogousGroups[i]))
+                            familyDescription = paralogousGroups[i].getDescription()
                             if paralogousGeneFamilySizeBeforeCorrection[i] < paralogousGeneFamilySizeAfterCorrection[i]:
                                 tool2GeneralStatsCategories[tool].addDataPointAndIAlreadyKnowTheCategory("Expanded", familyDescription)
                             elif paralogousGeneFamilySizeBeforeCorrection[i] > paralogousGeneFamilySizeAfterCorrection[i]:
