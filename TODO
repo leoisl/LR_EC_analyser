@@ -1,5 +1,6 @@
-To do: find out why there is a peak of lost isoforms at 0.9-1%, maybe it is because there are just more isoforms at 0.9-1 than at 0.8-0.9, would perhaps need to normalize each bin w.r.t number of isoforms in bin.
-
+Immediat:
+    -To do: find out why there is a peak of lost isoforms at 0.9-1%, maybe it is because there are just more isoforms at 0.9-1 than at 0.8-0.9, would perhaps need to normalize each bin w.r.t number of isoforms in bin.
+    -Helene propose de montrer une famille de gène (réelle) où on voit un exon perdu. Juste pour concrétiser
 
 High Priority:
     -Finish paper, then check the rest
