@@ -18,6 +18,10 @@ all your options are tailored for correcting genomic long reads. This tool aims 
 error correctors when applied to a RNA long reads dataset. This tool is not suited to evaluate how well the tools perform on correction DNA long reads.
 It can help users choose which error corrector to use on a specific transcritome dataset.
 
+# Example on a read dataset
+To know if LR_EC_analyser is useful for you, you can check the latest tool report on a Mouse RNA ONT 1D reads evaluating the following correctors:
+LoRDEC, NaS, PBcR, proovread, canu, daccord, LoRMA, MECAT, and pbdagcon here: [http://leoisl.gitlab.io/LR_EC_analyser_support/](http://leoisl.gitlab.io/LR_EC_analyser_support/)
+
 # Installing
 
 For installing and running the script, please have pre-installed
