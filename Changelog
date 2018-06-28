@@ -1,3 +1,13 @@
+v0.0.6:
+    -Added Annotation stats plots
+    -Difference on the number of isoforms of a gene before and after correction now considers only genes expressed in BOTH the raw reads AND the tool
+    -Added Gene-family scale Difference on the number of isoforms of a gene before and after correction plot
+    -Added html anchors
+    -Added loading animation
+    -Created a support web page (for now contains only the v00.06 small report): http://leoisl.gitlab.io/LR_EC_analyser_support/
+    -Fixed some bugs
+
+
 v0.0.5:
     -Plots are more interactive: now we can click on the bar of some plots and retrieve list of gene families/genes/transcripts
     -Hybrid EC now come always before Self EC
