@@ -4,7 +4,7 @@ v0.0.6:
     -Added Gene-family scale Difference on the number of isoforms of a gene before and after correction plot
     -Added html anchors
     -Added loading animation
-    -Created a support web page (for now contains only the v00.06 small report): http://leoisl.gitlab.io/LR_EC_analyser_support/
+    -Created a support web page (for now contains only the v0.06 small report): http://leoisl.gitlab.io/LR_EC_analyser_support/
     -Fixed some bugs
 
 
