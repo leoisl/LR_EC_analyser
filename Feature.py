@@ -71,6 +71,9 @@ class Feature:
         else:
             return float(featureExpression)/float(parentExpression)
 
+    def getDataToShowInPlot(self):
+        return self.id
+
 
 
 class Gene(Feature):

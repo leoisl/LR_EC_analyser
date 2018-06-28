@@ -226,10 +226,20 @@ To know how we computed the paralogous gene families, see: <a href="https://gitl
 <h1>Correction towards major isoform plots</h1>
 
 <h2>Difference on the number of isoforms of a gene before and after correction</h2>
-Negative values: isoforms were lost. Positive values: isoforms were gained.<br/>
+<h3>Gene scale</h3>
 The genes taken into account here must be expressed in BOTH the raw reads AND the tool.<br/>
+Negative values: isoforms of a gene were lost - it could be that they were just removed by the correction, or after correction all reads mapped to another gene.<br/>
+Positive values: isoforms of a gene were gained.<br/>
 <h4 style="color: red">Click on a bar to retrieve all genes belonging to it!</h4>
 <htmlDifferenceOnTheNumberOfIsoformsPlotIntersection>
+
+<h3>Gene-family scale</h3>
+The gene <b>families</b> taken into account here must be expressed in BOTH the raw reads AND the tool.<br/>
+Negative values: isoforms of a gene-family were lost - it could be that they were just removed by the correction, or after correction all reads mapped to another gene-family.<br/>
+Positive values: isoforms of a gene-family were gained.<br/>
+In comparison with the previous plot, it allows to check if paralogs "exchange" their isoforms after error-correction
+<h4 style="color: red">Click on a bar to retrieve all genes belonging to it!</h4>
+<htmlDifferenceOnTheNumberOfIsoformsGeneFamilyPlotIntersection>
 
 <h2>Lost transcripts in genes with Splicing Complexity 2+</h2>
 The genes taken into account here must be expressed in BOTH the raw AND the tool taken into consideration.<br/>

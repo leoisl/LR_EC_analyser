@@ -1,14 +1,66 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+
+class ParalogousGroup:
+    """
+    Represent a paralogous group or family
+    """
+    def __init__(self, id, group=[]):
+        self.id = id #family ID, an int
+        self.group=group #the genes in this family, list of Feature
+
+    def addGenesFromOtherGroup(self, otherGroup):
+        self.group+=otherGroup.group
+
+    def clearGroup(self):
+        del self.group[:]
+
+    def getDescription(self):
+        return "Family %d: %s" % (self.id, ", ".join([gene.id for gene in self.group]))
+
+    def getGeneFamilySizeInTool(self, tool):
+        paralogousGeneFamilySize = 0
+        for gene in self.group:
+            if gene.profile.isExpressedInTool(tool):
+                paralogousGeneFamilySize += 1
+        return paralogousGeneFamilySize
+
+    def isExpressedInTool(self, tool):
+        """
+        Check if any of the genes is expressed in the given tool
+        """
+        return any([gene.profile.isExpressedInTool(tool) for gene in self.group])
+
+    def isExpressedInAnyTool(self):
+        """
+        Check if any of the genes is expressed in any tool
+        """
+        return any([gene.profile.isExpressedInAnyTool() for gene in self.group])
+
+    def getNbOfIsoformsExpressedInTool(self, tool):
+        """
+        Get the nb of isoforms expressed in the given tool for all genes of the family
+        """
+        return sum([gene.getNbOfIsoformsExpressedInTool(tool) for gene in self.group])
+
+    def getDataToShowInPlot(self):
+        return self.getDescription()
+
 class Paralogous:
     """
     Represents the groups of paralogous genes
     Each group of paralogous genes has an ID and its genes
     """
     def __init__(self, geneID2gene):
+        self.geneID2gene = geneID2gene
         self.paralogousGeneId2IdGroup={geneId:i for i, geneId in enumerate(geneID2gene.keys())} #create a union-find structure
-        self.idGroup2paralogousGenes = {i:[geneId] for i, geneId in enumerate(geneID2gene.keys())}  # create a union-find structure
+        self.idGroup2paralogousGroup = {i:ParalogousGroup(i, [geneID2gene[geneId]]) for i, geneId in enumerate(geneID2gene.keys())}  # create a union-find structure
+
+
+    @staticmethod
+    def getErrorMessage():
+        return "<p style='color: red; font-size: large;'>Paralogous file (--paralogous parameter) was not given, so we did not produce this plot. </p>"
 
 
     def __addParalogousRelation(self, geneId1, geneId2):
@@ -26,40 +78,16 @@ class Paralogous:
 
         idGroup1 = self.paralogousGeneId2IdGroup[geneId1]
         idGroup2 = self.paralogousGeneId2IdGroup[geneId2]
-        paralogousGenes1 = self.idGroup2paralogousGenes[idGroup1]
-        paralogousGenes2 = self.idGroup2paralogousGenes[idGroup2]
+        paralogousGroup1 = self.idGroup2paralogousGroup[idGroup1]
+        paralogousGroup2 = self.idGroup2paralogousGroup[idGroup2]
         if idGroup1<idGroup2:
             self.paralogousGeneId2IdGroup[geneId2] = idGroup1
-            paralogousGenes1+=paralogousGenes2
-            del paralogousGenes2[:] #clearing this list of genes, since it was added to paralogousGenes1
+            paralogousGroup1.addGenesFromOtherGroup(paralogousGroup2)
+            paralogousGroup2.clearGroup()
         elif idGroup1>idGroup2:
             self.paralogousGeneId2IdGroup[geneId1] = idGroup2
-            paralogousGenes2 += paralogousGenes1
-            del paralogousGenes1[:]  # clearing this list of genes, since it was added to paralogousGenes2
-
-    '''
-    def __fixGroupsId(self):
-        """
-        This function is not needed, but I am leaving it just in case...
-        Fix the groups id, i.e., if the groups id are 5, 8 and 9, after this function call, they will be 0, 1, 2
-
-        """
-        # TODO: recode this, it is not good
-        #get the sorted unique groups id
-        sortedGroupsId = sorted(list(self.paralogousGeneId2IdGroup.values()))
-        uniqueGroupsId = []
-        for id in sortedGroupsId:
-            if id not in uniqueGroupsId:
-                uniqueGroupsId.append(id)
-
-        #update the groups id
-        oldId2NewId = {id : i for i, id in enumerate(uniqueGroupsId)}
-        for geneId in self.paralogousGeneId2IdGroup:
-            self.paralogousGeneId2IdGroup[geneId]=oldId2NewId[self.paralogousGeneId2IdGroup[geneId]]
-
-        #update the size
-        self.groupSize = max(oldId2NewId.values())+1
-    '''
+            paralogousGroup2.addGenesFromOtherGroup(paralogousGroup1)
+            paralogousGroup1.clearGroup()
 
     def readParalogousFile(self, filename):
         """
@@ -77,6 +105,6 @@ class Paralogous:
 
     def getParalogousGroups(self):
         """
-        :return: a list where each element is a paralogous group (a list of paralogous genes)
+        :return: a list where each element is a ParalogousGroup
         """
-        return self.idGroup2paralogousGenes.values()
+        return self.idGroup2paralogousGroup.values()
