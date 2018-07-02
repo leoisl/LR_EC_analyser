@@ -3,7 +3,7 @@
 
 import gzip
 import urllib
-from Plotter import Category
+from Category import *
 
 class FeatureProfiler:
     """
@@ -241,9 +241,9 @@ class StatProfiler:
                     line[1]=="unaligned"
             -Column 4 is read length
         '''
-        alignedSizeBins = Category(self.start, self.end, self.step)
-        unalignedSizeBins = Category(self.start, self.end, self.step)
-        totalSizeBins = Category(self.start, self.end, self.step)
+        alignedSizeBins = NumberCategory(self.start, self.end, self.step)
+        unalignedSizeBins = NumberCategory(self.start, self.end, self.step)
+        totalSizeBins = NumberCategory(self.start, self.end, self.step)
         alignedReadsClassifications=["original", "gapped", "self-chimera", "self-chimera-atypical", "chimera"]
         unalignedReadsClassifications = ["unaligned"]
 

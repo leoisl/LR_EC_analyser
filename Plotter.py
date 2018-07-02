@@ -6,120 +6,9 @@ import json
 from decimal import Decimal
 from scipy import stats
 from Paralogous import Paralogous
+from Category import *
 
 divIdCapturePattern = re.compile("id=\"(.*?)\"")
-
-class Category:
-    def __init__(self, start, end, step):
-        if type(start) is float or type(end) is float or type(step) is float:
-            raise Exception("Do not user float as type to class Category, it is error-prone. Use int for integer intervals or decimal.Decimal for real intervals.")
-
-        self.intervals=[]
-        while start<end:
-            self.intervals.append({"min": start, "max": start+step, "data": []})
-            start+=step
-
-    def getCategoriesAsString(self, displayInterval=False, displayPlusOnFirstItem=False, displayPlusOnLastItem=False):
-        """
-        transform the intervals list into a list of string that will be the xlabels of the plot
-        Basically, transform a vector like [-2, -1, 0, 1, 2] into ["-2+", "-1", "0", "+1", "+2+"]
-        :return: list of string
-        """
-        intervalsAsString = []
-        for i, interval in enumerate(self.intervals):
-            if not displayInterval:
-                lowerBound = interval["min"]
-                # set the prefix
-                prefix = "("
-                if lowerBound > 0:
-                    prefix += "+"
-
-                # set the suffix
-                suffix = ""
-                if (displayPlusOnFirstItem and i == 0) or (displayPlusOnLastItem and i == len(self.intervals) - 1):
-                    suffix += "+"
-                suffix += ")"
-
-                intervalsAsString.append(prefix + str(lowerBound) + suffix)
-            else:
-                if i < len(self.intervals) - 1 or not displayPlusOnLastItem:
-                    intervalsAsString.append("[%s,%s)" % (interval["min"], interval["max"]))
-                else:
-                    intervalsAsString.append("%s+"%(interval["min"]))
-
-        return intervalsAsString
-
-    def addDataPoint(self, point, dataToSave):
-        """
-        :param point: it is the value of the dataToSave - we use this to infer the category
-        :return:
-        """
-        nbOfCategoriesItFit = 0
-
-        if point < self.intervals[0]["min"]:
-            self.intervals[0]["data"].append(dataToSave)
-            nbOfCategoriesItFit += 1
-        if point >= self.intervals[-1]["max"]:
-            self.intervals[-1]["data"].append(dataToSave)
-            nbOfCategoriesItFit += 1
-
-        for i, interval in enumerate(self.intervals):
-            if point >= interval['min'] and point < interval['max']:
-                interval["data"].append(dataToSave)
-                nbOfCategoriesItFit += 1
-
-        if nbOfCategoriesItFit != 1:
-            raise Exception("ERROR: %d fit %d categories..." % (point, nbOfCategoriesItFit))
-
-    def __len__(self):
-        return len(self.intervals)
-
-    def getIntervalCount(self, inPercentage=False):
-        if not inPercentage:
-            return [ len(interval["data"]) for interval in self.intervals ]
-        else:
-            total = sum( [ len(interval["data"]) for interval in self.intervals ] )
-            return [float(len(interval["data"])) / float(total) * 100 for interval in self.intervals]
-
-    def __repr__(self):
-        return self.intervals.__repr__()
-
-    def __str__(self):
-        return str(self.intervals)
-
-#TODO: refactor this by making a base class for Category and TextCategory
-class TextCategory:
-    """
-    Class that represent categories, but as text
-    """
-    def __init__(self, categories):
-        self.intervals=[{"category": category, "data": []} for category in categories]
-
-    def getCategoriesAsString(self, displayInterval=False, displayPlusOnFirstItem=False, displayPlusOnLastItem=False):
-        return [interval["category"] for interval in self.intervals]
-
-    def addDataPointAndIAlreadyKnowTheCategory(self, category, dataToSave):
-        categoriesAsString = self.getCategoriesAsString()
-        if category not in categoriesAsString:
-            raise Exception("ERROR: non-existing category: %s..." % category)
-        else:
-            self.intervals[categoriesAsString.index(category)]["data"].append(dataToSave)
-
-    def __len__(self):
-        return len(self.intervals)
-
-    def getIntervalCount(self, inPercentage=False):
-        if not inPercentage:
-            return [ len(interval["data"]) for interval in self.intervals ]
-        else:
-            total = sum( [ len(interval["data"]) for interval in self.intervals ] )
-            return [float(len(interval["data"])) / float(total) * 100 for interval in self.intervals]
-
-    def __repr__(self):
-        return self.intervals.__repr__()
-
-    def __str__(self):
-        return str(self.intervals)
 
 class Plotter:
     """
@@ -170,13 +59,13 @@ class Plotter:
             "jsPlot": htmlPlotCode
         }
 
-    def __produceBarPlot(self, name, tool2Categories, xlabel, ylabel, displayInterval=False, displayPlusOnFirstItem=False, displayPlusOnLastItem=False, generateDataToBeShown=False, inPercentage=False):
+    def __produceBarPlot(self, name, tool2Categories, xlabel, ylabel, displayInterval=False, displayPlusOnFirstItem=False, displayPlusOnLastItem=False, generateDataToBeShown=False, inPercentage=False, denominatorForEachInterval=None):
         #produce the plot
         xLabels = tool2Categories.values()[0].getCategoriesAsString(displayInterval, displayPlusOnFirstItem, displayPlusOnLastItem)
 
         data = [plotly.graph_objs.Bar(
                 x=xLabels,
-                y=tool2Categories[tool].getIntervalCount(inPercentage),
+                y=tool2Categories[tool].getIntervalCount(inPercentage, denominatorForEachInterval),
                 name=tool)
                 for tool in self.toolsNoRaw]
 
@@ -222,7 +111,7 @@ class Plotter:
 
         #builds tool2DifferencesCategories - for each tool, we have an array with (tool.expression - raw.expression) for each gene and transcript
         def get_tool2DifferenceCategories():
-            tool2DifferenceCategories={tool:Category(lowestCategory, highestCategory+1, step) for tool in self.toolsNoRaw}
+            tool2DifferenceCategories={tool:NumberCategory(lowestCategory, highestCategory+1, step) for tool in self.toolsNoRaw}
 
             #populate tool2DifferenceCategories
             if paralogous == None:
@@ -259,13 +148,13 @@ class Plotter:
 
 
 
-    def makeLostTranscriptInGenesWSP2Plot(self, geneID2gene, blankSpace=0.1):
+    def makeLostTranscriptInGenesWSP2Plot(self, geneID2gene):
         '''
         Helper functions
         '''
         # builds tool2RelativeTranscriptOfLostTranscriptCategories
         def get_tool2RelativeTranscriptOfLostTranscriptCategories():
-            tool2RelativeTranscriptOfLostTranscriptCategories = {tool: Category(Decimal("0.0"), Decimal("1.0"), Decimal("0.1")) for tool in self.toolsNoRaw}
+            tool2RelativeTranscriptOfLostTranscriptCategories = {tool: NumberCategory(Decimal("0.0"), Decimal("1.0"), Decimal("0.1")) for tool in self.toolsNoRaw}
 
             # populate tool2RelativeTranscriptOfLostTranscriptCategories
             for gene in geneID2gene.values():
@@ -281,11 +170,39 @@ class Plotter:
 
             return tool2RelativeTranscriptOfLostTranscriptCategories
 
+        # builds nbIsoformsInRawInEachCategory
+        def get_nbIsoformsInRawInEachCategory():
+            #compute the nbOfIsoformsInRawInEachCategory
+            isoformsInRawInEachCategory = NumberCategory(Decimal("0.0"), Decimal("1.0"), Decimal("0.1"))
+            for gene in geneID2gene.values():
+                if gene.profile.isExpressedInTool("raw.bam"):
+                    for transcript in gene.transcriptId2Transcript.values():
+                        if transcript.profile.isExpressedInTool("raw.bam"):
+                            isoformsInRawInEachCategory.addDataPoint(transcript.computeRelativeExpression("raw.bam"), None)
+            return isoformsInRawInEachCategory.getIntervalCount()
+
         '''
         Helper functions
         '''
         tool2RelativeTranscriptOfLostTranscriptCategories = get_tool2RelativeTranscriptOfLostTranscriptCategories()
-        return self.__produceBarPlot("LostTranscriptInGenesWSP2Plot", tool2RelativeTranscriptOfLostTranscriptCategories, "Relative transcript coverage in relation to gene coverage", "Number of transcripts", displayInterval=True, generateDataToBeShown=True)
+        nbIsoformsInRawInEachCategory = get_nbIsoformsInRawInEachCategory()
+        return self.__produceBarPlot("LostTranscriptInGenesWSP2Plot", tool2RelativeTranscriptOfLostTranscriptCategories, "Relative transcript coverage in relation to gene coverage", "Number of transcripts", displayInterval=True, generateDataToBeShown=True), \
+               self.__produceBarPlot("LostTranscriptInGenesWSP2NormalizedPlot", tool2RelativeTranscriptOfLostTranscriptCategories, "Relative transcript coverage in relation to gene coverage normalized", "Number of transcripts (%)", displayInterval=True, generateDataToBeShown=True, inPercentage=True, denominatorForEachInterval=nbIsoformsInRawInEachCategory)
+
+    def buildRelativeTranscriptCoverageHistory(self, geneID2gene):
+        tanscriptID2Tool2ExpressionLevel={}
+        for gene in geneID2gene.values():
+            if gene.profile.isExpressedInAnyTool():
+                for tool in self.tools:
+                    if gene.profile.isExpressedInTool(tool):  # the gene must be expressed in the raw and in the tool - otherwise we are not looking at the lost transcript, but rather at lost genes
+                        for transcript in gene.transcriptId2Transcript.values():
+                            if transcript.profile.isExpressedInTool(tool):
+                                if transcript.id not in tanscriptID2Tool2ExpressionLevel:
+                                    tanscriptID2Tool2ExpressionLevel[transcript.id]={}
+
+                                # if the transcript is in raw, but it is not in the tool, then this transcript "disappeared"
+                                # add the relative transcript coverage in raw dataset
+                                tool2RelativeTranscriptOfLostTranscriptCategories[tool].addDataPoint(transcript.computeRelativeExpression("raw.bam"), transcript.id)
 
     def makeDifferencesInRelativeExpressionsBoxPlot(self, geneID2gene):
         def get_tool2DifferencesInRelativeExpressions():

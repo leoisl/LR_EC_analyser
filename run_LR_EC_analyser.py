@@ -190,7 +190,7 @@ def main():
 
     htmlDifferenceOnTheNumberOfIsoformsPlotIntersection, htmlDifferenceOnTheNumberOfIsoformsGeneFamilyPlotIntersection \
         = plotter.makeDifferenceOnTheNumberOfIsoformsPlot(geneID2gene, -3, 3, 1, paralogous)
-    htmlLostTranscriptInGenesWSP2Plot = plotter.makeLostTranscriptInGenesWSP2Plot(geneID2gene)
+    htmlLostTranscriptInGenesWSP2Plot, htmlLostTranscriptInGenesWSP2NormalizedPlot = plotter.makeLostTranscriptInGenesWSP2Plot(geneID2gene)
     htmlDifferencesInRelativeExpressionsBoxPlot = plotter.makeDifferencesInRelativeExpressionsBoxPlot(geneID2gene)
     htmlScatterPlotCoverageOfMainIsoform = plotter.makeScatterPlotCoverageOfMainIsoform(geneID2gene)
 
@@ -250,6 +250,8 @@ def main():
                                           htmlDifferenceOnTheNumberOfIsoformsGeneFamilyPlotIntersection)
         callFunctionAndPopulateTheReports(i, "<htmlLostTranscriptInGenesWSP2Plot>", linesHTMLReport, linesHighResHTMLReport, \
                                           htmlLostTranscriptInGenesWSP2Plot)
+        callFunctionAndPopulateTheReports(i, "<htmlLostTranscriptInGenesWSP2NormalizedPlot>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlLostTranscriptInGenesWSP2NormalizedPlot)
         callFunctionAndPopulateTheReports(i, "<htmlDifferencesInRelativeExpressionsBoxPlot>", linesHTMLReport, linesHighResHTMLReport, \
                                           htmlDifferencesInRelativeExpressionsBoxPlot)
         callFunctionAndPopulateTheReports(i, "<tools>", linesHTMLReport, linesHighResHTMLReport, \
