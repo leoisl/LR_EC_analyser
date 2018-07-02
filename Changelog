@@ -1,3 +1,8 @@
+v0.0.7:
+    -Added a warning on the error stats plot regarding the sampling;
+    -Added a normalized "Lost transcripts in genes with Splicing Complexity 2+" plot;
+    -Some refactoring and bug correction.
+
 v0.0.6:
     -Added Annotation stats plots
     -Difference on the number of isoforms of a gene before and after correction now considers only genes expressed in BOTH the raw reads AND the tool
