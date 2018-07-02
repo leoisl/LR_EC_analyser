@@ -189,6 +189,8 @@ class Plotter:
         return self.__produceBarPlot("LostTranscriptInGenesWSP2Plot", tool2RelativeTranscriptOfLostTranscriptCategories, "Relative transcript coverage in relation to gene coverage", "Number of transcripts", displayInterval=True, generateDataToBeShown=True), \
                self.__produceBarPlot("LostTranscriptInGenesWSP2NormalizedPlot", tool2RelativeTranscriptOfLostTranscriptCategories, "Relative transcript coverage in relation to gene coverage normalized", "Number of transcripts (%)", displayInterval=True, generateDataToBeShown=True, inPercentage=True, denominatorForEachInterval=nbIsoformsInRawInEachCategory)
 
+    '''
+    TODO: removed - we might need to check finish this later - this would try to explain how an isoform were lost after correctio - we need js code also
     def buildRelativeTranscriptCoverageHistory(self, geneID2gene):
         tanscriptID2Tool2ExpressionLevel={}
         for gene in geneID2gene.values():
@@ -203,6 +205,8 @@ class Plotter:
                                 # if the transcript is in raw, but it is not in the tool, then this transcript "disappeared"
                                 # add the relative transcript coverage in raw dataset
                                 tool2RelativeTranscriptOfLostTranscriptCategories[tool].addDataPoint(transcript.computeRelativeExpression("raw.bam"), transcript.id)
+    '''
+
 
     def makeDifferencesInRelativeExpressionsBoxPlot(self, geneID2gene):
         def get_tool2DifferencesInRelativeExpressions():
