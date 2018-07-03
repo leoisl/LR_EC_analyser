@@ -463,6 +463,7 @@ class Plotter:
                 x=range(len(labels)),
                 y=statProfiler.tool2Stats[tool][feature].getIntervalCount(),
                 mode='lines+markers',
+                fill='tozeroy' if tool=="raw.bam" else "none",
                 name="%s"%(tool)
                 ))
 
