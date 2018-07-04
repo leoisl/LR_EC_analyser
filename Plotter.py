@@ -354,9 +354,13 @@ class Plotter:
                 raise exception #unexpected error
 
 
-    def makeScatterPlotCoverageOfMainIsoform(self, geneID2gene):
-        name = "ScatterPlotCoverageOfMainIsoform"
-
+    def makeScatterPlotCoverage(self, geneID2gene, featureAsString):
+        """
+        Make the scatter plot of the coverage of the feature
+        :param geneID2gene:
+        :param featureAsString: "MainIsoforms", "Genes", or "Isoforms"
+        :return:
+        """
         # get all the data to plot it
         tool2PlotData = {tool: {} for tool in self.toolsNoRaw}
         for tool in self.toolsNoRaw:
@@ -366,10 +370,19 @@ class Plotter:
             tool2PlotData[tool]["xDataPoints"] = []
             tool2PlotData[tool]["yDataPoints"] = []
             for gene in geneID2gene.values():
-                mainIsoform = gene.getMainIsoform()
-                if mainIsoform.profile.isExpressedInTool("raw.bam"): #filtering out the cases where the main isoform has 0 reads mapping to it
-                    tool2PlotData[tool]["xDataPoints"].append(mainIsoform.profile.tool2NbOfMappedReads["raw.bam"])
-                    tool2PlotData[tool]["yDataPoints"].append(mainIsoform.profile.tool2NbOfMappedReads[tool])
+                if featureAsString=="MainIsoforms":
+                    features = [gene.getMainIsoform()]
+                elif featureAsString=="Genes":
+                    features = [gene]
+                elif featureAsString=="Isoforms":
+                    features = gene.transcriptId2Transcript.values()
+                else:
+                    raise Exception("Error: featureAsString = %s not valid in function makeScatterPlotCoverage()"%featureAsString)
+
+                for feature in features:
+                    if feature.profile.isExpressedInTool("raw.bam") or feature.profile.isExpressedInTool(tool):
+                        tool2PlotData[tool]["xDataPoints"].append(feature.profile.tool2NbOfMappedReads["raw.bam"])
+                        tool2PlotData[tool]["yDataPoints"].append(feature.profile.tool2NbOfMappedReads[tool])
 
         highestExpression = max([max(max(plotData["xDataPoints"]), max(plotData["yDataPoints"])) for plotData in tool2PlotData.values()])
 
@@ -420,8 +433,8 @@ class Plotter:
         fig['layout'].update(height=nbRowsInSubplot * 400, width=nbOfColumnsInSubplot * 400, showlegend=False)
 
         for toolIndex, tool in enumerate(self.toolsNoRaw):
-            fig['layout']['xaxis%d' % (toolIndex + 1)].update(range=[0, int(math.ceil(highestExpression*1.1))+1], title="Main isoform coverage before" if toolIndex==0 else "")
-            fig['layout']['yaxis%d' % (toolIndex + 1)].update(range=[0, int(math.ceil(highestExpression*1.1))+1], title="Main isoform coverage after" if toolIndex==0 else "")
+            fig['layout']['xaxis%d' % (toolIndex + 1)].update(range=[0, int(math.ceil(highestExpression*1.1))+1], title="%s coverage before"%featureAsString if toolIndex==0 else "")
+            fig['layout']['yaxis%d' % (toolIndex + 1)].update(range=[0, int(math.ceil(highestExpression*1.1))+1], title="%s coverage after"%featureAsString if toolIndex==0 else "")
             fig['layout']['shapes'].append(dict({
                 'xref': "x%d"%(toolIndex+1),
                 'yref': "y%d"%(toolIndex+1),
@@ -436,6 +449,7 @@ class Plotter:
         #
         fig['layout']['annotations'].extend(rSquaredAnnotations)
 
+        name = "ScatterPlotCoverageOf%s"%featureAsString
         return self.__buildPlots(fig, name)
 
     def makeBarPlotFromStats(self, statProfiler, metric):
