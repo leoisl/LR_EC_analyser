@@ -1,5 +1,4 @@
 Immediat:
-    -To do: find out why there is a peak of lost isoforms at 0.9-1%, maybe it is because there are just more isoforms at 0.9-1 than at 0.8-0.9, would perhaps need to normalize each bin w.r.t number of isoforms in bin.
     -Helene propose de montrer une famille de gène (réelle) où on voit un exon perdu. Juste pour concrétiser
 
 High Priority:
@@ -7,13 +6,6 @@ High Priority:
 
     -Annotation stats plots to become interactive showing the genes/transcripts when clicking on the bars?
 
-    -How does error correction affects read quantification
-        -True quantification is given by Illumina
-            -Then we always need the Illumina data, which might not be available.
-            -In this case, true quantification is given by raw long reads?
-        -Or should we simply receive a file with <transcript> <quant> and assume it as the quantification?
-            -Like this, the user can use any method he/she relies for quantification.
-        -Get the scatter plot and r^2 for raw x Illumina, and each tool x Illumina
 
     -I guess the main problem for error correcting are repeats.
         -In DNA, repeats appear in form of repeats themselves.
@@ -55,7 +47,3 @@ Low priority:
     -Paralogous
         -How to really get families of paralogous genes???
             -Is the method I am doing correctly?
-
-    -Think about new plots:
-        -Quantif correlation between the raw and error correction tools?
-            -Like what Camille does with the quantif of Nanopore vs Illumina
