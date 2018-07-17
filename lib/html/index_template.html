@@ -213,7 +213,7 @@ If two or more alignment paths are reasonably spaced across the read, and can to
 This scatterplot shows the sizes of the paralogous gene families before and after correction.<br/>
 To know how we computed the paralogous gene families, see: <a href="https://gitlab.com/leoisl/LR_EC_analyser/blob/master/GettingParalogs.txt" target="_blank">https://gitlab.com/leoisl/LR_EC_analyser/blob/master/GettingParalogs.txt</a><br/>
 However, here we just take into consideration paralogous gene families with cardinality 2+.<br/>
-This is because the large majority of gene families has cardinality 1 and such families are not interesting here.<br/>
+This is because the large majority of gene families has cardinality 1 (see <a href="#paralogous-gene-families-size-distribution-">Paralogous gene families size distribution</a>) and such families are not interesting here.<br/>
 Given a tool, the size of a <b>expressed</b> paralogous gene family is the number of genes expressed in a given gene family for that tool.<br/>
 For example, if a gene family has 10 members, and 8 are expressed in the raw data, and 2 are expressed after the correction,<br/>
 we can say that the size of this gene family before the correction is 8, and after, 2.<br/>
@@ -226,21 +226,25 @@ We can then conclude that the correction shrinked the paralogous gene family, pr
 
 <h2>Detailed view of paralog families change per tool:</h2>
 The color code of a data point is the # of gene families on that data point.<br/>
+
+<!-- TODO: not sure if this is still needed...
 <input type="radio" name="Collapsing_gene_families_show_option" id="Collapsing_gene_families_show_option_ALL" value="A"> Show all paralogous gene families<br/>
 <input type="radio" name="Collapsing_gene_families_show_option" id="Collapsing_gene_families_show_option_NO_DIAG" value="ND" checked> Hide paralogous genes families that were unchanged (diagonal line)<br/>
 <input type="radio" name="Collapsing_gene_families_show_option" id="Collapsing_gene_families_show_option_NO_DIAG_NO_ZERO" value="NDN0"> Hide paralogous genes families that were unchanged (diagonal line) and keep only the ones expressed both before and after correction (hide gene families such that x=0 or y=0)<br/>
 
 <div id="htmlScatterPlotSizeParalogFamilies_A" style="display: none;">
-<htmlScatterPlotSizeParalogFamilies>
+<htmlScatterPlotSizeParalogFamilies TODO: IF ADD BACK, PLEASE REMOVE THIS>
 </div>
 
 <div id="htmlScatterPlotSizeParalogFamilies_ND" style="display: none;">
-<htmlScatterPlotSizeParalogFamiliesExcluingUnchanged>
+<htmlScatterPlotSizeParalogFamiliesExcluingUnchanged TODO: IF ADD BACK, PLEASE REMOVE THIS>
 </div>
 
 <div id="htmlScatterPlotSizeParalogFamilies_NDN0" style="display: none;">
-<htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes>
+<htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes TODO: IF ADD BACK, PLEASE REMOVE THIS>
 </div>
+-->
+<htmlScatterPlotSizeParalogFamilies>
 
 <br/><br/>
 <h1>Correction towards major isoform plots</h1>
