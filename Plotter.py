@@ -367,7 +367,6 @@ class Plotter:
         geneFamilySize2Count={}
         for paralogousGroup in paralogous.getParalogousGroups():
             paralogousGroupSize = paralogousGroup.getGeneFamilySize()
-            print "Group: %s, size: %d"%(paralogousGroup.getDescription(), paralogousGroupSize)
             if paralogousGroupSize not in geneFamilySize2Count:
                 geneFamilySize2Count[paralogousGroupSize]=0
             geneFamilySize2Count[paralogousGroupSize]+=1
