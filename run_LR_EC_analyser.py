@@ -202,6 +202,7 @@ def main():
     htmlGeneralViewParalogFamilies, htmlScatterPlotSizeParalogFamilies = plotter.makeScatterPlotSizeParalogFamilies(geneID2gene, paralogous)
     htmlGeneralViewParalogFamiliesExcluingUnchanged, htmlScatterPlotSizeParalogFamiliesExcluingUnchanged = plotter.makeScatterPlotSizeParalogFamilies(geneID2gene, paralogous, True)
     htmlGeneralViewParalogFamiliesExcluingUnchangedCommonGenes, htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes = plotter.makeScatterPlotSizeParalogFamilies(geneID2gene, paralogous, True, True)
+    htmlParalogousGeneFamiliesSizeBarPlot = plotter.getParalogousGeneFamiliesSizeBarPlot(paralogous)
 
     print "Computing the plots - Done!"
 
@@ -282,6 +283,8 @@ def main():
                                           htmlScatterPlotSizeParalogFamiliesExcluingUnchanged)
         callFunctionAndPopulateTheReports(i, "<htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes>", linesHTMLReport, linesHighResHTMLReport, \
                                           htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes)
+        callFunctionAndPopulateTheReports(i, "<htmlParalogousGeneFamiliesSizeBarPlot>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlParalogousGeneFamiliesSizeBarPlot)
 
 
 
@@ -302,6 +305,11 @@ def main():
     if os.path.exists(args.output+"/lib"):
         shutil.rmtree(args.output+"/lib")
     shutil.copytree(scriptDir+"/lib", args.output+"/lib")
+
+    # save paralogous gene to /lib/data/, if it exists
+    if paralogous != None:
+        with open(args.output + "/lib/data/paralogous_families.txt", "w") as paralogousFamiliesFile:
+            paralogousFamiliesFile.write(str(paralogous))
     print "Creating HTML report... - Done!"
 
     print "We are finished!"

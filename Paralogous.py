@@ -19,6 +19,9 @@ class ParalogousGroup:
     def getDescription(self):
         return "Family %d: %s" % (self.id, ", ".join([gene.id for gene in self.group]))
 
+    def getGeneFamilySize(self):
+        return len(self.group)
+
     def getGeneFamilySizeInTool(self, tool):
         paralogousGeneFamilySize = 0
         for gene in self.group:
@@ -108,3 +111,7 @@ class Paralogous:
         :return: a list where each element is a ParalogousGroup
         """
         return self.idGroup2paralogousGroup.values()
+
+    def __str__(self):
+        listOfDescriptions = [paralogousGroup.getDescription() for paralogousGroup in self.idGroup2paralogousGroup.values() if paralogousGroup.getGeneFamilySize()>0]
+        return "\n".join(listOfDescriptions)

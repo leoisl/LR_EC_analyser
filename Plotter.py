@@ -354,6 +354,34 @@ class Plotter:
                 raise exception #unexpected error
 
 
+    def getParalogousGeneFamiliesSizeBarPlot(self, paralogous):
+        if paralogous==None:
+            return {
+                    "imagePlot": Paralogous.getErrorMessage(),
+                    "jsPlot": Paralogous.getErrorMessage()
+                }, {
+                    "imagePlot": Paralogous.getErrorMessage(),
+                    "jsPlot": Paralogous.getErrorMessage()
+                }
+
+        geneFamilySize2Count={}
+        for paralogousGroup in paralogous.getParalogousGroups():
+            paralogousGroupSize = paralogousGroup.getGeneFamilySize()
+            print "Group: %s, size: %d"%(paralogousGroup.getDescription(), paralogousGroupSize)
+            if paralogousGroupSize not in geneFamilySize2Count:
+                geneFamilySize2Count[paralogousGroupSize]=0
+            geneFamilySize2Count[paralogousGroupSize]+=1
+        maxSize = max(geneFamilySize2Count.keys())
+        x=range(1, maxSize+1)
+        y=[geneFamilySize2Count[geneFamilySize] if geneFamilySize in geneFamilySize2Count else 0 for geneFamilySize in x]
+        print "x=%s"%(str(x))
+        print "y=%s" % (str(y))
+        data = [plotly.graph_objs.Bar(x=x, y=y)]
+        layout = plotly.graph_objs.Layout(xaxis={"title": "Gene family size"}, yaxis={"title": "Count"})
+        fig = plotly.graph_objs.Figure(data=data, layout=layout)
+        return self.__buildPlots(fig, "GeneFamiliesSizeBarPlot")
+
+
     def makeScatterPlotCoverage(self, geneID2gene, featureAsString):
         """
         Make the scatter plot of the coverage of the feature
