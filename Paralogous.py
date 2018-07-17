@@ -106,12 +106,12 @@ class Paralogous:
                 self.__addParalogousRelation(lineSplit[0], lineSplit[1])
 
 
-    def getParalogousGroups(self):
+    def getParalogousGroups(self, minSizeGeneFamily=2):
         """
-        :return: a list where each element is a ParalogousGroup
+        :return: a list where each element is a ParalogousGroup, but only for which the family size is >= minSizeGeneFamily
         """
-        return self.idGroup2paralogousGroup.values()
+        return [paralogousGroup for paralogousGroup in self.idGroup2paralogousGroup.values() if paralogousGroup.getGeneFamilySize()>=minSizeGeneFamily]
 
     def __str__(self):
-        listOfDescriptions = [paralogousGroup.getDescription() for paralogousGroup in self.idGroup2paralogousGroup.values() if paralogousGroup.getGeneFamilySize()>0]
+        listOfDescriptions = [paralogousGroup.getDescription() for paralogousGroup in self.getParalogousGroups(1)]
         return "\n".join(listOfDescriptions)

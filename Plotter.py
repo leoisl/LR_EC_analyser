@@ -238,7 +238,7 @@ class Plotter:
 
         return self.__buildPlots(fig, name)
 
-    def makeScatterPlotSizeParalogFamilies(self, geneID2gene, paralogous, disregardUnchangedGeneFamilies=False, includeOnlyCommonGenes=False):
+    def makeScatterPlotSizeParalogFamilies(self, paralogous, disregardUnchangedGeneFamilies=False, includeOnlyCommonGenes=False):
         if paralogous==None:
             return {
                     "imagePlot": Paralogous.getErrorMessage(),
@@ -369,11 +369,10 @@ class Plotter:
         familiesSizes = range(1, paralogousGroupSizeMax + 1)
         geneFamilySize2Count={size: 0 for size in familiesSizes}
 
-        for paralogousGroup in paralogous.getParalogousGroups():
+        for paralogousGroup in paralogous.getParalogousGroups(1):
             #adjust for the max
             paralogousGroupSize = min(paralogousGroup.getGeneFamilySize(), paralogousGroupSizeMax)
-            if paralogousGroupSize > 0:
-                geneFamilySize2Count[paralogousGroupSize]+=1
+            geneFamilySize2Count[paralogousGroupSize]+=1
 
         x = ["(%d)" % familySize if familySize < paralogousGroupSizeMax else "(%d+)" % familySize for familySize in familiesSizes]
         y=[geneFamilySize2Count[geneFamilySize] for geneFamilySize in familiesSizes]

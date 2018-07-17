@@ -211,18 +211,21 @@ If two or more alignment paths are reasonably spaced across the read, and can to
 <br/><br/>
 <h1>Corretion collapsing paralogous gene families plots</h1>
 This scatterplot shows the sizes of the paralogous gene families before and after correction.<br/>
-The size of a paralogous gene family is the number of genes expressed in a given gene family.<br/>
+To know how we computed the paralogous gene families, see: <a href="https://gitlab.com/leoisl/LR_EC_analyser/blob/master/GettingParalogs.txt" target="_blank">https://gitlab.com/leoisl/LR_EC_analyser/blob/master/GettingParalogs.txt</a><br/>
+However, here we just take into consideration paralogous gene families with cardinality 2+.<br/>
+This is because the large majority of gene families has cardinality 1 and such families are not interesting here.<br/>
+Given a tool, the size of a <b>expressed</b> paralogous gene family is the number of genes expressed in a given gene family for that tool.<br/>
 For example, if a gene family has 10 members, and 8 are expressed in the raw data, and 2 are expressed after the correction,<br/>
 we can say that the size of this gene family before the correction is 8, and after, 2.<br/>
 We can then conclude that the correction shrinked the paralogous gene family, probably due to collapsing genes.<br/>
-The color code of a data point is the # of gene families on that data point.<br/>
-To know how we computed the paralogous gene families, see: <a href="https://gitlab.com/leoisl/LR_EC_analyser/blob/master/GettingParalogs.txt" target="_blank">https://gitlab.com/leoisl/LR_EC_analyser/blob/master/GettingParalogs.txt</a></p>
+
 
 <h2>General view of paralog families change per tool:</h2>
 <p style="color: red">Click on a bar to retrieve all gene families belonging to it!</p>
 <htmlGeneralViewParalogFamilies>
 
 <h2>Detailed view of paralog families change per tool:</h2>
+The color code of a data point is the # of gene families on that data point.<br/>
 <input type="radio" name="Collapsing_gene_families_show_option" id="Collapsing_gene_families_show_option_ALL" value="A"> Show all paralogous gene families<br/>
 <input type="radio" name="Collapsing_gene_families_show_option" id="Collapsing_gene_families_show_option_NO_DIAG" value="ND" checked> Hide paralogous genes families that were unchanged (diagonal line)<br/>
 <input type="radio" name="Collapsing_gene_families_show_option" id="Collapsing_gene_families_show_option_NO_DIAG_NO_ZERO" value="NDN0"> Hide paralogous genes families that were unchanged (diagonal line) and keep only the ones expressed both before and after correction (hide gene families such that x=0 or y=0)<br/>
@@ -253,7 +256,8 @@ Positive values: isoforms of a gene were gained.<br/>
 The gene <b>families</b> taken into account here must be expressed in BOTH the raw reads AND the tool.<br/>
 Negative values: isoforms of a gene-family were lost - it could be that they were just removed by the correction, or after correction all reads mapped to another gene-family.<br/>
 Positive values: isoforms of a gene-family were gained.<br/>
-In comparison with the previous plot, it allows to check if paralogs "exchange" their isoforms after error-correction
+In comparison with the previous plot, it allows to check if paralogs "exchange" their isoforms after error-correction<br/>
+Remember that we just take into consideration paralogous gene families with cardinality 2+.<br/>
 <p style="color: red">Click on a bar to retrieve all genes belonging to it!</p>
 <htmlDifferenceOnTheNumberOfIsoformsGeneFamilyPlotIntersection>
 
