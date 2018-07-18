@@ -210,10 +210,9 @@ If two or more alignment paths are reasonably spaced across the read, and can to
 
 <br/><br/>
 <h1>Corretion collapsing paralogous gene families plots</h1>
-This scatterplot shows the sizes of the paralogous gene families before and after correction.<br/>
 To know how we computed the paralogous gene families, see: <a href="https://gitlab.com/leoisl/LR_EC_analyser/blob/master/GettingParalogs.txt" target="_blank">https://gitlab.com/leoisl/LR_EC_analyser/blob/master/GettingParalogs.txt</a><br/>
 However, here we just take into consideration paralogous gene families with cardinality 2+.<br/>
-This is because the large majority of gene families has cardinality 1 (see <a href="#paralogous-gene-families-size-distribution-">Paralogous gene families size distribution</a>) and such families are not interesting here.<br/>
+This is because the large majority of gene families has cardinality 1 (see <a href="#paralogous-gene-families-size-distribution-">Paralogous gene families size distribution</a>) and such families are not interesting here, complicating the analysis.<br/>
 Given a tool, the size of a <b>expressed</b> paralogous gene family is the number of genes expressed in a given gene family for that tool.<br/>
 For example, if a gene family has 10 members, and 8 are expressed in the raw data, and 2 are expressed after the correction,<br/>
 we can say that the size of this gene family before the correction is 8, and after, 2.<br/>
@@ -221,10 +220,12 @@ We can then conclude that the correction shrinked the paralogous gene family, pr
 
 
 <h2>General view of paralog families change per tool:</h2>
+Here we compare the size of the gene families before and after correction in general terms.<br/>
 <p style="color: red">Click on a bar to retrieve all gene families belonging to it!</p>
 <htmlGeneralViewParalogFamilies>
 
 <h2>Detailed view of paralog families change per tool:</h2>
+This scatterplot shows the sizes of the paralogous gene families before and after correction, detailing what was shown in the previous plot.<br/>
 The color code of a data point is the # of gene families on that data point.<br/>
 
 <!-- TODO: not sure if this is still needed...
@@ -268,6 +269,7 @@ Remember that we just take into consideration paralogous gene families with card
 <h2>Lost transcripts in genes with Splicing Complexity 2+</h2>
 The genes taken into account here must be expressed in BOTH the raw AND the tool taken into consideration.<br/>
 Otherwise we could account for lost genes, and these would inflate the high relative transcript coverage bins (which is not what we want, since here we are investigating isoforms that were lost, not genes, probably corrected towards the main isoform)<br/>
+The relative coverage or expression of a transcript is the number of reads mapping to the transcript divided by the number of reads mapping to its gene.<br/>
 
 <h3>Non-normalized plot: </h3>
 <p style="color: red">Click on a bar to retrieve all transcripts belonging to it!</p>
@@ -281,7 +283,7 @@ Otherwise we could account for lost genes, and these would inflate the high rela
 <h2>Distribution of the difference of relative expression in the transcripts</h2>
 This box and whisker plot represents the distribution of the difference of relative expression in the transcripts.<br/>
 It was done by taking, for each tool, each transcript that is expressed either in the raw reads or in the tool, and computing the absolute difference between the relative expression of the transcript before and after correction.<br/>
-The relative expression of a transcript is the number of reads mapping to the transcript divided by the number of reads mapping to its gene.<br/>
+The relative coverage or expression of a transcript is the number of reads mapping to the transcript divided by the number of reads mapping to its gene.<br/>
 <htmlDifferencesInRelativeExpressionsBoxPlot>
 
 <h2>Coverage of the main isoform before and after correction</h2>
