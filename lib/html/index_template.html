@@ -192,41 +192,60 @@ If two or more alignment paths are reasonably spaced across the read, and can to
 </table>
 
 <br/><br/>
-<h1>Does a tool cut reads?</h1>
+<h1>Does error-correction perturb reads’ length?</h1>
+<p>The points inside the filled blue area mean that the error corrector did not over-split the reads.</p>
+<p>Beware of the points way over the filled blue area.</p>
+
 <htmlTotalReadsCuttingPlot>
 <htmlAlignedReadsCuttingPlot>
 <htmlUnalignedReadsCuttingPlot>
 
+
+<h1>Does error-correction perturb the number of reads mapping to the genes and transcripts?</h1>
+<p>x-axis represents the number of reads mapping to the genes/transcripts before the correction, and the y-axis, after correction.</p>
+<h2>Gene level</h2>
+<htmlScatterPlotCoverageOfGenes>
+<h2>Transcript level</h2>
+<htmlScatterPlotCoverageOfIsoforms>
+
 <br/><br/>
 <h1>Corretion collapsing paralogous gene families plots</h1>
-This scatterplot shows the sizes of the paralogous gene families before and after correction.<br/>
-The size of a paralogous gene family is the number of genes expressed in a given gene family.<br/>
+To know how we computed the paralogous gene families, see: <a href="https://gitlab.com/leoisl/LR_EC_analyser/blob/master/GettingParalogs.txt" target="_blank">https://gitlab.com/leoisl/LR_EC_analyser/blob/master/GettingParalogs.txt</a><br/>
+However, here we just take into consideration paralogous gene families with cardinality 2+.<br/>
+This is because the large majority of gene families has cardinality 1 (see <a href="#paralogous-gene-families-size-distribution-">Paralogous gene families size distribution</a>) and such families are not interesting here, complicating the analysis.<br/>
+Given a tool, the size of a <b>expressed</b> paralogous gene family is the number of genes expressed in a given gene family for that tool.<br/>
 For example, if a gene family has 10 members, and 8 are expressed in the raw data, and 2 are expressed after the correction,<br/>
 we can say that the size of this gene family before the correction is 8, and after, 2.<br/>
 We can then conclude that the correction shrinked the paralogous gene family, probably due to collapsing genes.<br/>
-The color code of a data point is the # of gene families on that data point.<br/>
-To know how we computed the paralogous gene families, see: <a href="https://gitlab.com/leoisl/LR_EC_analyser/blob/master/GettingParalogs.txt" target="_blank">https://gitlab.com/leoisl/LR_EC_analyser/blob/master/GettingParalogs.txt</a></p>
+
 
 <h2>General view of paralog families change per tool:</h2>
+Here we compare the size of the gene families before and after correction in general terms.<br/>
 <p style="color: red">Click on a bar to retrieve all gene families belonging to it!</p>
 <htmlGeneralViewParalogFamilies>
 
 <h2>Detailed view of paralog families change per tool:</h2>
+This scatterplot shows the sizes of the paralogous gene families before and after correction, detailing what was shown in the previous plot.<br/>
+The color code of a data point is the # of gene families on that data point.<br/>
+
+<!-- TODO: not sure if this is still needed...
 <input type="radio" name="Collapsing_gene_families_show_option" id="Collapsing_gene_families_show_option_ALL" value="A"> Show all paralogous gene families<br/>
 <input type="radio" name="Collapsing_gene_families_show_option" id="Collapsing_gene_families_show_option_NO_DIAG" value="ND" checked> Hide paralogous genes families that were unchanged (diagonal line)<br/>
 <input type="radio" name="Collapsing_gene_families_show_option" id="Collapsing_gene_families_show_option_NO_DIAG_NO_ZERO" value="NDN0"> Hide paralogous genes families that were unchanged (diagonal line) and keep only the ones expressed both before and after correction (hide gene families such that x=0 or y=0)<br/>
 
 <div id="htmlScatterPlotSizeParalogFamilies_A" style="display: none;">
-<htmlScatterPlotSizeParalogFamilies>
+<htmlScatterPlotSizeParalogFamilies TODO: IF ADD BACK, PLEASE REMOVE THIS>
 </div>
 
 <div id="htmlScatterPlotSizeParalogFamilies_ND" style="display: none;">
-<htmlScatterPlotSizeParalogFamiliesExcluingUnchanged>
+<htmlScatterPlotSizeParalogFamiliesExcluingUnchanged TODO: IF ADD BACK, PLEASE REMOVE THIS>
 </div>
 
 <div id="htmlScatterPlotSizeParalogFamilies_NDN0" style="display: none;">
-<htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes>
+<htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes TODO: IF ADD BACK, PLEASE REMOVE THIS>
 </div>
+-->
+<htmlScatterPlotSizeParalogFamilies>
 
 <br/><br/>
 <h1>Correction towards major isoform plots</h1>
@@ -242,13 +261,15 @@ Positive values: isoforms of a gene were gained.<br/>
 The gene <b>families</b> taken into account here must be expressed in BOTH the raw reads AND the tool.<br/>
 Negative values: isoforms of a gene-family were lost - it could be that they were just removed by the correction, or after correction all reads mapped to another gene-family.<br/>
 Positive values: isoforms of a gene-family were gained.<br/>
-In comparison with the previous plot, it allows to check if paralogs "exchange" their isoforms after error-correction
+In comparison with the previous plot, it allows to check if paralogs "exchange" their isoforms after error-correction<br/>
+Remember that we just take into consideration paralogous gene families with cardinality 2+.<br/>
 <p style="color: red">Click on a bar to retrieve all genes belonging to it!</p>
 <htmlDifferenceOnTheNumberOfIsoformsGeneFamilyPlotIntersection>
 
 <h2>Lost transcripts in genes with Splicing Complexity 2+</h2>
 The genes taken into account here must be expressed in BOTH the raw AND the tool taken into consideration.<br/>
 Otherwise we could account for lost genes, and these would inflate the high relative transcript coverage bins (which is not what we want, since here we are investigating isoforms that were lost, not genes, probably corrected towards the main isoform)<br/>
+The relative coverage or expression of a transcript is the number of reads mapping to the transcript divided by the number of reads mapping to its gene.<br/>
 
 <h3>Non-normalized plot: </h3>
 <p style="color: red">Click on a bar to retrieve all transcripts belonging to it!</p>
@@ -262,13 +283,13 @@ Otherwise we could account for lost genes, and these would inflate the high rela
 <h2>Distribution of the difference of relative expression in the transcripts</h2>
 This box and whisker plot represents the distribution of the difference of relative expression in the transcripts.<br/>
 It was done by taking, for each tool, each transcript that is expressed either in the raw reads or in the tool, and computing the absolute difference between the relative expression of the transcript before and after correction.<br/>
-The relative expression of a transcript is the number of reads mapping to the transcript divided by the number of reads mapping to its gene.<br/>
+The relative coverage or expression of a transcript is the number of reads mapping to the transcript divided by the number of reads mapping to its gene.<br/>
 <htmlDifferencesInRelativeExpressionsBoxPlot>
 
 <h2>Coverage of the main isoform before and after correction</h2>
 The main isoform of a gene is the isoform with the highest expression in the raw dataset.<br/>
 This plot shows how the coverage of the main isoform changes after the correction of each tool.<br/>
-<htmlScatterPlotCoverageOfMainIsoform>
+<htmlScatterPlotCoverageOfMainIsoforms>
 
 <br/><br/>
 <h1>Gene read alignment viewer</h1>
@@ -283,5 +304,15 @@ Delta value is the largest difference between the # of reads mapping to a gene i
 <span style="color: red;">BE SURE TO DO THIS IF YOU WANT TO SEE THE IGV PLOTS: <a href="https://gitlab.com/leoisl/LR_EC_analyser#viewing-igv-plots-gene-stats-and-transcript-stats" target="_blank">https://gitlab.com/leoisl/LR_EC_analyser#viewing-igv-plots-gene-stats-and-transcript-stats</a> </span>
 
 <div id="LR_EC_transcript_table" class="scrollableTable"></div>
+
+
+<br/><br/><br/><br/><br/><br/>
+<h1>Appendix</h1>
+<h2>Paralogous families:</h2>
+<p>These are some data on the paralogous families given with the --paralogous parameter. <b>It has nothing to do with the raw reads or corrections.</b></p>
+<p>We added this here so we can understand better what is being considered paralogous families.</p>
+<p>Download the paralogous gene families here: <a href="lib/data/paralogous_families.txt", target="_blank">paralogous_families.txt</a></p>
+<h3>Paralogous gene families size distribution: </h3>
+<htmlParalogousGeneFamiliesSizeBarPlot>
 </body>
 </html>

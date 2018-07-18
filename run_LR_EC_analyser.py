@@ -192,12 +192,17 @@ def main():
         = plotter.makeDifferenceOnTheNumberOfIsoformsPlot(geneID2gene, -3, 3, 1, paralogous)
     htmlLostTranscriptInGenesWSP2Plot, htmlLostTranscriptInGenesWSP2NormalizedPlot = plotter.makeLostTranscriptInGenesWSP2Plot(geneID2gene)
     htmlDifferencesInRelativeExpressionsBoxPlot = plotter.makeDifferencesInRelativeExpressionsBoxPlot(geneID2gene)
-    htmlScatterPlotCoverageOfMainIsoform = plotter.makeScatterPlotCoverageOfMainIsoform(geneID2gene)
+
+    #build the coverage scatterplots
+    htmlScatterPlotCoverageOfMainIsoforms = plotter.makeScatterPlotCoverage(geneID2gene, "MainIsoforms")
+    htmlScatterPlotCoverageOfGenes = plotter.makeScatterPlotCoverage(geneID2gene, "Genes")
+    htmlScatterPlotCoverageOfIsoforms = plotter.makeScatterPlotCoverage(geneID2gene, "Isoforms")
 
     #Build the "Corretion collapsing paralogous gene families plots" plots
-    htmlGeneralViewParalogFamilies, htmlScatterPlotSizeParalogFamilies = plotter.makeScatterPlotSizeParalogFamilies(geneID2gene, paralogous)
-    htmlGeneralViewParalogFamiliesExcluingUnchanged, htmlScatterPlotSizeParalogFamiliesExcluingUnchanged = plotter.makeScatterPlotSizeParalogFamilies(geneID2gene, paralogous, True)
-    htmlGeneralViewParalogFamiliesExcluingUnchangedCommonGenes, htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes = plotter.makeScatterPlotSizeParalogFamilies(geneID2gene, paralogous, True, True)
+    htmlGeneralViewParalogFamilies, htmlScatterPlotSizeParalogFamilies = plotter.makeScatterPlotSizeParalogFamilies(paralogous)
+    htmlGeneralViewParalogFamiliesExcluingUnchanged, htmlScatterPlotSizeParalogFamiliesExcluingUnchanged = plotter.makeScatterPlotSizeParalogFamilies(paralogous, True)
+    htmlGeneralViewParalogFamiliesExcluingUnchangedCommonGenes, htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes = plotter.makeScatterPlotSizeParalogFamilies(paralogous, True, True)
+    htmlParalogousGeneFamiliesSizeBarPlot = plotter.getParalogousGeneFamiliesSizeBarPlot(paralogous)
 
     print "Computing the plots - Done!"
 
@@ -256,8 +261,12 @@ def main():
                                           htmlDifferencesInRelativeExpressionsBoxPlot)
         callFunctionAndPopulateTheReports(i, "<tools>", linesHTMLReport, linesHighResHTMLReport, \
                                           tools)
-        callFunctionAndPopulateTheReports(i, "<htmlScatterPlotCoverageOfMainIsoform>", linesHTMLReport, linesHighResHTMLReport, \
-                                          htmlScatterPlotCoverageOfMainIsoform)
+        callFunctionAndPopulateTheReports(i, "<htmlScatterPlotCoverageOfMainIsoforms>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlScatterPlotCoverageOfMainIsoforms)
+        callFunctionAndPopulateTheReports(i, "<htmlScatterPlotCoverageOfGenes>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlScatterPlotCoverageOfGenes)
+        callFunctionAndPopulateTheReports(i, "<htmlScatterPlotCoverageOfIsoforms>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlScatterPlotCoverageOfIsoforms)
 
         callFunctionAndPopulateTheReports(i, "<htmlTotalReadsCuttingPlot>", linesHTMLReport, linesHighResHTMLReport, \
                                           totalReadsCuttingPlot)
@@ -274,6 +283,8 @@ def main():
                                           htmlScatterPlotSizeParalogFamiliesExcluingUnchanged)
         callFunctionAndPopulateTheReports(i, "<htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes>", linesHTMLReport, linesHighResHTMLReport, \
                                           htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes)
+        callFunctionAndPopulateTheReports(i, "<htmlParalogousGeneFamiliesSizeBarPlot>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlParalogousGeneFamiliesSizeBarPlot)
 
 
 
@@ -294,6 +305,11 @@ def main():
     if os.path.exists(args.output+"/lib"):
         shutil.rmtree(args.output+"/lib")
     shutil.copytree(scriptDir+"/lib", args.output+"/lib")
+
+    # save paralogous gene to /lib/data/, if it exists
+    if paralogous != None:
+        with open(args.output + "/lib/data/paralogous_families.txt", "w") as paralogousFamiliesFile:
+            paralogousFamiliesFile.write(str(paralogous))
     print "Creating HTML report... - Done!"
 
     print "We are finished!"
