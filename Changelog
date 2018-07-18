@@ -1,3 +1,12 @@
+v0.0.8:
+    -Improved "Does a tool cut reads?" plot;
+    -Added "Does error-correction perturb the number of reads mapping to the genes and transcripts?" plots;
+    -Reordered some of the stats in the tables, so that they are in according to the plots;
+    -Added Appendix plots on Paralogous families
+    -Paralogous genes families taken into account in their respective plots now need cardinality 2+;
+    -Small fixes to the html template;
+    -Fixed small visual bug on small screens
+
 v0.0.7:
     -Added a warning on the error stats plot regarding the sampling;
     -Added a normalized "Lost transcripts in genes with Splicing Complexity 2+" plot;
