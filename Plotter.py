@@ -605,7 +605,7 @@ class Plotter:
             name = "SSDistributionPlot%s"%descriptionsForThePlots[type]["description"]
 
             # first we get the labels
-            labels = range(-39, 40)
+            labels = range(-39, 0)+range(1,40)
 
             # produce the plot data
             data = []

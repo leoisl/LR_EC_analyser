@@ -491,11 +491,20 @@ class SplicingSitesProfiler:
         :return: self.__tool2SpliceSiteDistance2Count
         """
         if not inPercentage:
-            return self.__tool2SpliceSiteDistance2Count
+            tool2SpliceSiteDistance2CountCopy = copy.deepcopy(self.__tool2SpliceSiteDistance2Count)
+            #iterating the original, not the copy, because of modifications in parallel to iteration
+            for tool in self.__tool2SpliceSiteDistance2Count:
+                for ssDistance, count in self.__tool2SpliceSiteDistance2Count[tool].iteritems():
+                    if ssDistance == 0:
+                        del tool2SpliceSiteDistance2CountCopy[tool][ssDistance]
         else:
             tool2SpliceSiteDistance2CountCopy = copy.deepcopy(self.__tool2SpliceSiteDistance2Count)
-            for tool in tool2SpliceSiteDistance2CountCopy:
-                for ssDistance, count in tool2SpliceSiteDistance2CountCopy[tool].iteritems():
-                    tool2SpliceSiteDistance2CountCopy[tool][ssDistance] = \
-                        float(tool2SpliceSiteDistance2CountCopy[tool][ssDistance])/float(self.__tool2NbOfSpliceSites[tool])*100
-            return tool2SpliceSiteDistance2CountCopy
+            # iterating the original, not the copy, because of modifications in parallel to iteration
+            for tool in self.__tool2SpliceSiteDistance2Count:
+                for ssDistance, count in self.__tool2SpliceSiteDistance2Count[tool].iteritems():
+                    if ssDistance == 0:
+                        del tool2SpliceSiteDistance2CountCopy[tool][ssDistance]
+                    else:
+                        tool2SpliceSiteDistance2CountCopy[tool][ssDistance] = \
+                            float(tool2SpliceSiteDistance2CountCopy[tool][ssDistance])/float(self.__tool2NbOfSpliceSites[tool])*100
+        return tool2SpliceSiteDistance2CountCopy
