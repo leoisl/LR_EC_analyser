@@ -211,7 +211,9 @@ def main():
     htmlParalogousGeneFamiliesSizeBarPlot = plotter.getParalogousGeneFamiliesSizeBarPlot(paralogous)
 
     #Build the splicing sites plots
-    htmlCorrectIncorrectSSPlot, htmlDetailedIncorrectSSPlot, htmlSpliceSitesDistributionSSPlot = \
+    htmlCorrectIncorrectSSPlotScalar, htmlCorrectIncorrectSSPlotPercentage,\
+    htmlDetailedIncorrectSSPlotScalar, htmlDetailedIncorrectSSPlotPercentage, \
+    htmlSpliceSitesDistributionSSPlotScalar, htmlSpliceSitesDistributionSSPlotPercentage = \
         plotter.makeSpliceSitesPlots(splicingSitesProfiler)
 
     print "Computing the plots - Done!"
@@ -297,12 +299,18 @@ def main():
                                           htmlParalogousGeneFamiliesSizeBarPlot)
         callFunctionAndPopulateTheReports(i, "<htmlParalogousGeneFamiliesSizeBarPlot>", linesHTMLReport, linesHighResHTMLReport, \
                                           htmlParalogousGeneFamiliesSizeBarPlot)
-        callFunctionAndPopulateTheReports(i, "<htmlCorrectIncorrectSSPlot>", linesHTMLReport, linesHighResHTMLReport, \
-                                          htmlCorrectIncorrectSSPlot)
-        callFunctionAndPopulateTheReports(i, "<htmlDetailedIncorrectSSPlot>", linesHTMLReport, linesHighResHTMLReport, \
-                                          htmlDetailedIncorrectSSPlot)
-        callFunctionAndPopulateTheReports(i, "<htmlSpliceSitesDistributionSSPlot>", linesHTMLReport, linesHighResHTMLReport, \
-                                          htmlSpliceSitesDistributionSSPlot)
+        callFunctionAndPopulateTheReports(i, "<htmlCorrectIncorrectSSPlotScalar>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlCorrectIncorrectSSPlotScalar)
+        callFunctionAndPopulateTheReports(i, "<htmlCorrectIncorrectSSPlotPercentage>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlCorrectIncorrectSSPlotPercentage)
+        callFunctionAndPopulateTheReports(i, "<htmlDetailedIncorrectSSPlotScalar>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlDetailedIncorrectSSPlotScalar)
+        callFunctionAndPopulateTheReports(i, "<htmlDetailedIncorrectSSPlotPercentage>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlDetailedIncorrectSSPlotPercentage)
+        callFunctionAndPopulateTheReports(i, "<htmlSpliceSitesDistributionSSPlotScalar>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlSpliceSitesDistributionSSPlotScalar)
+        callFunctionAndPopulateTheReports(i, "<htmlSpliceSitesDistributionSSPlotPercentage>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlSpliceSitesDistributionSSPlotPercentage)
 
 
 

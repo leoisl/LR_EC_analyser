@@ -55,6 +55,25 @@
             	}
             })
 
+            //add the listener to the checkboxes of the splice sites
+            $("input[id$=_ss_percentage]").change(function(elem){
+                //get which element to change
+                idPrefix = elem.target.value
+
+                //hide all plots with the idPrefix first
+                $("div[id^="+idPrefix+"]").css("display", "none")
+
+                //show the plot we want
+                divId = idPrefix + (elem.currentTarget.checked ? "Percentage" : "Scalar")
+                $("#"+divId).css("display", "block")
+            });
+
+            //hides all splice sites plots
+            $("input[id$=SSPlotScalar]").css("display", "none")
+            $("input[id$=SSPlotPercentage]").css("display", "none")
+            //show the ones we need by default
+            $("input[id$=_ss_percentageScalar]").css("display", "block")
+
             //fill the gene and transcript tables
             fillFeatureTable('Gene', 'LR_EC_gene_table', <geneProfiler.geneProfileToJSArrayForHOT()>, <tools>);
             fillFeatureTable('Transcript', 'LR_EC_transcript_table', <geneProfiler.transcriptProfileToJSArrayForHOT()>, <tools>);
@@ -297,11 +316,11 @@ This plot shows how the coverage of the main isoform changes after the correctio
 
 <h1>Splice Sites Plots</h1>
 <h2>Correct and Incorrect Splice Sites BarPlot</h2>
-<input type="checkbox" id="correct_incorrect_ss_percentage" value="htmlScatterPlotSizeParalogFamilies"> Show in %<br/>
-<div id="htmlScatterPlotSizeParalogFamilies_Scalar" style="display: none;">
+<input type="checkbox" id="correct_incorrect_ss_percentage" value="htmlCorrectIncorrectSSPlot"> Show in %<br/>
+<div id="htmlCorrectIncorrectSSPlotScalar">
 <htmlCorrectIncorrectSSPlotScalar>
 </div>
-<div id="htmlScatterPlotSizeParalogFamilies_Percentage" style="display: none;">
+<div id="htmlCorrectIncorrectSSPlotPercentage">
 <htmlCorrectIncorrectSSPlotPercentage>
 </div>
 
@@ -315,16 +334,22 @@ This plot shows how the coverage of the main isoform changes after the correctio
     Note however that mutations changing the ORFs are uncommon.
 </p>
 <p><b>Incorrect SSs Far From True SSs</b> is the number of incorrect Splice Sites that are not near (more than 2 bps) away from the nearest true Splice Site and are at a distance that is NOT multiple of 3 of the nearest true Splice Site.</p>
-<input type="checkbox" id="detailed_incorrect_ss_percentage" value="htmlScatterPlotSizeParalogFamilies"> Show in %<br/>
-<div id="htmlDetailedIncorrectSSPlot_Scalar" style="display: none;">
+<input type="checkbox" id="detailed_incorrect_ss_percentage" value="htmlDetailedIncorrectSSPlot"> Show in %<br/>
+<div id="htmlDetailedIncorrectSSPlotScalar">
 <htmlDetailedIncorrectSSPlotScalar>
 </div>
-<div id="htmlDetailedIncorrectSSPlot_Percentage" style="display: none;">
+<div id="htmlDetailedIncorrectSSPlotPercentage">
 <htmlDetailedIncorrectSSPlotPercentage>
 </div>
 
 <h2>Splice Site Distribution Plots</h2>
-<htmlSpliceSitesDistributionSSPlot>
+<input type="checkbox" id="distribution_ss_percentage" value="htmlSpliceSitesDistributionSSPlot"> Show in %<br/>
+<div id="htmlSpliceSitesDistributionSSPlotScalar">
+<htmlSpliceSitesDistributionSSPlotScalar>
+</div>
+<div id="htmlSpliceSitesDistributionSSPlotPercentage">
+<htmlSpliceSitesDistributionSSPlotPercentage>
+</div>
 
 
 <br/><br/>

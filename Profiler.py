@@ -417,7 +417,7 @@ class SplicingSitesProfiler:
         :return: Fixed tool2Values
         """
         for tool in tool2Values:
-            tool2Values[tool] = float(tool2Values[tool])/float(self.__tool2NbOfSpliceSites[tool])
+            tool2Values[tool] = float(tool2Values[tool])/float(self.__tool2NbOfSpliceSites[tool])*100
         return tool2Values
 
     def __getTool2NbOfSpliceSites(self, condition, inPercentage):
@@ -496,6 +496,6 @@ class SplicingSitesProfiler:
             tool2SpliceSiteDistance2CountCopy = copy.deepcopy(self.__tool2SpliceSiteDistance2Count)
             for tool in tool2SpliceSiteDistance2CountCopy:
                 for ssDistance, count in tool2SpliceSiteDistance2CountCopy[tool].iteritems():
-                    tool2SpliceSiteDistance2CountCopy[tool][ssDistance][count] = \
-                        float(tool2SpliceSiteDistance2CountCopy[tool][ssDistance][count])/float(self.__tool2NbOfSpliceSites[tool])
+                    tool2SpliceSiteDistance2CountCopy[tool][ssDistance] = \
+                        float(tool2SpliceSiteDistance2CountCopy[tool][ssDistance])/float(self.__tool2NbOfSpliceSites[tool])*100
             return tool2SpliceSiteDistance2CountCopy

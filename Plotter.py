@@ -569,41 +569,40 @@ class Plotter:
             name = "CorrectIncorrectSSPlot%s"%descriptionsForThePlots[type]["description"]
 
             # produce the plot
-            data = [plotly.graph_objs.Bar(x=self.tools, y=[tool2NbOfCorrectSpliceSites[tool] for tool in self.tools], name="Correct SSs"), \
-                    plotly.graph_objs.Bar(x=self.tools, y=[tool2NbOfIncorrectSpliceSites[tool] for tool in self.tools], name="Incorrect SSs")]
+            data = [plotly.graph_objs.Bar(x=self.tools, y=[tool2NbOfCorrectSpliceSites[type][tool] for tool in self.tools], name="Correct SSs"), \
+                    plotly.graph_objs.Bar(x=self.tools, y=[tool2NbOfIncorrectSpliceSites[type][tool] for tool in self.tools], name="Incorrect SSs")]
             layout = plotly.graph_objs.Layout(
                 title='Correct and Incorrect Splice Sites BarPlot',
-                yaxis={"title": "# Correct and Incorrect SSs"},
+                yaxis={"title": "%s of Correct and Incorrect SSs"%descriptionsForThePlots[type]["unit"]},
                 barmode="group",
-
             )
             fig = plotly.graph_objs.Figure(data=data, layout=layout)
             return self.__buildPlots(fig, name)
 
-        def buildDetailedIncorrectPlot(tool2NbOfIncorrectNearSpliceSites, tool2NbOfIncorrectMultipleOf3SpliceSites, tool2NbOfIncorrectFarSpliceSites):
+        def buildDetailedIncorrectPlot(type):
             # produce the plot
-            name = "DetailedIncorrectSSPlot"
+            name = "DetailedIncorrectSSPlot%s"%descriptionsForThePlots[type]["description"]
 
             # produce the plot
-            data = [plotly.graph_objs.Bar(x=self.tools, y=[tool2NbOfIncorrectNearSpliceSites[tool] for tool in self.tools], name="Incorrect SSs Near True SSs"), \
-                    plotly.graph_objs.Bar(x=self.tools, y=[tool2NbOfIncorrectMultipleOf3SpliceSites[tool] for tool in self.tools], name="Incorrect SSs Multiple of 3"), \
-                    plotly.graph_objs.Bar(x=self.tools, y=[tool2NbOfIncorrectFarSpliceSites[tool] for tool in self.tools], name="Incorrect SSs Far From True SSs")]
+            data = [plotly.graph_objs.Bar(x=self.tools, y=[tool2NbOfIncorrectNearSpliceSites[type][tool] for tool in self.tools], name="Incorrect SSs Near True SSs"), \
+                    plotly.graph_objs.Bar(x=self.tools, y=[tool2NbOfIncorrectMultipleOf3SpliceSites[type][tool] for tool in self.tools], name="Incorrect SSs Multiple of 3"), \
+                    plotly.graph_objs.Bar(x=self.tools, y=[tool2NbOfIncorrectFarSpliceSites[type][tool] for tool in self.tools], name="Incorrect SSs Far From True SSs")]
             layout = plotly.graph_objs.Layout(
                 title='Detailed Incorrect Splice Sites BarPlots',
-                yaxis={"title": "# Incorrect SSs"},
+                yaxis={"title": "%s of Incorrect SSs"%descriptionsForThePlots[type]["unit"]},
                 barmode="group"
             )
             fig = plotly.graph_objs.Figure(data=data, layout=layout)
             return self.__buildPlots(fig, name)
 
-        def buildSpliceSitesDistributionPlot():
+        def buildSpliceSitesDistributionPlot(type):
             '''
             Produce the splice sites distribution plot
             TODO: discover why AlignQC provides only from -39 to +39 distance - what does it do with longer distances? Understand the code and the algorithm
             :return:
             '''
             # produce the plot
-            name = "SSDistributionPlot"
+            name = "SSDistributionPlot%s"%descriptionsForThePlots[type]["description"]
 
             # first we get the labels
             labels = range(-39, 40)
@@ -613,7 +612,7 @@ class Plotter:
             for tool in self.tools:
                 data.append(plotly.graph_objs.Scatter(
                     x=range(len(labels)),
-                    y=[tool2SpliceSiteDistance2Count[tool][i] for i in labels],
+                    y=[tool2SpliceSiteDistance2Count[type][tool][i] for i in labels],
                     mode='lines+markers',
                     fill='tozeroy' if tool == "raw.bam" else "none",
                     name="%s" % (tool)
@@ -627,10 +626,12 @@ class Plotter:
                     tickvals=range(len(labels)),
                     ticktext=labels
                 ),
-                yaxis={"title": "Count"}
+                yaxis={"title": "%s of Splice Sites"%descriptionsForThePlots[type]["unit"]}
             )
 
             fig = plotly.graph_objs.Figure(data=data, layout=layout)
             return self.__buildPlots(fig, name)
 
-        return buildCorrectIncorrectPlot(), buildDetailedIncorrectPlot(), buildSpliceSitesDistributionPlot()
+        return buildCorrectIncorrectPlot("scalar"), buildCorrectIncorrectPlot("percentage"), \
+               buildDetailedIncorrectPlot("scalar"), buildDetailedIncorrectPlot("percentage"), \
+               buildSpliceSitesDistributionPlot("scalar"), buildSpliceSitesDistributionPlot("percentage")
