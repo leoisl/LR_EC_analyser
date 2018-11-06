@@ -398,6 +398,15 @@ class SplicingSitesProfiler:
         #represents a map tool -> distance to the nearest SS -> count
         self.__tool2SpliceSiteDistance2Count = {tool : Utils.FileUtils.readFileComposedOfPairIntsToDict(outputFolder + "/alignqc_out_on_%s/data/junvar.txt" % tool) for tool in tools}
 
+        '''
+        TODO: discover why AlignQC provides only from -39 to +39 distance - what does it do with longer distances? Understand the code and the algorithm
+        TODO: here we fix the dictionary so it will always contains from -39 to +39
+        '''
+        for tool in tools:
+            for i in xrange(-39, 40):
+                if i not in self.__tool2SpliceSiteDistance2Count[tool]:
+                    self.__tool2SpliceSiteDistance2Count[tool][i]=0
+
         #represent the total number of splice sites per tool
         self.__tool2NbOfSpliceSites = {tool: sum(self.__tool2SpliceSiteDistance2Count[tool].values()) for tool in tools}
 

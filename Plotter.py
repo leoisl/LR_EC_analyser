@@ -530,6 +530,7 @@ class Plotter:
         tool2NbOfIncorrectNearSpliceSites = splicingSitesProfiler.getTool2NbOfIncorrectNearSpliceSites()
         tool2NbOfIncorrectMultipleOf3SpliceSites = splicingSitesProfiler.getTool2NbOfIncorrectMultipleOf3SpliceSites()
         tool2NbOfIncorrectFarSpliceSites = splicingSitesProfiler.getTool2NbOfIncorrectFarSpliceSites()
+        tool2SpliceSiteDistance2Count = splicingSitesProfiler.getTool2SpliceSiteDistance2Count()
 
         def buildCorrectIncorrectPlot():
             # produce the plot
@@ -552,8 +553,7 @@ class Plotter:
             name = "DetailedIncorrectSSPlot"
 
             # produce the plot
-            data = [plotly.graph_objs.Bar(x=self.tools, y=[tool2NbOfIncorrectSpliceSites[tool] for tool in self.tools], name="Incorrect SSs"), \
-                    plotly.graph_objs.Bar(x=self.tools, y=[tool2NbOfIncorrectNearSpliceSites[tool] for tool in self.tools], name="Incorrect SSs Near True SSs"), \
+            data = [plotly.graph_objs.Bar(x=self.tools, y=[tool2NbOfIncorrectNearSpliceSites[tool] for tool in self.tools], name="Incorrect SSs Near True SSs"), \
                     plotly.graph_objs.Bar(x=self.tools, y=[tool2NbOfIncorrectMultipleOf3SpliceSites[tool] for tool in self.tools], name="Incorrect SSs Multiple of 3"), \
                     plotly.graph_objs.Bar(x=self.tools, y=[tool2NbOfIncorrectFarSpliceSites[tool] for tool in self.tools], name="Incorrect SSs Far From True SSs")]
             layout = plotly.graph_objs.Layout(
@@ -565,16 +565,39 @@ class Plotter:
             return self.__buildPlots(fig, name)
 
         def buildSpliceSitesDistributionPlot():
+            '''
+            Produce the splice sites distribution plot
+            TODO: discover why AlignQC provides only from -39 to +39 distance - what does it do with longer distances? Understand the code and the algorithm
+            :return:
+            '''
             # produce the plot
-            name = "DistributionSSPlot"
+            name = "SSDistributionPlot"
 
-            # produce the plot
-            data = [plotly.graph_objs.Bar(x=["Tools"], y=[tool2NbOfCorrectSpliceSites[tool]], name=tool) for tool in tool2NbOfCorrectSpliceSites]
+            # first we get the labels
+            labels = range(-39, 40)
+
+            # produce the plot data
+            data = []
+            for tool in self.tools:
+                data.append(plotly.graph_objs.Scatter(
+                    x=range(len(labels)),
+                    y=[tool2SpliceSiteDistance2Count[tool][i] for i in labels],
+                    mode='lines+markers',
+                    fill='tozeroy' if tool == "raw.bam" else "none",
+                    name="%s" % (tool)
+                ))
+
             layout = plotly.graph_objs.Layout(
-                title='Splice Site Distribution Plots',
-                yaxis={"title": "# Correct and Incorrect SSs"},
-                barmode="group"
+                title="Splice Site Distance Distribution",
+                xaxis=plotly.graph_objs.XAxis(
+                    title="Splice Site Distances",
+                    showticklabels=True,
+                    tickvals=range(len(labels)),
+                    ticktext=labels
+                ),
+                yaxis={"title": "Count"}
             )
+
             fig = plotly.graph_objs.Figure(data=data, layout=layout)
             return self.__buildPlots(fig, name)
 
