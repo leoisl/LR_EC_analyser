@@ -523,3 +523,59 @@ class Plotter:
 
         fig = plotly.graph_objs.Figure(data=data, layout=layout)
         return self.__buildPlots(fig, "ReadCountPlotDividedBySize_%s"%feature)
+
+    def makeSpliceSitesPlots(self, splicingSitesProfiler):
+        tool2NbOfCorrectSpliceSites = splicingSitesProfiler.getTool2NbOfCorrectSpliceSites()
+        tool2NbOfIncorrectSpliceSites = splicingSitesProfiler.getTool2NbOfIncorrectSpliceSites()
+        tool2NbOfIncorrectNearSpliceSites = splicingSitesProfiler.getTool2NbOfIncorrectNearSpliceSites()
+        tool2NbOfIncorrectMultipleOf3SpliceSites = splicingSitesProfiler.getTool2NbOfIncorrectMultipleOf3SpliceSites()
+        tool2NbOfIncorrectFarSpliceSites = splicingSitesProfiler.getTool2NbOfIncorrectFarSpliceSites()
+
+        def buildCorrectIncorrectPlot():
+            # produce the plot
+            name = "CorrectIncorrectSSPlot"
+
+            # produce the plot
+            data = [plotly.graph_objs.Bar(x=self.tools, y=[tool2NbOfCorrectSpliceSites[tool] for tool in self.tools], name="Correct SSs"), \
+                    plotly.graph_objs.Bar(x=self.tools, y=[tool2NbOfIncorrectSpliceSites[tool] for tool in self.tools], name="Incorrect SSs")]
+            layout = plotly.graph_objs.Layout(
+                title='Correct and Incorrect Splice Sites BarPlot',
+                yaxis={"title": "# Correct and Incorrect SSs"},
+                barmode="group",
+
+            )
+            fig = plotly.graph_objs.Figure(data=data, layout=layout)
+            return self.__buildPlots(fig, name)
+
+        def buildDetailedIncorrectPlot():
+            # produce the plot
+            name = "DetailedIncorrectSSPlot"
+
+            # produce the plot
+            data = [plotly.graph_objs.Bar(x=self.tools, y=[tool2NbOfIncorrectSpliceSites[tool] for tool in self.tools], name="Incorrect SSs"), \
+                    plotly.graph_objs.Bar(x=self.tools, y=[tool2NbOfIncorrectNearSpliceSites[tool] for tool in self.tools], name="Incorrect SSs Near True SSs"), \
+                    plotly.graph_objs.Bar(x=self.tools, y=[tool2NbOfIncorrectMultipleOf3SpliceSites[tool] for tool in self.tools], name="Incorrect SSs Multiple of 3"), \
+                    plotly.graph_objs.Bar(x=self.tools, y=[tool2NbOfIncorrectFarSpliceSites[tool] for tool in self.tools], name="Incorrect SSs Far From True SSs")]
+            layout = plotly.graph_objs.Layout(
+                title='Detailed Incorrect Splice Sites BarPlots',
+                yaxis={"title": "# Incorrect SSs"},
+                barmode="group"
+            )
+            fig = plotly.graph_objs.Figure(data=data, layout=layout)
+            return self.__buildPlots(fig, name)
+
+        def buildSpliceSitesDistributionPlot():
+            # produce the plot
+            name = "DistributionSSPlot"
+
+            # produce the plot
+            data = [plotly.graph_objs.Bar(x=["Tools"], y=[tool2NbOfCorrectSpliceSites[tool]], name=tool) for tool in tool2NbOfCorrectSpliceSites]
+            layout = plotly.graph_objs.Layout(
+                title='Splice Site Distribution Plots',
+                yaxis={"title": "# Correct and Incorrect SSs"},
+                barmode="group"
+            )
+            fig = plotly.graph_objs.Figure(data=data, layout=layout)
+            return self.__buildPlots(fig, name)
+
+        return buildCorrectIncorrectPlot(), buildDetailedIncorrectPlot(), buildSpliceSitesDistributionPlot()

@@ -3,11 +3,14 @@
 
 import gzip
 import urllib
+import Utils
+import copy
 from Category import *
 
 class FeatureProfiler:
     """
     Represents all features and their profiles
+    Used in the Gene read alignment viewer and Transcript read alignment viewer
     """
     def __init__(self, geneID2gene, tools, tool2Bam, genome, gtf, outputFolder):
         self.geneId2Gene = geneID2gene
@@ -191,15 +194,6 @@ class StatProfiler:
 
 
     @staticmethod
-    def readFileComposedOfPairStringIntToDict(filename):
-        stats = {}
-        with open(filename) as file:
-            for line in file:
-                lineSplit = line.split()
-                stats[lineSplit[0]] = int(lineSplit[1])
-        return stats
-
-    @staticmethod
     def processRarefractionFile(filename, totalReads):
         """
         Goes through the rarefraction file and get the values for rarefraction in the last line
@@ -303,7 +297,7 @@ class StatProfiler:
         TRANSCHIMERA_ALIGN_BASES	0
         SELFCHIMERA_ALIGN_BASES	22590
         '''
-        self.tool2Stats[tool].update(StatProfiler.readFileComposedOfPairStringIntToDict(dataFolder + "/alignment_stats.txt"))
+        self.tool2Stats[tool].update(Utils.FileUtils.readFileComposedOfPairStringIntToDict(dataFolder + "/alignment_stats.txt"))
 
         '''
         Added the following fields:
@@ -318,7 +312,7 @@ class StatProfiler:
         COMPLETE_INSERTION	28668
         HOMOPOLYMER_INSERTION	20422
         '''
-        self.tool2Stats[tool].update(StatProfiler.readFileComposedOfPairStringIntToDict(dataFolder + "/error_stats.txt"))
+        self.tool2Stats[tool].update(Utils.FileUtils.readFileComposedOfPairStringIntToDict(dataFolder + "/error_stats.txt"))
 
         self.tool2Stats[tool]["GENES_DETECTED_ANY_MATCH"] = StatProfiler.processRarefractionFile(dataFolder + "/gene_rarefraction.txt",
                                                                                                  self.tool2Stats[tool]["TOTAL_READS"])
@@ -391,3 +385,108 @@ class StatProfiler:
 
     def getAnnotationStatsAsJSArrayForHOT(self):
         return self.__toJSArrayForHOT(self.annotationStatsFeatures)
+
+
+class SplicingSitesProfiler:
+    """
+    Represents the splicing sites data read from <alignqc_folder/data/junvar.txt>
+    """
+    def __init__(self, tools, outputFolder):
+        self.__tools=tools
+        self.__outputFolder = outputFolder
+
+        #represents a map tool -> distance to the nearest SS -> count
+        self.__tool2SpliceSiteDistance2Count = {tool : Utils.FileUtils.readFileComposedOfPairIntsToDict(outputFolder + "/alignqc_out_on_%s/data/junvar.txt" % tool) for tool in tools}
+
+        #represent the total number of splice sites per tool
+        self.__tool2NbOfSpliceSites = {tool: sum(self.__tool2SpliceSiteDistance2Count[tool].values()) for tool in tools}
+
+    def __fixForPercentage(self, tool2Values):
+        """
+        tool2Values: a dict of tool 2 values
+        Divides all values by self.__tool2NbOfSpliceSites[tool]
+        :return: Fixed tool2Values
+        """
+        for tool in tool2Values:
+            tool2Values[tool] = float(tool2Values[tool])/float(self.__tool2NbOfSpliceSites[tool])
+        return tool2Values
+
+    def __getTool2NbOfSpliceSites(self, condition, inPercentage):
+        """
+        :param condition: the condition that the splice site must satisfy
+        :param inPercentage: %-wise?
+        :return: tool2NbOfSpliceSites
+        """
+        #build tool2NbOfSpliceSites
+        tool2NbOfSpliceSites={}
+        for tool in self.__tools:
+            SpliceSiteDistance2Count = self.__tool2SpliceSiteDistance2Count[tool]
+            tool2NbOfSpliceSites[tool] = sum([SpliceSiteDistance2Count[ssDistance] for ssDistance in SpliceSiteDistance2Count if condition(ssDistance)])
+
+        # fix for the percentage
+        if inPercentage:
+            tool2NbOfSpliceSites = self.__fixForPercentage(tool2NbOfSpliceSites)
+
+        return tool2NbOfSpliceSites
+
+    def getTool2NbOfCorrectSpliceSites(self, inPercentage=False):
+        """
+        Correct SS is where the distance is 0
+        :param inPercentage: %-wise?
+        """
+        def correctSSCondition(ssDistance):
+            return ssDistance == 0
+        return self.__getTool2NbOfSpliceSites(correctSSCondition, inPercentage)
+
+    def getTool2NbOfIncorrectSpliceSites(self, inPercentage=False):
+        """
+        Incorrect SS is where the distance is != 0
+        :param inPercentage: %-wise?
+        """
+        def incorrectSSCondition(ssDistance):
+            return ssDistance != 0
+        return self.__getTool2NbOfSpliceSites(incorrectSSCondition, inPercentage)
+
+    def getTool2NbOfIncorrectNearSpliceSites(self, inPercentage=False):
+        """
+        Incorrect Near SS is where the distance is != 0, but at most 2
+        :param inPercentage: %-wise?
+        """
+        def incorrectNearSSCondition(ssDistance):
+            return ssDistance != 0 and ssDistance >= -2 and ssDistance <= 2
+        return self.__getTool2NbOfSpliceSites(incorrectNearSSCondition, inPercentage)
+
+
+    def getTool2NbOfIncorrectMultipleOf3SpliceSites(self, inPercentage=False):
+        """
+        Incorrect Multiple Of 3 SS is where the distance is != 0, but multiple of 3
+        :param inPercentage: %-wise?
+        """
+        def incorrectMultipleOf3SSCondition(ssDistance):
+            return ssDistance != 0 and ssDistance%3 == 0
+        return self.__getTool2NbOfSpliceSites(incorrectMultipleOf3SSCondition, inPercentage)
+
+    def getTool2NbOfIncorrectFarSpliceSites(self, inPercentage=False):
+        """
+        Incorrect Far SS is where the distance is != 0, larger than 2, and not multiple of 3
+        :param inPercentage: %-wise?
+        """
+        def incorrectFarSSCondition(ssDistance):
+            return (ssDistance < -2 or ssDistance > 2) and ssDistance%3 != 0
+        return self.__getTool2NbOfSpliceSites(incorrectFarSSCondition, inPercentage)
+
+    def getTool2SpliceSiteDistance2Count(self, inPercentage=False):
+        """
+        Returns self.__tool2SpliceSiteDistance2Count
+        :param inPercentage: %-wise?
+        :return: self.__tool2SpliceSiteDistance2Count
+        """
+        if not inPercentage:
+            return self.__tool2SpliceSiteDistance2Count
+        else:
+            tool2SpliceSiteDistance2CountCopy = copy.deepcopy(self.__tool2SpliceSiteDistance2Count)
+            for tool in tool2SpliceSiteDistance2CountCopy:
+                for ssDistance, count in tool2SpliceSiteDistance2CountCopy[tool].iteritems():
+                    tool2SpliceSiteDistance2CountCopy[tool][ssDistance][count] = \
+                        float(tool2SpliceSiteDistance2CountCopy[tool][ssDistance][count])/float(self.__tool2NbOfSpliceSites[tool])
+            return tool2SpliceSiteDistance2CountCopy
