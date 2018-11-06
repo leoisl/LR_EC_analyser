@@ -619,7 +619,7 @@ class Plotter:
                 ))
 
             layout = plotly.graph_objs.Layout(
-                title="Splice Site Distance Distribution",
+                title="Incorrect Splice Site Distance Distribution",
                 xaxis=plotly.graph_objs.XAxis(
                     title="Splice Site Distances",
                     showticklabels=True,
