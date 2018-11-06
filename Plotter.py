@@ -525,16 +525,48 @@ class Plotter:
         return self.__buildPlots(fig, "ReadCountPlotDividedBySize_%s"%feature)
 
     def makeSpliceSitesPlots(self, splicingSitesProfiler):
-        tool2NbOfCorrectSpliceSites = splicingSitesProfiler.getTool2NbOfCorrectSpliceSites()
-        tool2NbOfIncorrectSpliceSites = splicingSitesProfiler.getTool2NbOfIncorrectSpliceSites()
-        tool2NbOfIncorrectNearSpliceSites = splicingSitesProfiler.getTool2NbOfIncorrectNearSpliceSites()
-        tool2NbOfIncorrectMultipleOf3SpliceSites = splicingSitesProfiler.getTool2NbOfIncorrectMultipleOf3SpliceSites()
-        tool2NbOfIncorrectFarSpliceSites = splicingSitesProfiler.getTool2NbOfIncorrectFarSpliceSites()
-        tool2SpliceSiteDistance2Count = splicingSitesProfiler.getTool2SpliceSiteDistance2Count()
+        #define the data dicts
+        tool2NbOfCorrectSpliceSites={}
+        tool2NbOfIncorrectSpliceSites={}
+        tool2NbOfIncorrectNearSpliceSites={}
+        tool2NbOfIncorrectMultipleOf3SpliceSites={}
+        tool2NbOfIncorrectFarSpliceSites={}
+        tool2SpliceSiteDistance2Count={}
 
-        def buildCorrectIncorrectPlot():
+        # get the values as scalars
+        tool2NbOfCorrectSpliceSites["scalar"] = splicingSitesProfiler.getTool2NbOfCorrectSpliceSites()
+        tool2NbOfIncorrectSpliceSites["scalar"] = splicingSitesProfiler.getTool2NbOfIncorrectSpliceSites()
+        tool2NbOfIncorrectNearSpliceSites["scalar"] = splicingSitesProfiler.getTool2NbOfIncorrectNearSpliceSites()
+        tool2NbOfIncorrectMultipleOf3SpliceSites["scalar"] = splicingSitesProfiler.getTool2NbOfIncorrectMultipleOf3SpliceSites()
+        tool2NbOfIncorrectFarSpliceSites["scalar"] = splicingSitesProfiler.getTool2NbOfIncorrectFarSpliceSites()
+        tool2SpliceSiteDistance2Count["scalar"] = splicingSitesProfiler.getTool2SpliceSiteDistance2Count()
+
+        # and as percentages
+        tool2NbOfCorrectSpliceSites["percentage"] = splicingSitesProfiler.getTool2NbOfCorrectSpliceSites(True)
+        tool2NbOfIncorrectSpliceSites["percentage"] = splicingSitesProfiler.getTool2NbOfIncorrectSpliceSites(True)
+        tool2NbOfIncorrectNearSpliceSites["percentage"] = splicingSitesProfiler.getTool2NbOfIncorrectNearSpliceSites(True)
+        tool2NbOfIncorrectMultipleOf3SpliceSites["percentage"] = splicingSitesProfiler.getTool2NbOfIncorrectMultipleOf3SpliceSites(True)
+        tool2NbOfIncorrectFarSpliceSites["percentage"] = splicingSitesProfiler.getTool2NbOfIncorrectFarSpliceSites(True)
+        tool2SpliceSiteDistance2Count["percentage"] = splicingSitesProfiler.getTool2SpliceSiteDistance2Count(True)
+
+        #to help to describe the plots
+        descriptionsForThePlots = {
+            "scalar": {
+                "description": "Scalar",
+                "unit": "Number"
+            },
+           "percentage": {
+                "description": "Percentage",
+                "unit": "Percentage"
+            }
+        }
+
+        def buildCorrectIncorrectPlot(type):
+            """
+            Build the plot according to the type ("scalar" or "percentage")
+            """
             # produce the plot
-            name = "CorrectIncorrectSSPlot"
+            name = "CorrectIncorrectSSPlot%s"%descriptionsForThePlots[type]["description"]
 
             # produce the plot
             data = [plotly.graph_objs.Bar(x=self.tools, y=[tool2NbOfCorrectSpliceSites[tool] for tool in self.tools], name="Correct SSs"), \
@@ -548,7 +580,7 @@ class Plotter:
             fig = plotly.graph_objs.Figure(data=data, layout=layout)
             return self.__buildPlots(fig, name)
 
-        def buildDetailedIncorrectPlot():
+        def buildDetailedIncorrectPlot(tool2NbOfIncorrectNearSpliceSites, tool2NbOfIncorrectMultipleOf3SpliceSites, tool2NbOfIncorrectFarSpliceSites):
             # produce the plot
             name = "DetailedIncorrectSSPlot"
 

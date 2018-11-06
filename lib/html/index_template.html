@@ -59,6 +59,9 @@
             fillFeatureTable('Gene', 'LR_EC_gene_table', <geneProfiler.geneProfileToJSArrayForHOT()>, <tools>);
             fillFeatureTable('Transcript', 'LR_EC_transcript_table', <geneProfiler.transcriptProfileToJSArrayForHOT()>, <tools>);
 
+            //register the event to the SS checkboxes
+            correct_incorrect_ss_percentage
+
             //anchorify it
             $('body').anchorific();
 
@@ -294,7 +297,13 @@ This plot shows how the coverage of the main isoform changes after the correctio
 
 <h1>Splice Sites Plots</h1>
 <h2>Correct and Incorrect Splice Sites BarPlot</h2>
-<htmlCorrectIncorrectSSPlot>
+<input type="checkbox" id="correct_incorrect_ss_percentage" value="htmlScatterPlotSizeParalogFamilies"> Show in %<br/>
+<div id="htmlScatterPlotSizeParalogFamilies_Scalar" style="display: none;">
+<htmlCorrectIncorrectSSPlotScalar>
+</div>
+<div id="htmlScatterPlotSizeParalogFamilies_Percentage" style="display: none;">
+<htmlCorrectIncorrectSSPlotPercentage>
+</div>
 
 <h2>Detailed Incorrect Splice Sites BarPlots</h2>
 <p><b>Incorrect SSs Near True SSs</b> is the number of incorrect Splice Sites near (at most 2 bps) away from the nearest true Splice Site.<br/>
@@ -306,7 +315,13 @@ This plot shows how the coverage of the main isoform changes after the correctio
     Note however that mutations changing the ORFs are uncommon.
 </p>
 <p><b>Incorrect SSs Far From True SSs</b> is the number of incorrect Splice Sites that are not near (more than 2 bps) away from the nearest true Splice Site and are at a distance that is NOT multiple of 3 of the nearest true Splice Site.</p>
-<htmlDetailedIncorrectSSPlot>
+<input type="checkbox" id="detailed_incorrect_ss_percentage" value="htmlScatterPlotSizeParalogFamilies"> Show in %<br/>
+<div id="htmlDetailedIncorrectSSPlot_Scalar" style="display: none;">
+<htmlDetailedIncorrectSSPlotScalar>
+</div>
+<div id="htmlDetailedIncorrectSSPlot_Percentage" style="display: none;">
+<htmlDetailedIncorrectSSPlotPercentage>
+</div>
 
 <h2>Splice Site Distribution Plots</h2>
 <htmlSpliceSitesDistributionSSPlot>
