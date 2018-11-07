@@ -614,7 +614,6 @@ class Plotter:
                     x=range(len(labels)),
                     y=[tool2SpliceSiteDistance2Count[type][tool][i] for i in labels],
                     mode='lines+markers',
-                    fill='tozeroy' if tool == "raw.bam" else "none",
                     name="%s" % (tool)
                 ))
 
