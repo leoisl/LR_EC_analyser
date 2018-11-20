@@ -155,19 +155,25 @@ def main():
     else:
         print "Skipping AlignQC runs..."
 
-    #create the output by parsing AlignQC results
-    print "Running Stat profiler..."
-    statProfiler = StatProfiler(tools, args.output)
-    print "Running Stat profiler - Done!"
 
-    #create the gene profiler
-    print "Running Gene profiler..."
+
+    #create the output by parsing AlignQC results
+    print "Running profilers - gathering and processing the data to produce the plots..."
+
+    #stats profiler
+    statProfiler = StatProfiler(tools, args.output)
+
+    #gene profiler
     tool2Bam = {tool: os.path.basename(bam) for tool, bam in zip(tools, sortedBams)}
     geneProfiler = FeatureProfiler(geneID2gene, tools, tool2Bam, os.path.basename(genome), os.path.basename(gtf), args.output)
     #populate the gene profiler
     for tool in tools:
         geneProfiler.populateFromAnnotbest(tool, args.output)
-    print "Running Gene profiler - Done!"
+
+    #SS profiler
+    splicingSitesProfiler = SplicingSitesProfiler(tools, args.output)
+
+    print "Running profilers - gathering and processing the data to produce the plots - Done!"
 
 
     #create the Plotter and the plots
@@ -203,6 +209,12 @@ def main():
     htmlGeneralViewParalogFamiliesExcluingUnchanged, htmlScatterPlotSizeParalogFamiliesExcluingUnchanged = plotter.makeScatterPlotSizeParalogFamilies(paralogous, True)
     htmlGeneralViewParalogFamiliesExcluingUnchangedCommonGenes, htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes = plotter.makeScatterPlotSizeParalogFamilies(paralogous, True, True)
     htmlParalogousGeneFamiliesSizeBarPlot = plotter.getParalogousGeneFamiliesSizeBarPlot(paralogous)
+
+    #Build the splicing sites plots
+    htmlCorrectIncorrectSSPlotScalar, htmlCorrectIncorrectSSPlotPercentage,\
+    htmlDetailedIncorrectSSPlotScalar, htmlDetailedIncorrectSSPlotPercentage, \
+    htmlSpliceSitesDistributionSSPlotScalar, htmlSpliceSitesDistributionSSPlotPercentage = \
+        plotter.makeSpliceSitesPlots(splicingSitesProfiler)
 
     print "Computing the plots - Done!"
 
@@ -285,7 +297,20 @@ def main():
                                           htmlScatterPlotSizeParalogFamiliesExcluingUnchangedCommonGenes)
         callFunctionAndPopulateTheReports(i, "<htmlParalogousGeneFamiliesSizeBarPlot>", linesHTMLReport, linesHighResHTMLReport, \
                                           htmlParalogousGeneFamiliesSizeBarPlot)
-
+        callFunctionAndPopulateTheReports(i, "<htmlParalogousGeneFamiliesSizeBarPlot>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlParalogousGeneFamiliesSizeBarPlot)
+        callFunctionAndPopulateTheReports(i, "<htmlCorrectIncorrectSSPlotScalar>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlCorrectIncorrectSSPlotScalar)
+        callFunctionAndPopulateTheReports(i, "<htmlCorrectIncorrectSSPlotPercentage>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlCorrectIncorrectSSPlotPercentage)
+        callFunctionAndPopulateTheReports(i, "<htmlDetailedIncorrectSSPlotScalar>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlDetailedIncorrectSSPlotScalar)
+        callFunctionAndPopulateTheReports(i, "<htmlDetailedIncorrectSSPlotPercentage>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlDetailedIncorrectSSPlotPercentage)
+        callFunctionAndPopulateTheReports(i, "<htmlSpliceSitesDistributionSSPlotScalar>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlSpliceSitesDistributionSSPlotScalar)
+        callFunctionAndPopulateTheReports(i, "<htmlSpliceSitesDistributionSSPlotPercentage>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlSpliceSitesDistributionSSPlotPercentage)
 
 
 

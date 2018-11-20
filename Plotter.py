@@ -523,3 +523,114 @@ class Plotter:
 
         fig = plotly.graph_objs.Figure(data=data, layout=layout)
         return self.__buildPlots(fig, "ReadCountPlotDividedBySize_%s"%feature)
+
+    def makeSpliceSitesPlots(self, splicingSitesProfiler):
+        #define the data dicts
+        tool2NbOfCorrectSpliceSites={}
+        tool2NbOfIncorrectSpliceSites={}
+        tool2NbOfIncorrectNearSpliceSites={}
+        tool2NbOfIncorrectMultipleOf3SpliceSites={}
+        tool2NbOfIncorrectFarSpliceSites={}
+        tool2SpliceSiteDistance2Count={}
+
+        # get the values as scalars
+        tool2NbOfCorrectSpliceSites["scalar"] = splicingSitesProfiler.getTool2NbOfCorrectSpliceSites()
+        tool2NbOfIncorrectSpliceSites["scalar"] = splicingSitesProfiler.getTool2NbOfIncorrectSpliceSites()
+        tool2NbOfIncorrectNearSpliceSites["scalar"] = splicingSitesProfiler.getTool2NbOfIncorrectNearSpliceSites()
+        tool2NbOfIncorrectMultipleOf3SpliceSites["scalar"] = splicingSitesProfiler.getTool2NbOfIncorrectMultipleOf3SpliceSites()
+        tool2NbOfIncorrectFarSpliceSites["scalar"] = splicingSitesProfiler.getTool2NbOfIncorrectFarSpliceSites()
+        tool2SpliceSiteDistance2Count["scalar"] = splicingSitesProfiler.getTool2SpliceSiteDistance2Count()
+
+        # and as percentages
+        tool2NbOfCorrectSpliceSites["percentage"] = splicingSitesProfiler.getTool2NbOfCorrectSpliceSites(True)
+        tool2NbOfIncorrectSpliceSites["percentage"] = splicingSitesProfiler.getTool2NbOfIncorrectSpliceSites(True)
+        tool2NbOfIncorrectNearSpliceSites["percentage"] = splicingSitesProfiler.getTool2NbOfIncorrectNearSpliceSites(True)
+        tool2NbOfIncorrectMultipleOf3SpliceSites["percentage"] = splicingSitesProfiler.getTool2NbOfIncorrectMultipleOf3SpliceSites(True)
+        tool2NbOfIncorrectFarSpliceSites["percentage"] = splicingSitesProfiler.getTool2NbOfIncorrectFarSpliceSites(True)
+        tool2SpliceSiteDistance2Count["percentage"] = splicingSitesProfiler.getTool2SpliceSiteDistance2Count(True)
+
+        #to help to describe the plots
+        descriptionsForThePlots = {
+            "scalar": {
+                "description": "Scalar",
+                "unit": "Number"
+            },
+           "percentage": {
+                "description": "Percentage",
+                "unit": "Percentage"
+            }
+        }
+
+        def buildCorrectIncorrectPlot(type):
+            """
+            Build the plot according to the type ("scalar" or "percentage")
+            """
+            # produce the plot
+            name = "CorrectIncorrectSSPlot%s"%descriptionsForThePlots[type]["description"]
+
+            # produce the plot
+            data = [plotly.graph_objs.Bar(x=self.tools, y=[tool2NbOfCorrectSpliceSites[type][tool] for tool in self.tools], name="Correct SSs"), \
+                    plotly.graph_objs.Bar(x=self.tools, y=[tool2NbOfIncorrectSpliceSites[type][tool] for tool in self.tools], name="Incorrect SSs")]
+            layout = plotly.graph_objs.Layout(
+                title='Correct and Incorrect Splice Sites BarPlot',
+                yaxis={"title": "%s of Correct and Incorrect SSs"%descriptionsForThePlots[type]["unit"]},
+                barmode="group",
+            )
+            fig = plotly.graph_objs.Figure(data=data, layout=layout)
+            return self.__buildPlots(fig, name)
+
+        def buildDetailedIncorrectPlot(type):
+            # produce the plot
+            name = "DetailedIncorrectSSPlot%s"%descriptionsForThePlots[type]["description"]
+
+            # produce the plot
+            data = [plotly.graph_objs.Bar(x=self.tools, y=[tool2NbOfIncorrectNearSpliceSites[type][tool] for tool in self.tools], name="Incorrect SSs Near True SSs"), \
+                    plotly.graph_objs.Bar(x=self.tools, y=[tool2NbOfIncorrectMultipleOf3SpliceSites[type][tool] for tool in self.tools], name="Incorrect SSs Multiple of 3"), \
+                    plotly.graph_objs.Bar(x=self.tools, y=[tool2NbOfIncorrectFarSpliceSites[type][tool] for tool in self.tools], name="Incorrect SSs Far From True SSs")]
+            layout = plotly.graph_objs.Layout(
+                title='Detailed Incorrect Splice Sites BarPlots',
+                yaxis={"title": "%s of Incorrect SSs"%descriptionsForThePlots[type]["unit"]},
+                barmode="group"
+            )
+            fig = plotly.graph_objs.Figure(data=data, layout=layout)
+            return self.__buildPlots(fig, name)
+
+        def buildSpliceSitesDistributionPlot(type):
+            '''
+            Produce the splice sites distribution plot
+            TODO: discover why AlignQC provides only from -39 to +39 distance - what does it do with longer distances? Understand the code and the algorithm
+            :return:
+            '''
+            # produce the plot
+            name = "SSDistributionPlot%s"%descriptionsForThePlots[type]["description"]
+
+            # first we get the labels
+            labels = range(-39, 0)+range(1,40)
+
+            # produce the plot data
+            data = []
+            for tool in self.tools:
+                data.append(plotly.graph_objs.Scatter(
+                    x=range(len(labels)),
+                    y=[tool2SpliceSiteDistance2Count[type][tool][i] for i in labels],
+                    mode='lines+markers',
+                    name="%s" % (tool)
+                ))
+
+            layout = plotly.graph_objs.Layout(
+                title="Incorrect Splice Site Distance Distribution",
+                xaxis=plotly.graph_objs.XAxis(
+                    title="Splice Site Distances",
+                    showticklabels=True,
+                    tickvals=range(len(labels)),
+                    ticktext=labels
+                ),
+                yaxis={"title": "%s of Splice Sites"%descriptionsForThePlots[type]["unit"]}
+            )
+
+            fig = plotly.graph_objs.Figure(data=data, layout=layout)
+            return self.__buildPlots(fig, name)
+
+        return buildCorrectIncorrectPlot("scalar"), buildCorrectIncorrectPlot("percentage"), \
+               buildDetailedIncorrectPlot("scalar"), buildDetailedIncorrectPlot("percentage"), \
+               buildSpliceSitesDistributionPlot("scalar"), buildSpliceSitesDistributionPlot("percentage")

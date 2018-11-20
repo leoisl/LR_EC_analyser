@@ -55,6 +55,25 @@
             	}
             })
 
+            //hides all splice sites plots
+            $("div[id$=SSPlotScalar]").css("display", "none")
+            $("div[id$=SSPlotPercentage]").css("display", "none")
+            //show the ones we need by default
+            $("div[id$=SSPlotScalar]").css("display", "block")
+
+            //add the listener to the checkboxes of the splice sites
+            $("input[id$=_ss_percentage]").change(function(elem){
+                //get which element to change
+                idPrefix = elem.target.value
+
+                //hide all plots with the idPrefix first
+                $("div[id^="+idPrefix+"]").css("display", "none")
+
+                //show the plot we want
+                divId = idPrefix + (elem.currentTarget.checked ? "Percentage" : "Scalar")
+                $("#"+divId).css("display", "block")
+            });
+
             //fill the gene and transcript tables
             fillFeatureTable('Gene', 'LR_EC_gene_table', <geneProfiler.geneProfileToJSArrayForHOT()>, <tools>);
             fillFeatureTable('Transcript', 'LR_EC_transcript_table', <geneProfiler.transcriptProfileToJSArrayForHOT()>, <tools>);
@@ -290,6 +309,45 @@ The relative coverage or expression of a transcript is the number of reads mappi
 The main isoform of a gene is the isoform with the highest expression in the raw dataset.<br/>
 This plot shows how the coverage of the main isoform changes after the correction of each tool.<br/>
 <htmlScatterPlotCoverageOfMainIsoforms>
+
+
+<h1>Splice Sites Plots</h1>
+<h2>Correct and Incorrect Splice Sites BarPlot (compilation from AlignQC reports)</h2>
+<input type="checkbox" id="correct_incorrect_ss_percentage" value="htmlCorrectIncorrectSSPlot"> Show in %<br/>
+<div id="htmlCorrectIncorrectSSPlotScalar">
+<htmlCorrectIncorrectSSPlotScalar>
+</div>
+<div id="htmlCorrectIncorrectSSPlotPercentage">
+<htmlCorrectIncorrectSSPlotPercentage>
+</div>
+
+<h2>Detailed Incorrect Splice Sites BarPlots (processed from AlignQC reports)</h2>
+<p><b>Incorrect SSs Near True SSs</b> is the number of incorrect Splice Sites near (at most 2 bps) away from the nearest true Splice Site.<br/>
+    Such small errors could be due to splice alignment problems or small correction problems.<br/>
+    Care must be taken when considering these small variations as true new splicing junctions.</p>
+<p><b>Incorrect SSs with distance Multiple of 3</b> is the number of incorrect Splice Sites that are at a distance multiple of 3 of the nearest true Splice Site.<br/>
+    A high value here might suggest many new splice junctions, but not always.<br/>
+    For example, a new alternative acceptor site with a different ORF from the annotated ORF will cause the donor site to have a distance not multiple of 3 from the nearest true Splice Site.<br/>
+    Note however that mutations changing the ORFs are uncommon.
+</p>
+<p><b>Incorrect SSs Far From True SSs</b> is the number of incorrect Splice Sites that are not near (more than 2 bps) away from the nearest true Splice Site and are at a distance that is NOT multiple of 3 of the nearest true Splice Site.</p>
+<input type="checkbox" id="detailed_incorrect_ss_percentage" value="htmlDetailedIncorrectSSPlot"> Show in %<br/>
+<div id="htmlDetailedIncorrectSSPlotScalar">
+<htmlDetailedIncorrectSSPlotScalar>
+</div>
+<div id="htmlDetailedIncorrectSSPlotPercentage">
+<htmlDetailedIncorrectSSPlotPercentage>
+</div>
+
+<h2>Incorrect Splice Site Distribution Plots (compilation from AlignQC reports)</h2>
+<input type="checkbox" id="distribution_ss_percentage" value="htmlSpliceSitesDistributionSSPlot"> Show in %
+<div id="htmlSpliceSitesDistributionSSPlotScalar">
+<htmlSpliceSitesDistributionSSPlotScalar>
+</div>
+<div id="htmlSpliceSitesDistributionSSPlotPercentage">
+<htmlSpliceSitesDistributionSSPlotPercentage>
+</div>
+
 
 <br/><br/>
 <h1>Gene read alignment viewer</h1>
