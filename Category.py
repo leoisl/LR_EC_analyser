@@ -41,7 +41,7 @@ class NumberCategory(Category):
             start+=step
         Category.__init__(self, intervals)
 
-    def getCategoriesAsString(self, displayInterval=False, displayPlusOnFirstItem=False, displayPlusOnLastItem=False):
+    def getCategoriesAsString(self, displayInterval=False, displayPlusOnFirstItem=False, displayPlusOnLastItem=False, displaySignal=True):
         """
         transform the intervals list into a list of string that will be the xlabels of the plot
         Basically, transform a vector like [-2, -1, 0, 1, 2] into ["-2+", "-1", "0", "+1", "+2+"]
@@ -53,7 +53,7 @@ class NumberCategory(Category):
                 lowerBound = interval["min"]
                 # set the prefix
                 prefix = "("
-                if lowerBound > 0:
+                if lowerBound > 0 and displaySignal:
                     prefix += "+"
 
                 # set the suffix
@@ -71,7 +71,7 @@ class NumberCategory(Category):
 
         return intervalsAsString
 
-    def addDataPoint(self, point, dataToSave):
+    def addDataPoint(self, point, dataToSave=None):
         """
         :param point: it is the value of the dataToSave - we use this to infer the category
         :return:

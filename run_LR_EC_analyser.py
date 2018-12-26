@@ -173,6 +173,9 @@ def main():
     #SS profiler
     splicingSitesProfiler = SplicingSitesProfiler(tools, args.output)
 
+    #ReadSetProfiler
+    readSetProfiler = ReadSetProfiler(tools, args.output)
+
     print "Running profilers - gathering and processing the data to produce the plots - Done!"
 
 
@@ -216,6 +219,9 @@ def main():
     htmlSpliceSitesDistributionSSPlotScalar, htmlSpliceSitesDistributionSSPlotPercentage = \
         plotter.makeSpliceSitesPlots(splicingSitesProfiler)
 
+    #Build the read connectivity plots
+    htmlNbOfIdentifiedExonsLinePlot = plotter.buildNbOfIdentifiedExonsLinePlot(readSetProfiler, "all")
+    htmlHighestNbOfConsecutiveExonsLinePlot = plotter.buildHighestNbOfConsecutiveExonsLinePlot(readSetProfiler, "all")
     print "Computing the plots - Done!"
 
 
@@ -311,6 +317,10 @@ def main():
                                           htmlSpliceSitesDistributionSSPlotScalar)
         callFunctionAndPopulateTheReports(i, "<htmlSpliceSitesDistributionSSPlotPercentage>", linesHTMLReport, linesHighResHTMLReport, \
                                           htmlSpliceSitesDistributionSSPlotPercentage)
+        callFunctionAndPopulateTheReports(i, "<htmlNbOfIdentifiedExonsLinePlot>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlNbOfIdentifiedExonsLinePlot)
+        callFunctionAndPopulateTheReports(i, "<htmlHighestNbOfConsecutiveExonsLinePlot>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlHighestNbOfConsecutiveExonsLinePlot)
 
 
 

@@ -634,3 +634,59 @@ class Plotter:
         return buildCorrectIncorrectPlot("scalar"), buildCorrectIncorrectPlot("percentage"), \
                buildDetailedIncorrectPlot("scalar"), buildDetailedIncorrectPlot("percentage"), \
                buildSpliceSitesDistributionPlot("scalar"), buildSpliceSitesDistributionPlot("percentage")
+
+    def buildFullPartialMatchReadPlots(self, readSetProfiler, transcriptTypes):
+        pass
+
+
+    def buildNbOfIdentifiedExonsLinePlot(self, readSetProfiler, transcriptTypes):
+        """
+        :param readSetProfiler: the readSetProfiler
+        :param transcriptTypes: "all" or "multiExonicOnly"
+        :return:
+        """
+        return self.__buildIdentifiedExonsLinePlot(readSetProfiler, transcriptTypes, "tool2NbOfMatchingExons", \
+                                                       "Number of identified exons per read in each tool",\
+                                                       "Number of exons", "Read count")
+
+
+    def buildHighestNbOfConsecutiveExonsLinePlot(self, readSetProfiler, transcriptTypes):
+        """
+        :param readSetProfiler: the readSetProfiler
+        :param transcriptTypes: "all" or "multiExonicOnly"
+        :return:
+        """
+        return self.__buildIdentifiedExonsLinePlot(readSetProfiler, transcriptTypes, "tool2HighestNbOfConsecutiveExons", \
+                                                       "Highest number of consecutive exons per read in each tool",\
+                                                       "Highest number of consecutive exons", "Read count")
+
+
+
+    def __buildIdentifiedExonsLinePlot(self, readSetProfiler, transcriptTypes, feature, title, xLabel, yLabel):
+        # first we get the labels
+        labels = readSetProfiler.readStats[transcriptTypes][feature]["raw.bam"].getCategoriesAsString(displayPlusOnLastItem=True, displaySignal=False)
+
+        # produce the plot data
+        data = []
+        for tool in self.tools:
+            data.append(plotly.graph_objs.Scatter(
+                x=range(len(labels)),
+                y=readSetProfiler.readStats[transcriptTypes][feature][tool].getIntervalCount(),
+                mode='lines+markers',
+                fill='tozeroy' if tool == "raw.bam" else "none",
+                name="%s" % (tool)
+            ))
+
+        layout = plotly.graph_objs.Layout(
+            title=title,
+            xaxis=plotly.graph_objs.XAxis(
+                title=xLabel,
+                showticklabels=True,
+                tickvals=range(len(labels)),
+                ticktext=labels
+            ),
+            yaxis={"title": yLabel}
+        )
+
+        fig = plotly.graph_objs.Figure(data=data, layout=layout)
+        return self.__buildPlots(fig, feature+"LinePLot")

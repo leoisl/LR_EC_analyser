@@ -27,7 +27,7 @@ class FeatureProfiler:
 
         annotbest.txt format:
         columns:
-        0: read line number (the readline of this annotation in file best.sorted.bed.gz or best.sorted.gpd.gz)
+        0: read line number (the readline of this annotation in file best.sorted.bed.gz or best.sorted.gpd.gz - I guess it is in increasing consecutive order)
         1: read name
         2: gene name
         3: transcript name
@@ -48,17 +48,17 @@ class FeatureProfiler:
 
 
         From seqtools/cli/utilities/gpd_annotate.py:
-           1. read line number
-		   2. read name
-		   3. gene name
-		   4. transcript name
-		   5. match type
-		   6. number of matching exons
-		   7. highst number of consecutive_exons
-		   8. number of exons in read
-		   9. number of exons in reference transcript
+           1. read line number - x
+		   2. read name - x
+		   3. gene name - x
+		   4. transcript name - x
+		   5. match type - use only to have # and % of full and partial transcript coverage for *multi-exonic reads*
+		   6. number of matching exons - use for stats - # of identified exons as a distribution (also %, when dividing by the # of exons in reference transcript)
+		   7. highst number of consecutive_exons - use for stats - long reads keep or destroy exon connectivity - distribution of highest number of consecutive exons
+		   8. number of exons in read - used to check if a read is multi-exonic
+		   9. number of exons in reference transcript - used to check if a transcript is multi-exonic
 		   10. number of bp overlapping
-		   11. read lengthread_length
+		   11. read length
 		   12. transcript length
 		   13. read range
 		   14. transcript range
@@ -508,3 +508,85 @@ class SplicingSitesProfiler:
                         tool2SpliceSiteDistance2CountCopy[tool][ssDistance] = \
                             float(tool2SpliceSiteDistance2CountCopy[tool][ssDistance])/float(self.__tool2NbOfSpliceSites[tool])*100
         return tool2SpliceSiteDistance2CountCopy
+
+
+class ReadSetProfiler:
+    """
+    Represents the read set for each tool with some additional characteristics obtained from annotbest.txt.gz
+    """
+    def __init__(self, tools, outputFolder):
+        self.tools = tools
+
+        #create the matchType2Tool2Count structure
+        matchType2Tool2Count={}
+        for matchType in ["partial", "full"]:
+            matchType2Tool2Count[matchType]={}
+            for tool in tools:
+                matchType2Tool2Count[matchType][tool]=0
+        # create the tool2NbOfMatchingExons and tool2HighestNbOfConsecutiveExons structures
+        tool2NbOfMatchingExons = {tool:NumberCategory(1, 15, 1) for tool in tools}
+        tool2HighestNbOfConsecutiveExons = {tool: NumberCategory(1, 15, 1) for tool in tools}
+
+        #create the previous 3 structures for all transcripts ans multi-exonic transcripts only
+        self.readStats={"all": {"matchType2Tool2Count": copy.deepcopy(matchType2Tool2Count), "tool2NbOfMatchingExons": copy.deepcopy(tool2NbOfMatchingExons), "tool2HighestNbOfConsecutiveExons": copy.deepcopy(tool2HighestNbOfConsecutiveExons)},
+                   "multiExonicOnly": {"matchType2Tool2Count": copy.deepcopy(matchType2Tool2Count), "tool2NbOfMatchingExons": copy.deepcopy(tool2NbOfMatchingExons), "tool2HighestNbOfConsecutiveExons": copy.deepcopy(tool2HighestNbOfConsecutiveExons)}}
+
+        #populate
+        for tool in tools:
+            self.__populateFromAnnotbest(tool, outputFolder)
+
+
+    def __populateFromAnnotbest(self, tool, outputFolder):
+        """
+        Reads the annotbest.txt.gz file from AlignQC and populates this profiler
+        annotbest.txt is the AlignQC file that contains the best mapping of the ANNOTATED READS (reads that we were able to align and that AlignQC was able to assign to a transcript)
+
+        annotbest.txt format (the only interesting columns, starting at 0):
+        4: match type ("partial" or "full" (if it mapped partially or fully to the best transcript, according to AlignQC))
+            -use it to get # and % of reads that cover a transcript fully or partially;
+            -consider only *multi-exonic transcripts*
+                -you can get which transcripts are multi-exonic by looking at 8: number of exons in reference transcript
+            -single-exonic transcript seems hard to evaluate if a match is full or partial (it is always partial - example on the raw dataset):
+                leandro@ngs-provisoire:/data2/ASTER/error_correction/LR_EC_analyser/temp$ awk '$9==1{print $5}' annotbest.txt | sort | uniq -c
+                24008 partial
+            -for multi-exonic, it seems far better:
+				leandro@ngs-provisoire:/data2/ASTER/error_correction/LR_EC_analyser/temp$ awk '$9>1{print $5}' annotbest.txt | sort | uniq -c
+                121095 full
+                309595 partial
+        5: number of matching exons
+            -# of exons matching to the best transcript (the best transcript is the reference transcript from the best alignment)
+            -use for stats - # of identified exons as a distribution (also as %, according to the total # of reads)
+        6: highest number of consecutive_exons
+            -use for stats - long reads keep or destroy exon connectivity? - distribution of highest number of consecutive exons
+        8: number of exons in reference transcript
+            -use this to identify muti-exonic transcripts
+
+
+        Worth a mention:
+        7: number of exons in read
+            -DO NOT USE THIS
+            -# of identified exons in a read, not necessarily stemming from the best transcript mapping
+            -TODO: check if it is really this with a couple of examples
+
+
+        Example:
+        5	m150117_043342_42142_c100769800150000001823165407071580_s1_p0/144819/ccs	ENSG00000274276.4	ENST00000624934.3	partial	15	11	16	18	1747	3884	1992	chr21:6446736-6467516	chr21:6445433-6467532	2454
+        """
+        dataFolder = outputFolder+"/alignqc_out_on_%s/data"%tool
+        with gzip.open(dataFolder+"/annotbest.txt.gz") as file:
+            for line in file:
+                lineSplit = line.rstrip().split()
+                matchType = lineSplit[4]
+                nbOfMatchingExons = int(lineSplit[5])
+                highestNbOfConsecutiveExons = int(lineSplit[6])
+                nbOfExonsInRefTranscript = int(lineSplit[8])
+
+                if nbOfExonsInRefTranscript >= 2: #multi-exonic transcripts only
+                    self.readStats["multiExonicOnly"]["matchType2Tool2Count"][matchType][tool] += 1
+                    self.readStats["multiExonicOnly"]["tool2NbOfMatchingExons"][tool].addDataPoint(nbOfMatchingExons)
+                    self.readStats["multiExonicOnly"]["tool2HighestNbOfConsecutiveExons"][tool].addDataPoint(highestNbOfConsecutiveExons)
+
+                #all transcripts
+                self.readStats["all"]["matchType2Tool2Count"][matchType][tool] += 1
+                self.readStats["all"]["tool2NbOfMatchingExons"][tool].addDataPoint(nbOfMatchingExons)
+                self.readStats["all"]["tool2HighestNbOfConsecutiveExons"][tool].addDataPoint(highestNbOfConsecutiveExons)
