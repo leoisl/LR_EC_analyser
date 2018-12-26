@@ -1,0 +1,22 @@
+#Running gmap:
+#How we built the index
+gmap_build -D /data2/ASTER/nanopore_mouse/Our_mapping_to_mRNA_only/gmap_genome -d GRCm38 /data2/ASTER/nanopore_mouse/genomic_data/Mus_musculus.GRCm38.dna.primary_assembly.fa
+
+#mapping
+GMAP_GENOME_DIR=/data2/ASTER/nanopore_mouse/Our_mapping_to_mRNA_only/gmap_genome
+GMAP_GENOME_NAME=GRCm38
+gmap -D $GMAP_GENOME_DIR -d $GMAP_GENOME_NAME -n 10 -t $THREADS -f samse $RAW_READS_FILE >  ${OUTPUT_PREFIX}.gmap.sam
+
+#from sam to bam
+samtools view -S -o ${OUTPUT_PREFIX}.gmap.bam ${OUTPUT_PREFIX}.gmap.sam
+rm ${OUTPUT_PREFIX}.gmap.sam
+
+
+
+#Running minimap2:
+GENOME_PATH=/data2/ASTER/nanopore_mouse/genomic_data/Mus_musculus.GRCm38.dna.primary_assembly.fa
+minimap2 -ax splice $GENOME_PATH $RAW_READS_FILE > ${OUTPUT_PREFIX}.minimap2.sam
+
+#from sam to bam
+samtools view -S -o ${OUTPUT_PREFIX}.minimap2.bam ${OUTPUT_PREFIX}.minimap2.sam
+rm ${OUTPUT_PREFIX}.minimap2.sam
