@@ -639,39 +639,44 @@ class Plotter:
         pass
 
 
-    def buildNbOfIdentifiedExonsLinePlot(self, readSetProfiler, transcriptTypes):
+    def buildNbOfIdentifiedExonsLinePlot(self, readSetProfiler, inPercentage=False):
         """
         :param readSetProfiler: the readSetProfiler
-        :param transcriptTypes: "all" or "multiExonicOnly"
         :return:
         """
-        return self.__buildIdentifiedExonsLinePlot(readSetProfiler, transcriptTypes, "tool2NbOfMatchingExons", \
+        return self.__buildIdentifiedExonsLinePlot(readSetProfiler.tool2NbOfMatchingExons, inPercentage, \
                                                        "Number of identified exons per read in each tool",\
-                                                       "Number of exons", "Read count")
+                                                       "Number of identified exons", "Read count", "NbOfIdentifiedExonsLinePlot")
 
 
-    def buildHighestNbOfConsecutiveExonsLinePlot(self, readSetProfiler, transcriptTypes):
+    def buildHighestNbOfConsecutiveExonsLinePlot(self, readSetProfiler, inPercentage=False):
         """
         :param readSetProfiler: the readSetProfiler
-        :param transcriptTypes: "all" or "multiExonicOnly"
         :return:
         """
-        return self.__buildIdentifiedExonsLinePlot(readSetProfiler, transcriptTypes, "tool2HighestNbOfConsecutiveExons", \
+        return self.__buildIdentifiedExonsLinePlot(readSetProfiler.tool2HighestNbOfConsecutiveExons, inPercentage, \
                                                        "Highest number of consecutive exons per read in each tool",\
-                                                       "Highest number of consecutive exons", "Read count")
+                                                       "Highest number of consecutive exons", "Read count", "HighestNbOfConsecutiveExonsLinePlot")
 
 
 
-    def __buildIdentifiedExonsLinePlot(self, readSetProfiler, transcriptTypes, feature, title, xLabel, yLabel):
+    def __buildIdentifiedExonsLinePlot(self, tool2Feature, inPercentage, title, xLabel, yLabel, plotId):
+        """
+        :param tool2Feature: either  readSetProfiler.tool2NbOfMatchingExons or readSetProfiler.tool2HighestNbOfConsecutiveExons
+        :param title:
+        :param xLabel:
+        :param yLabel:
+        :return:
+        """
         # first we get the labels
-        labels = readSetProfiler.readStats[transcriptTypes][feature]["raw.bam"].getCategoriesAsString(displayPlusOnLastItem=True, displaySignal=False)
+        labels = tool2Feature["raw.bam"].getCategoriesAsString(displayPlusOnLastItem=True, displaySignal=False)
 
         # produce the plot data
         data = []
         for tool in self.tools:
             data.append(plotly.graph_objs.Scatter(
                 x=range(len(labels)),
-                y=readSetProfiler.readStats[transcriptTypes][feature][tool].getIntervalCount(),
+                y=tool2Feature[tool].getIntervalCount(inPercentage=inPercentage),
                 mode='lines+markers',
                 fill='tozeroy' if tool == "raw.bam" else "none",
                 name="%s" % (tool)
@@ -689,4 +694,18 @@ class Plotter:
         )
 
         fig = plotly.graph_objs.Figure(data=data, layout=layout)
-        return self.__buildPlots(fig, feature+"LinePLot")
+        return self.__buildPlots(fig, plotId)
+
+    def buildFullPartialReadsPlot(self, readSetProfiler, inPercentage=False):
+        # produce the plot
+        data = [
+            #full is always the first category
+            plotly.graph_objs.Bar(x=self.tools, y=[readSetProfiler.tool2MatchType[tool].getIntervalCount(inPercentage=inPercentage)[0] for tool in self.tools], name="Full match"), \
+            plotly.graph_objs.Bar(x=self.tools, y=[readSetProfiler.tool2MatchType[tool].getIntervalCount(inPercentage=inPercentage)[1] for tool in self.tools], name="Partial match")]
+        layout = plotly.graph_objs.Layout(
+            title='Full and partial read mapping BarPlot',
+            yaxis={"title": "Read count"},
+            barmode="group",
+        )
+        fig = plotly.graph_objs.Figure(data=data, layout=layout)
+        return self.__buildPlots(fig, "FullPartialReadsPlot")

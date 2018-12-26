@@ -55,23 +55,29 @@
             	}
             })
 
-            //hides all splice sites plots
-            $("div[id$=SSPlotScalar]").css("display", "none")
-            $("div[id$=SSPlotPercentage]").css("display", "none")
-            //show the ones we need by default
-            $("div[id$=SSPlotScalar]").css("display", "block")
 
-            //add the listener to the checkboxes of the splice sites
-            $("input[id$=_ss_percentage]").change(function(elem){
-                //get which element to change
-                idPrefix = elem.target.value
+            //hides all plots that have hideOnLoad attribute
+            $("div").each(function(i, elem){
+                if (attrExists(elem, "hideOnLoad"))
+                    $(elem).css("display", "none")
 
-                //hide all plots with the idPrefix first
-                $("div[id^="+idPrefix+"]").css("display", "none")
+            })
 
-                //show the plot we want
-                divId = idPrefix + (elem.currentTarget.checked ? "Percentage" : "Scalar")
-                $("#"+divId).css("display", "block")
+            //add the listener to the checkboxes which have the attribute percentageSwitcher
+            $("input").each(function(i, elem){
+                if (attrExists(elem, "percentageSwitcher")) {
+                    $(elem).change(function(elem){
+                        //get which element to change
+                        idPrefix = elem.target.value
+
+                        //hide all plots with the idPrefix first
+                        $("div[id^="+idPrefix+"]").css("display", "none")
+
+                        //show the plot we want
+                        divId = idPrefix + (elem.currentTarget.checked ? "Percentage" : "Scalar")
+                        $("#"+divId).css("display", "block")
+                    })
+                }
             });
 
             //fill the gene and transcript tables
@@ -212,10 +218,36 @@ If two or more alignment paths are reasonably spaced across the read, and can to
 
 <br/><br/>
 <h1>Does error-correction perturb long reads connectivity, losing transcript structure and exon coupling?</h1>
-<p>If error correctors shorten a lot the long reads, their main advantages, which are describing the complete transcript structure and distant exon coupling, which is impossible to make with short reads, are lost.</p>
+<p>If error correctors shorten a lot the long reads, their main advantages, which are describing the complete transcript structure and distant exon coupling, are lost.</p>
+<p>It is important to keep the length of the long reads, since short reads cannot describe transcript structure and distant exon coupling.</p>
 
-<htmlNbOfIdentifiedExonsLinePlot>
-<htmlHighestNbOfConsecutiveExonsLinePlot>
+
+<input type="checkbox" value="htmlNbOfIdentifiedExonsLinePlot" percentageSwitcher> Show in %<br/>
+<div id="htmlNbOfIdentifiedExonsLinePlotScalar">
+<htmlNbOfIdentifiedExonsLinePlotScalar>
+</div>
+<div id="htmlNbOfIdentifiedExonsLinePlotPercentage" hideOnLoad>
+<htmlNbOfIdentifiedExonsLinePlotPercentage>
+</div>
+
+
+<input type="checkbox" value="htmlHighestNbOfConsecutiveExonsLinePlot" percentageSwitcher> Show in %<br/>
+<div id="htmlHighestNbOfConsecutiveExonsLinePlotScalar">
+<htmlHighestNbOfConsecutiveExonsLinePlotScalar>
+</div>
+<div id="htmlHighestNbOfConsecutiveExonsLinePlotPercentage" hideOnLoad>
+<htmlHighestNbOfConsecutiveExonsLinePlotPercentage>
+</div>
+
+
+<input type="checkbox" value="htmlFullPartialReadsPlot" percentageSwitcher> Show in %<br/>
+<div id="htmlFullPartialReadsPlotScalar">
+<htmlFullPartialReadsPlotScalar>
+</div>
+<div id="htmlFullPartialReadsPlotPercentage" hideOnLoad>
+<htmlFullPartialReadsPlotPercentage>
+</div>
+
 
 <br/><br/>
 <h1>Does error-correction perturb reads’ length?</h1>
@@ -320,11 +352,11 @@ This plot shows how the coverage of the main isoform changes after the correctio
 
 <h1>Splice Sites Plots</h1>
 <h2>Correct and Incorrect Splice Sites BarPlot (compilation from AlignQC reports)</h2>
-<input type="checkbox" id="correct_incorrect_ss_percentage" value="htmlCorrectIncorrectSSPlot"> Show in %<br/>
+<input type="checkbox" value="htmlCorrectIncorrectSSPlot" percentageSwitcher> Show in %<br/>
 <div id="htmlCorrectIncorrectSSPlotScalar">
 <htmlCorrectIncorrectSSPlotScalar>
 </div>
-<div id="htmlCorrectIncorrectSSPlotPercentage">
+<div id="htmlCorrectIncorrectSSPlotPercentage" hideOnLoad>
 <htmlCorrectIncorrectSSPlotPercentage>
 </div>
 
@@ -338,20 +370,20 @@ This plot shows how the coverage of the main isoform changes after the correctio
     Note however that mutations changing the ORFs are uncommon.
 </p>
 <p><b>Incorrect SSs Far From True SSs</b> is the number of incorrect Splice Sites that are not near (more than 2 bps) away from the nearest true Splice Site and are at a distance that is NOT multiple of 3 of the nearest true Splice Site.</p>
-<input type="checkbox" id="detailed_incorrect_ss_percentage" value="htmlDetailedIncorrectSSPlot"> Show in %<br/>
+<input type="checkbox" value="htmlDetailedIncorrectSSPlot" percentageSwitcher> Show in %<br/>
 <div id="htmlDetailedIncorrectSSPlotScalar">
 <htmlDetailedIncorrectSSPlotScalar>
 </div>
-<div id="htmlDetailedIncorrectSSPlotPercentage">
+<div id="htmlDetailedIncorrectSSPlotPercentage" hideOnLoad>
 <htmlDetailedIncorrectSSPlotPercentage>
 </div>
 
 <h2>Incorrect Splice Site Distribution Plots (compilation from AlignQC reports)</h2>
-<input type="checkbox" id="distribution_ss_percentage" value="htmlSpliceSitesDistributionSSPlot"> Show in %
+<input type="checkbox" value="htmlSpliceSitesDistributionSSPlot" percentageSwitcher> Show in %
 <div id="htmlSpliceSitesDistributionSSPlotScalar">
 <htmlSpliceSitesDistributionSSPlotScalar>
 </div>
-<div id="htmlSpliceSitesDistributionSSPlotPercentage">
+<div id="htmlSpliceSitesDistributionSSPlotPercentage" hideOnLoad>
 <htmlSpliceSitesDistributionSSPlotPercentage>
 </div>
 

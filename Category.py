@@ -104,7 +104,7 @@ class TextCategory(Category):
     def getCategoriesAsString(self, displayInterval=False, displayPlusOnFirstItem=False, displayPlusOnLastItem=False):
         return [interval["category"] for interval in self.intervals]
 
-    def addDataPointAndIAlreadyKnowTheCategory(self, category, dataToSave):
+    def addDataPointAndIAlreadyKnowTheCategory(self, category, dataToSave=None):
         categoriesAsString = self.getCategoriesAsString()
         if category not in categoriesAsString:
             raise Exception("ERROR: non-existing category: %s..." % category)

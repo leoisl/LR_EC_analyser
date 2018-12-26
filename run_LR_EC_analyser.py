@@ -220,8 +220,15 @@ def main():
         plotter.makeSpliceSitesPlots(splicingSitesProfiler)
 
     #Build the read connectivity plots
-    htmlNbOfIdentifiedExonsLinePlot = plotter.buildNbOfIdentifiedExonsLinePlot(readSetProfiler, "all")
-    htmlHighestNbOfConsecutiveExonsLinePlot = plotter.buildHighestNbOfConsecutiveExonsLinePlot(readSetProfiler, "all")
+    htmlNbOfIdentifiedExonsLinePlotScalar, htmlNbOfIdentifiedExonsLinePlotPercentage = \
+        plotter.buildNbOfIdentifiedExonsLinePlot(readSetProfiler, False), \
+        plotter.buildNbOfIdentifiedExonsLinePlot(readSetProfiler, True)
+    htmlHighestNbOfConsecutiveExonsLinePlotScalar, htmlHighestNbOfConsecutiveExonsLinePlotPercentage =\
+        plotter.buildHighestNbOfConsecutiveExonsLinePlot(readSetProfiler, False), \
+        plotter.buildHighestNbOfConsecutiveExonsLinePlot(readSetProfiler, True)
+    htmlFullPartialReadsPlotScalar, htmlFullPartialReadsPlotPercentage = \
+        plotter.buildFullPartialReadsPlot(readSetProfiler, False),\
+        plotter.buildFullPartialReadsPlot(readSetProfiler, True)
     print "Computing the plots - Done!"
 
 
@@ -317,10 +324,19 @@ def main():
                                           htmlSpliceSitesDistributionSSPlotScalar)
         callFunctionAndPopulateTheReports(i, "<htmlSpliceSitesDistributionSSPlotPercentage>", linesHTMLReport, linesHighResHTMLReport, \
                                           htmlSpliceSitesDistributionSSPlotPercentage)
-        callFunctionAndPopulateTheReports(i, "<htmlNbOfIdentifiedExonsLinePlot>", linesHTMLReport, linesHighResHTMLReport, \
-                                          htmlNbOfIdentifiedExonsLinePlot)
-        callFunctionAndPopulateTheReports(i, "<htmlHighestNbOfConsecutiveExonsLinePlot>", linesHTMLReport, linesHighResHTMLReport, \
-                                          htmlHighestNbOfConsecutiveExonsLinePlot)
+        callFunctionAndPopulateTheReports(i, "<htmlNbOfIdentifiedExonsLinePlotScalar>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlNbOfIdentifiedExonsLinePlotScalar)
+        callFunctionAndPopulateTheReports(i, "<htmlNbOfIdentifiedExonsLinePlotPercentage>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlNbOfIdentifiedExonsLinePlotPercentage)
+        callFunctionAndPopulateTheReports(i, "<htmlHighestNbOfConsecutiveExonsLinePlotScalar>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlHighestNbOfConsecutiveExonsLinePlotScalar)
+        callFunctionAndPopulateTheReports(i, "<htmlHighestNbOfConsecutiveExonsLinePlotPercentage>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlHighestNbOfConsecutiveExonsLinePlotPercentage)
+        callFunctionAndPopulateTheReports(i, "<htmlFullPartialReadsPlotScalar>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlFullPartialReadsPlotScalar)
+        callFunctionAndPopulateTheReports(i, "<htmlFullPartialReadsPlotPercentage>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlFullPartialReadsPlotPercentage)
+
 
 
 

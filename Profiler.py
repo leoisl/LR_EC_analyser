@@ -518,18 +518,11 @@ class ReadSetProfiler:
         self.tools = tools
 
         #create the matchType2Tool2Count structure
-        matchType2Tool2Count={}
-        for matchType in ["partial", "full"]:
-            matchType2Tool2Count[matchType]={}
-            for tool in tools:
-                matchType2Tool2Count[matchType][tool]=0
+        #only for multi-exonic transcripts
+        self.tool2MatchType={tool: TextCategory(["full", "partial"]) for tool in tools}
         # create the tool2NbOfMatchingExons and tool2HighestNbOfConsecutiveExons structures
-        tool2NbOfMatchingExons = {tool:NumberCategory(1, 15, 1) for tool in tools}
-        tool2HighestNbOfConsecutiveExons = {tool: NumberCategory(1, 15, 1) for tool in tools}
-
-        #create the previous 3 structures for all transcripts ans multi-exonic transcripts only
-        self.readStats={"all": {"matchType2Tool2Count": copy.deepcopy(matchType2Tool2Count), "tool2NbOfMatchingExons": copy.deepcopy(tool2NbOfMatchingExons), "tool2HighestNbOfConsecutiveExons": copy.deepcopy(tool2HighestNbOfConsecutiveExons)},
-                   "multiExonicOnly": {"matchType2Tool2Count": copy.deepcopy(matchType2Tool2Count), "tool2NbOfMatchingExons": copy.deepcopy(tool2NbOfMatchingExons), "tool2HighestNbOfConsecutiveExons": copy.deepcopy(tool2HighestNbOfConsecutiveExons)}}
+        self.tool2NbOfMatchingExons = {tool:NumberCategory(1, 16, 1) for tool in tools}
+        self.tool2HighestNbOfConsecutiveExons = {tool: NumberCategory(1, 16, 1) for tool in tools}
 
         #populate
         for tool in tools:
@@ -581,12 +574,10 @@ class ReadSetProfiler:
                 highestNbOfConsecutiveExons = int(lineSplit[6])
                 nbOfExonsInRefTranscript = int(lineSplit[8])
 
-                if nbOfExonsInRefTranscript >= 2: #multi-exonic transcripts only
-                    self.readStats["multiExonicOnly"]["matchType2Tool2Count"][matchType][tool] += 1
-                    self.readStats["multiExonicOnly"]["tool2NbOfMatchingExons"][tool].addDataPoint(nbOfMatchingExons)
-                    self.readStats["multiExonicOnly"]["tool2HighestNbOfConsecutiveExons"][tool].addDataPoint(highestNbOfConsecutiveExons)
+                # only for multi-exonic transcripts
+                if nbOfExonsInRefTranscript >= 2:
+                    self.tool2MatchType[tool].addDataPointAndIAlreadyKnowTheCategory(matchType)
 
                 #all transcripts
-                self.readStats["all"]["matchType2Tool2Count"][matchType][tool] += 1
-                self.readStats["all"]["tool2NbOfMatchingExons"][tool].addDataPoint(nbOfMatchingExons)
-                self.readStats["all"]["tool2HighestNbOfConsecutiveExons"][tool].addDataPoint(highestNbOfConsecutiveExons)
+                self.tool2NbOfMatchingExons[tool].addDataPoint(nbOfMatchingExons)
+                self.tool2HighestNbOfConsecutiveExons[tool].addDataPoint(highestNbOfConsecutiveExons)
