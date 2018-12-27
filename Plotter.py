@@ -32,7 +32,7 @@ class Plotter:
         else:
             raise Exception("Unknown category for tool %s"%tool)
 
-    def __buildPlots(self, fig, name, label2ToolIndex2Data=None, width=1600, height=600):
+    def __buildPlots(self, fig, name, label2ToolIndex2Data=None, width=1600, height=500):
         """
         build the plots and return what needs to be returned
         """
@@ -322,7 +322,6 @@ class Plotter:
             for toolIndex, tool  in enumerate(self.toolsNoRaw):
                 specificPlotFig['layout']['xaxis%d'%(toolIndex+1)].update(range=[0, largestFamilySize + 1], title="Raw")
                 specificPlotFig['layout']['yaxis%d'%(toolIndex+1)].update(range=[0, largestFamilySize + 1], title=tool)
-                # TODO NEW PLOTLY: I CHANGED HERE
                 diagonalLinesAsShapes.append(plotly.graph_objs.layout.Shape(dict({
                         'xref': "x%d"%(toolIndex+1),
                         'yref': "y%d"%(toolIndex+1),
@@ -337,7 +336,7 @@ class Plotter:
 
             #build the plots for the general stats
             return self.__produceBarPlot(name + "General", tool2GeneralStatsCategories, "Tool's behaviour towards the gene family", "Gene family count in %", generateDataToBeShown=True, inPercentage=True), \
-                   self.__buildPlots(specificPlotFig, name+"Specific")
+                   self.__buildPlots(specificPlotFig, name+"Specific", height=nbRowsInSubplot*400, width=nbOfColumnsInSubplot*400)
 
         except ValueError as exception:
             if exception.message == "max() arg is an empty sequence":
@@ -423,8 +422,6 @@ class Plotter:
             row, col = int(toolIndex / nbOfColumnsInSubplot) + 1, toolIndex % nbOfColumnsInSubplot + 1
             # plot it
             trace = plotly.graph_objs.Scattergl(x=tool2PlotData[tool]["xDataPoints"], y=tool2PlotData[tool]["yDataPoints"],
-											  #TODO NEW PLOTLY: I COMMENTED OUT THIS, CHECK
-											  #type='scattergl',
                                               mode='markers',
                                               marker={
                                                   'color': 'black',
@@ -458,13 +455,14 @@ class Plotter:
 
 
 
+
+
         fig['layout'].update(height=nbRowsInSubplot * 400, width=nbOfColumnsInSubplot * 400, showlegend=False)
 
         diagonalLinesAsShapes = []
         for toolIndex, tool in enumerate(self.toolsNoRaw):
-            fig['layout']['xaxis%d' % (toolIndex + 1)].update(range=[0, int(math.ceil(highestExpression*1.1))+1], title="%s coverage before"%featureAsString if toolIndex==0 else "")
+            fig['layout']['xaxis%d' % (toolIndex + 1)].update(range=[0, int(math.ceil(highestExpression*1.1))+1], title="%s coverage before - %s"%(featureAsString, tool) if toolIndex==0 else tool)
             fig['layout']['yaxis%d' % (toolIndex + 1)].update(range=[0, int(math.ceil(highestExpression*1.1))+1], title="%s coverage after"%featureAsString if toolIndex==0 else "")
-            # TODO NEW PLOTLY: I CHANGED HERE
             diagonalLinesAsShapes.append(
                 plotly.graph_objs.layout.Shape(dict({
                 'xref': "x%d"%(toolIndex+1),
@@ -477,7 +475,6 @@ class Plotter:
                 'opacity': 0.5
             })))
 
-        # TODO NEW PLOTLY: I CHANGED HERE
         fig['layout']['shapes'] = diagonalLinesAsShapes
         fig['layout']['annotations'] = rSquaredAnnotations
 
@@ -650,7 +647,7 @@ class Plotter:
         """
         return self.__buildIdentifiedExonsLinePlot(readSetProfiler.tool2NbOfMatchingExons, inPercentage, \
                                                        "Number of identified exons per read in each tool",\
-                                                       "Number of identified exons", "Read count", "NbOfIdentifiedExonsLinePlot")
+                                                       "Number of identified exons", "Read count", "NbOfIdentifiedExonsLinePlot" + ("Percentage" if inPercentage else "Scalar"))
 
 
     def buildHighestNbOfConsecutiveExonsLinePlot(self, readSetProfiler, inPercentage=False):
@@ -660,7 +657,7 @@ class Plotter:
         """
         return self.__buildIdentifiedExonsLinePlot(readSetProfiler.tool2HighestNbOfConsecutiveExons, inPercentage, \
                                                        "Highest number of consecutive exons per read in each tool",\
-                                                       "Highest number of consecutive exons", "Read count", "HighestNbOfConsecutiveExonsLinePlot")
+                                                       "Highest number of consecutive exons", "Read count", "HighestNbOfConsecutiveExonsLinePlot" + ("Percentage" if inPercentage else "Scalar"))
 
 
 
@@ -712,4 +709,4 @@ class Plotter:
             barmode="group",
         )
         fig = plotly.graph_objs.Figure(data=data, layout=layout)
-        return self.__buildPlots(fig, "FullPartialReadsPlot")
+        return self.__buildPlots(fig, "FullPartialReadsPlot" + ("Percentage" if inPercentage else "Scalar"))

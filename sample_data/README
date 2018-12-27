@@ -61,3 +61,29 @@ rm ${prefix}.gmap.chr19.sam
 simulate 0.7 0.01 0.01 0.01 good
 simulate 0.9 0.01 0.1 0.1 indels
 simulate 0.6 0.1 0.01 0.01 subs
+
+
+
+
+
+
+
+
+
+#OLD notes:
+"""
+Testing:
+python run_LR_EC_analyser.py --genome sample_data/Mus_musculus.GRCm38.dna.chromosome.19.fa --gtf sample_data/Mus_musculus.GRCm38.91.chr19.gtf -t 4 -o sample_data/output --raw sample_data/gmap_CB_1Donly_to_GRCm38_chr19.bam sample_data/good.gmap.chr19.bam sample_data/indels.gmap.chr19.bam sample_data/subs.gmap.chr19.bam
+
+#How we built the index
+gmap_build -D /data2/ASTER/nanopore_mouse/Our_mapping_to_mRNA_only/gmap_genome -d GRCm38 /data2/ASTER/nanopore_mouse/genomic_data/Mus_musculus.GRCm38.dna.primary_assembly.fa
+
+#mapping
+GMAP_GENOME_DIR=/data2/ASTER/nanopore_mouse/Our_mapping_to_mRNA_only/gmap_genome
+GMAP_GENOME_NAME=GRCm38
+gmap -D $GMAP_GENOME_DIR -d $GMAP_GENOME_NAME -n 10 -t $THREADS -f samse $RAW_READS_FILE >  ${OUTPUT_PREFIX}.gmap.sam
+
+#from sam to bam
+samtools view -S -o ${OUTPUT_PREFIX}.gmap.bam ${OUTPUT_PREFIX}.gmap.sam
+rm ${OUTPUT_PREFIX}.gmap.sam
+"""

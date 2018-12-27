@@ -1,26 +1,37 @@
+# NEWS
+
+v0.0.10 released. Changes:
+* Added long reads connectivity plots;
+* Created a simple report which has plots as static images and has no Gene/Transcript read alignment viewer, making it easily shareable;
+
+Software currently under development and testing. The latest version, found in this main branch, should be stable and working, but some bugs might be expected.
+
+If you find one, please create an issue in the (https://gitlab.com/leoisl/LR_EC_analyser/issues)[Issues page].
+
+A pre-print with application of this method can be found at https://www.biorxiv.org/content/early/2018/11/23/476622 .
+
 # About LR_EC_analyser
 LR_EC_analyser stands for Long Read Error Correction analyser. It is a python script that analyses the output of
-long reads error correctors, like daccord, LoRDEC, LoRMA, MECAT, NaS, PBcR, pbdagcon, proovreads, etc. It does so by
+long reads error correctors, like LoRDEC, NaS, PBcR, proovread, canu, daccord, LoRMA, MECAT, pbdagcon, etc. It does so by
 running AlignQC (https://github.com/jason-weirather/AlignQC) on the BAMs built by the mapping the output of error correction
-tools to a reference genome and parsing its output, and creating other custom plots, and then putting all the relevant information
+tools to a reference genome (using for example gmap or minimap2) and parsing its output, and creating other custom plots, and then putting all the relevant information
 in a HTML report. It also makes use of IGV.js (https://github.com/igvteam/igv.js) for an in-depth gene and transcript analysis.
 
 # Motivation
-RNA long reads from third generation sequencers like PacBio or ONT are becoming widely used due to the fact that such reads are usually
-long enough to cover entire transcripts, removing the need for transcriptome assembly and allowing for the discovery of the full
-transcript structure and long-range exon coupling. One of the main issues on using long reads is their high error rates. As such,
-many error correctors were developed in the past few years, that are broadly classified into two categories: non-hybrid (correct long reads
-using only long reads) and hybrid (correct long reads using short reads). However, the big majority of these error correctors are tailored for
-the genomic context, and transcriptomic characteristics like the presence of alternative splicing, which can create long gaps between common sequences,
-the highly dynamic isoform expression levels, which create regions with high coverage and low coverage, can pose difficulties to these tools, since
-they are not present in the DNA level, and thus probably not modelled. Ultimately, it is not simple to choose which error corrector to use, mainly if
-all your options are tailored for correcting genomic long reads. This tool aims at filling this gap, by evaluating the quality of correction of different
-error correctors when applied to a RNA long reads dataset. This tool is not suited to evaluate how well the tools perform on correction DNA long reads.
-It can help users choose which error corrector to use on a specific transcritome dataset.
+Long-read sequencing technologies offer promising alternatives to high-throughput short read sequencing,
+especially in the context of RNA-sequencing.
+However these technologies are currently hindered by high error rates that affect analyses such as the identification of isoforms,
+exon boundaries, open reading frames, and the creation of gene catalogues. Due to the novelty of such data,
+computational methods are still actively being developed and options for the error-correction of RNA-sequencing long reads remain limited.
+LR_EC_analyser can be applied to evaluate the extent to which existing long-read DNA error correction methods are capable of correcting
+long reads.
+It not only reports classical error-correction metrics but also the effect of correction on long read connectivity (impacts the inference of transcript structure and exon coupling),
+gene families, isoform diversity, bias toward the major isoform, and splice site detection.
+An application of this method to cDNA Nanopore reads can be found at https://www.biorxiv.org/content/early/2018/11/23/476622 .
 
 # Example on a real dataset
 To know if LR_EC_analyser is useful for you, you can check the latest tool report on a Mouse RNA ONT 1D reads evaluating the following correctors:
-LoRDEC, NaS, PBcR, proovread, canu, daccord, LoRMA, MECAT, and pbdagcon here: [http://leoisl.gitlab.io/LR_EC_analyser_support/](http://leoisl.gitlab.io/LR_EC_analyser_support/)
+LoRDEC, NaS, PBcR, proovread, canu, daccord, LoRMA, MECAT, pbdagcon here: http://leoisl.gitlab.io/LR_EC_analyser_support/
 
 # Installing
 
@@ -113,3 +124,5 @@ optional arguments:
 14. iziModal (http://izimodal.marcelodolce.com/)
 15. jQuery BlockUI (http://malsup.com/jquery/block/)
 16. anchorific.js (https://github.com/renettarenula/anchorific.js/)
+17. psutil (https://github.com/giampaolo/psutil)
+18. orca (https://github.com/plotly/orca)
