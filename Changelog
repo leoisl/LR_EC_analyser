@@ -1,3 +1,11 @@
+v0.0.10:
+    -Added long reads connectivity;
+    -Added back the simple report (with static images);
+    -
+
+v0.0.9:
+    -Added Splicing Sites plots
+
 v0.0.8:
     -Improved "Does a tool cut reads?" plot;
     -Added "Does error-correction perturb the number of reads mapping to the genes and transcripts?" plots;

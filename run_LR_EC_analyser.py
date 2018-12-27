@@ -15,8 +15,6 @@ import os
 Testing:
 python run_LR_EC_analyser.py --genome sample_data/Mus_musculus.GRCm38.dna.chromosome.19.fa --gtf sample_data/Mus_musculus.GRCm38.91.chr19.gtf -t 4 -o sample_data/output --raw sample_data/gmap_CB_1Donly_to_GRCm38_chr19.bam sample_data/good.gmap.chr19.bam sample_data/indels.gmap.chr19.bam sample_data/subs.gmap.chr19.bam
 
-
-
 #How we built the index
 gmap_build -D /data2/ASTER/nanopore_mouse/Our_mapping_to_mRNA_only/gmap_genome -d GRCm38 /data2/ASTER/nanopore_mouse/genomic_data/Mus_musculus.GRCm38.dna.primary_assembly.fa
 
@@ -54,15 +52,6 @@ For now, I think it should have:
     5/ Create an HTML page sorted by this discrepancy measure and show all the infos we have gathered
     6/ On clicking in one of the genes, we give to igv viewer the genome, transcriptome, all bams, and the gene coordinate
 
-
-
-To view results, execute
-python run_LR_EC_analyser --view <path_to_results>
-    This will start a ftp server on <path_to_results>
-    Then will open a browser to view <path_to_results>
-
-
-
 """
 
 def main():
@@ -90,6 +79,7 @@ def main():
     #create output dir
     if not os.path.exists(args.output):
         os.makedirs(args.output)
+
 
     #get some useful vars
     hybridBams = args.hybrid if args.hybrid != None else []
@@ -181,13 +171,10 @@ def main():
 
     #create the Plotter and the plots
     print "Computing the plots..."
-    """
-    TODO: removed png plots
     plotsOutput = args.output+"/plots"
     if not os.path.exists(plotsOutput):
         os.makedirs(plotsOutput)
-    """
-    plotter = Plotter(tools, hybridTools, selfTools)
+    plotter = Plotter(tools, hybridTools, selfTools, plotsOutput)
 
     #make all stats plots
     allStatsPlots = {feature: plotter.makeBarPlotFromStats(statProfiler, feature) for feature in statProfiler.allFeatures}
@@ -341,14 +328,10 @@ def main():
 
 
     #save the html reports
-    '''
-    TODO: removed the simple report file
-    
-    with open(args.output+"/report.html", "w") as indexOutFile:
+    with open(args.output+"/report_simple.html", "w") as indexOutFile:
         for line in linesHTMLReport:
             indexOutFile.write(line)
-    '''
-    with open(args.output+"/report.html", "w") as indexOutFile:
+    with open(args.output+"/report_interactive.html", "w") as indexOutFile:
         for line in linesHighResHTMLReport:
             indexOutFile.write(line)
 
