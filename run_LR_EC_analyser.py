@@ -10,61 +10,6 @@ from Plotter import *
 from Paralogous import *
 import os
 
-
-"""
-Testing:
-python run_LR_EC_analyser.py --genome sample_data/Mus_musculus.GRCm38.dna.chromosome.19.fa --gtf sample_data/Mus_musculus.GRCm38.91.chr19.gtf -t 4 -o sample_data/output --raw sample_data/gmap_CB_1Donly_to_GRCm38_chr19.bam sample_data/good.gmap.chr19.bam sample_data/indels.gmap.chr19.bam sample_data/subs.gmap.chr19.bam
-
-
-
-#How we built the index
-gmap_build -D /data2/ASTER/nanopore_mouse/Our_mapping_to_mRNA_only/gmap_genome -d GRCm38 /data2/ASTER/nanopore_mouse/genomic_data/Mus_musculus.GRCm38.dna.primary_assembly.fa
-
-#mapping
-GMAP_GENOME_DIR=/data2/ASTER/nanopore_mouse/Our_mapping_to_mRNA_only/gmap_genome
-GMAP_GENOME_NAME=GRCm38
-gmap -D $GMAP_GENOME_DIR -d $GMAP_GENOME_NAME -n 10 -t $THREADS -f samse $RAW_READS_FILE >  ${OUTPUT_PREFIX}.gmap.sam
-
-#from sam to bam
-samtools view -S -o ${OUTPUT_PREFIX}.gmap.bam ${OUTPUT_PREFIX}.gmap.sam
-rm ${OUTPUT_PREFIX}.gmap.sam
-
-
-
-
-
-
-
-Input:
-python run_LR_EC_analyser.py -g <genome> -gtf <transcriptome> raw_reads.bam LoRDEC.bam LoRMA.bam PBCR.bam ...
-
-MappingInfo is just a class with relevant mapping info to compare 2 EC tools
-For now, I think it should have:
-    1. # of reads mapped to transcript/gene
-    2. overlap size between read and transcript (all the values / average)?
-    
-
-0/ Process the gtf and get the gene coordinates
-    
-1/ For each .bam file:
-    1/ Filter the bam to keep only the best hit
-    2/ Run AlignQC on this bam
-    3/ Process output/data/annotbest.txt and populate gene2ECTool2MappingInfo and transcript2ECTool2MappingInfo
-    4/ Create a discrepancy measure (I think now it should be like the largest difference between the # of reads in the raw_reads and one of the tools)
-    5/ Create an HTML page sorted by this discrepancy measure and show all the infos we have gathered
-    6/ On clicking in one of the genes, we give to igv viewer the genome, transcriptome, all bams, and the gene coordinate
-
-
-
-To view results, execute
-python run_LR_EC_analyser --view <path_to_results>
-    This will start a ftp server on <path_to_results>
-    Then will open a browser to view <path_to_results>
-
-
-
-"""
-
 def main():
     parser = argparse.ArgumentParser(description='Long reads error corrector analyser.')
     parser.add_argument("--raw", dest="rawBam", help="The BAM file of the raw reads (i.e. the uncorrected long reads) mapped to the genome (preferably using gmap -n 10 -f samse).", required=True)
@@ -90,6 +35,7 @@ def main():
     #create output dir
     if not os.path.exists(args.output):
         os.makedirs(args.output)
+
 
     #get some useful vars
     hybridBams = args.hybrid if args.hybrid != None else []
@@ -173,18 +119,18 @@ def main():
     #SS profiler
     splicingSitesProfiler = SplicingSitesProfiler(tools, args.output)
 
+    #ReadSetProfiler
+    readSetProfiler = ReadSetProfiler(tools, args.output)
+
     print "Running profilers - gathering and processing the data to produce the plots - Done!"
 
 
     #create the Plotter and the plots
     print "Computing the plots..."
-    """
-    TODO: removed png plots
     plotsOutput = args.output+"/plots"
     if not os.path.exists(plotsOutput):
         os.makedirs(plotsOutput)
-    """
-    plotter = Plotter(tools, hybridTools, selfTools)
+    plotter = Plotter(tools, hybridTools, selfTools, plotsOutput)
 
     #make all stats plots
     allStatsPlots = {feature: plotter.makeBarPlotFromStats(statProfiler, feature) for feature in statProfiler.allFeatures}
@@ -216,6 +162,16 @@ def main():
     htmlSpliceSitesDistributionSSPlotScalar, htmlSpliceSitesDistributionSSPlotPercentage = \
         plotter.makeSpliceSitesPlots(splicingSitesProfiler)
 
+    #Build the read connectivity plots
+    htmlNbOfIdentifiedExonsLinePlotScalar, htmlNbOfIdentifiedExonsLinePlotPercentage = \
+        plotter.buildNbOfIdentifiedExonsLinePlot(readSetProfiler, False), \
+        plotter.buildNbOfIdentifiedExonsLinePlot(readSetProfiler, True)
+    htmlHighestNbOfConsecutiveExonsLinePlotScalar, htmlHighestNbOfConsecutiveExonsLinePlotPercentage =\
+        plotter.buildHighestNbOfConsecutiveExonsLinePlot(readSetProfiler, False), \
+        plotter.buildHighestNbOfConsecutiveExonsLinePlot(readSetProfiler, True)
+    htmlFullPartialReadsPlotScalar, htmlFullPartialReadsPlotPercentage = \
+        plotter.buildFullPartialReadsPlot(readSetProfiler, False),\
+        plotter.buildFullPartialReadsPlot(readSetProfiler, True)
     print "Computing the plots - Done!"
 
 
@@ -224,20 +180,23 @@ def main():
     print "Creating HTML report..."
 
     def callFunctionAndPopulateTheReports(index, htmlTag, linesHTMLReport, linesHighResHTMLReport, object, methodName=None, **kwargs):
-        if htmlTag in linesHTMLReport[index] or htmlTag in linesHighResHTMLReport[index]:
+        if (linesHTMLReport!=None and htmlTag in linesHTMLReport[index]) or (linesHighResHTMLReport!=None and htmlTag in linesHighResHTMLReport[index]):
             if methodName!=None: #there is a method passed
                 method = getattr(object, methodName)
                 plots = method(**kwargs)
             else: #the method is the object itself
                 plots = object
-            if type(plots) is dict and "imagePlot" in object:
-                linesHTMLReport[index] = linesHTMLReport[index].replace(htmlTag, str(plots["imagePlot"]))
-            else:
-                linesHTMLReport[index] = linesHTMLReport[index].replace(htmlTag, str(plots))
-            if type(plots) is dict and "jsPlot" in object:
-                linesHighResHTMLReport[index] = linesHighResHTMLReport[index].replace(htmlTag, str(plots["jsPlot"]))
-            else:
-                linesHighResHTMLReport[index] = linesHighResHTMLReport[index].replace(htmlTag, str(plots))
+
+            if linesHTMLReport!=None:
+                if type(plots) is dict and "imagePlot" in object:
+                    linesHTMLReport[index] = linesHTMLReport[index].replace(htmlTag, str(plots["imagePlot"]))
+                else:
+                    linesHTMLReport[index] = linesHTMLReport[index].replace(htmlTag, str(plots))
+            if linesHighResHTMLReport!=None:
+                if type(plots) is dict and "jsPlot" in object:
+                    linesHighResHTMLReport[index] = linesHighResHTMLReport[index].replace(htmlTag, str(plots["jsPlot"]))
+                else:
+                    linesHighResHTMLReport[index] = linesHighResHTMLReport[index].replace(htmlTag, str(plots))
 
     scriptDir = os.path.dirname(os.path.realpath(__file__))
     with open(scriptDir+"/lib/html/index_template.html") as indexTemplateFile:
@@ -257,9 +216,9 @@ def main():
                                           statProfiler, "getErrorStatsAsJSArrayForHOT")
         callFunctionAndPopulateTheReports(i, "<statProfiler.getAnnotationStatsAsJSArrayForHOT()>", linesHTMLReport, linesHighResHTMLReport, \
                                           statProfiler, "getAnnotationStatsAsJSArrayForHOT")
-        callFunctionAndPopulateTheReports(i, "<geneProfiler.geneProfileToJSArrayForHOT()>", linesHTMLReport, linesHighResHTMLReport, \
+        callFunctionAndPopulateTheReports(i, "<geneProfiler.geneProfileToJSArrayForHOT()>", None, linesHighResHTMLReport, \
                                           geneProfiler, "geneProfileToJSArrayForHOT")
-        callFunctionAndPopulateTheReports(i, "<geneProfiler.transcriptProfileToJSArrayForHOT()>", linesHTMLReport, linesHighResHTMLReport, \
+        callFunctionAndPopulateTheReports(i, "<geneProfiler.transcriptProfileToJSArrayForHOT()>", None, linesHighResHTMLReport, \
                                           geneProfiler, "transcriptProfileToJSArrayForHOT")
         callFunctionAndPopulateTheReports(i, "<htmlDifferenceOnTheNumberOfIsoformsPlotIntersection>", linesHTMLReport, linesHighResHTMLReport, \
                                           htmlDifferenceOnTheNumberOfIsoformsPlotIntersection)
@@ -311,18 +270,37 @@ def main():
                                           htmlSpliceSitesDistributionSSPlotScalar)
         callFunctionAndPopulateTheReports(i, "<htmlSpliceSitesDistributionSSPlotPercentage>", linesHTMLReport, linesHighResHTMLReport, \
                                           htmlSpliceSitesDistributionSSPlotPercentage)
+        callFunctionAndPopulateTheReports(i, "<htmlNbOfIdentifiedExonsLinePlotScalar>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlNbOfIdentifiedExonsLinePlotScalar)
+        callFunctionAndPopulateTheReports(i, "<htmlNbOfIdentifiedExonsLinePlotPercentage>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlNbOfIdentifiedExonsLinePlotPercentage)
+        callFunctionAndPopulateTheReports(i, "<htmlHighestNbOfConsecutiveExonsLinePlotScalar>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlHighestNbOfConsecutiveExonsLinePlotScalar)
+        callFunctionAndPopulateTheReports(i, "<htmlHighestNbOfConsecutiveExonsLinePlotPercentage>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlHighestNbOfConsecutiveExonsLinePlotPercentage)
+        callFunctionAndPopulateTheReports(i, "<htmlFullPartialReadsPlotScalar>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlFullPartialReadsPlotScalar)
+        callFunctionAndPopulateTheReports(i, "<htmlFullPartialReadsPlotPercentage>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlFullPartialReadsPlotPercentage)
+
+        #fix the comment tags which will remove some stuff ot the simple report
+        callFunctionAndPopulateTheReports(i, "<JSCommentOutSimpleReport>", linesHTMLReport, None, "/*")
+        callFunctionAndPopulateTheReports(i, "<JSUncommentOutSimpleReport>", linesHTMLReport, None, "*/")
+        callFunctionAndPopulateTheReports(i, "<JSCommentOutSimpleReport>", None, linesHighResHTMLReport, "")
+        callFunctionAndPopulateTheReports(i, "<JSUncommentOutSimpleReport>", None, linesHighResHTMLReport, "")
+        callFunctionAndPopulateTheReports(i, "<HTMLCommentOutSimpleReport>", linesHTMLReport, None, "<!--")
+        callFunctionAndPopulateTheReports(i, "<HTMLUncommentOutSimpleReport>", linesHTMLReport, None, "-->")
+        callFunctionAndPopulateTheReports(i, "<HTMLCommentOutSimpleReport>", None, linesHighResHTMLReport, "")
+        callFunctionAndPopulateTheReports(i, "<HTMLUncommentOutSimpleReport>", None, linesHighResHTMLReport, "")
+
 
 
 
     #save the html reports
-    '''
-    TODO: removed the simple report file
-    
-    with open(args.output+"/report.html", "w") as indexOutFile:
+    with open(args.output+"/report_simple.html", "w") as indexOutFile:
         for line in linesHTMLReport:
             indexOutFile.write(line)
-    '''
-    with open(args.output+"/report.html", "w") as indexOutFile:
+    with open(args.output+"/report_interactive_full.html", "w") as indexOutFile:
         for line in linesHighResHTMLReport:
             indexOutFile.write(line)
 

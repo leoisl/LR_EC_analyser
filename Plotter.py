@@ -14,12 +14,13 @@ class Plotter:
     """
     Makes several plots
     """
-    def __init__(self, tools, hybridTools, selfTools):
+    def __init__(self, tools, hybridTools, selfTools, plotsOutput):
         self.tools=tools
         self.toolsNoRaw=list(tools)
         self.toolsNoRaw.remove("raw.bam")
         self.hybridTools = hybridTools
         self.selfTools = selfTools
+        self.plotsOutput=plotsOutput
 
     def __getToolCategory(self, tool):
         if tool=="raw.bam":
@@ -31,15 +32,11 @@ class Plotter:
         else:
             raise Exception("Unknown category for tool %s"%tool)
 
-    def __buildPlots(self, fig, name, label2ToolIndex2Data=None):
+    def __buildPlots(self, fig, name, label2ToolIndex2Data=None, width=1600, height=500):
         """
         build the plots and return what needs to be returned
         """
-        """
-        TODO: removed png plots
-        plotly.offline.plot(fig, image = 'png', image_filename="%s/%s.png"%(self.plotsOutput, name),
-                            filename="%s/%s.html"%(self.plotsOutput, name), auto_open=False)
-        """
+        plotly.io.write_image(fig, "%s/%s.png"%(self.plotsOutput, name), scale=2.0, width=width, height=height)
         fig["layout"]["hovermode"] = "closest"
 
 
@@ -54,8 +51,7 @@ class Plotter:
 
 
         return {
-            #"imagePlot": "<img src=plots/%s.png />" % name,
-            "imagePlot": "TODO",
+            "imagePlot": "<img src=plots/%s.png />" % name,
             "jsPlot": htmlPlotCode
         }
 
@@ -322,10 +318,11 @@ class Plotter:
 
                 specificPlotFig['layout'].update(height=nbRowsInSubplot*400, width=nbOfColumnsInSubplot*400, showlegend=False)
 
+            diagonalLinesAsShapes=[]
             for toolIndex, tool  in enumerate(self.toolsNoRaw):
                 specificPlotFig['layout']['xaxis%d'%(toolIndex+1)].update(range=[0, largestFamilySize + 1], title="Raw")
                 specificPlotFig['layout']['yaxis%d'%(toolIndex+1)].update(range=[0, largestFamilySize + 1], title=tool)
-                specificPlotFig['layout']['shapes'].append(dict({
+                diagonalLinesAsShapes.append(plotly.graph_objs.layout.Shape(dict({
                         'xref': "x%d"%(toolIndex+1),
                         'yref': "y%d"%(toolIndex+1),
                         'type': 'line',
@@ -334,11 +331,12 @@ class Plotter:
                         'x1': largestFamilySize,
                         'y1': largestFamilySize,
                         'opacity': 0.5
-                    }))
+                    })))
+            specificPlotFig['layout']['shapes'] = diagonalLinesAsShapes
 
             #build the plots for the general stats
             return self.__produceBarPlot(name + "General", tool2GeneralStatsCategories, "Tool's behaviour towards the gene family", "Gene family count in %", generateDataToBeShown=True, inPercentage=True), \
-                   self.__buildPlots(specificPlotFig, name+"Specific")
+                   self.__buildPlots(specificPlotFig, name+"Specific", height=nbRowsInSubplot*400, width=nbOfColumnsInSubplot*400)
 
         except ValueError as exception:
             if exception.message == "max() arg is an empty sequence":
@@ -423,8 +421,7 @@ class Plotter:
         for toolIndex, tool in enumerate(self.toolsNoRaw):
             row, col = int(toolIndex / nbOfColumnsInSubplot) + 1, toolIndex % nbOfColumnsInSubplot + 1
             # plot it
-            trace = plotly.graph_objs.Scatter(x=tool2PlotData[tool]["xDataPoints"], y=tool2PlotData[tool]["yDataPoints"],
-											  type='scattergl',
+            trace = plotly.graph_objs.Scattergl(x=tool2PlotData[tool]["xDataPoints"], y=tool2PlotData[tool]["yDataPoints"],
                                               mode='markers',
                                               marker={
                                                   'color': 'black',
@@ -441,29 +438,33 @@ class Plotter:
                 x=tool2PlotData[tool]["xDataPoints"],
                 y=linearRegressionLine,
                 mode='lines',
-                marker=plotly.graph_objs.Marker(color='rgb(31, 119, 180)'),
+                marker=plotly.graph_objs.scatter.Marker(color='rgb(31, 119, 180)'),
                 name='Fit'
             )
             fig.append_trace(linearRegressionTrace, row, col)
 
-            rSquaredAnnotations.append(plotly.graph_objs.Annotation(
+            rSquaredAnnotations.append(plotly.graph_objs.layout.Annotation(
                 xref = "x%d"%(toolIndex + 1),
                 yref = "y%d"%(toolIndex + 1),
                 x = highestExpression/2,
                 y = highestExpression,
                 text="R^2 = %f"%rSquared,
                 showarrow=False,
-                font=plotly.graph_objs.Font(size=14)
+                font=plotly.graph_objs.layout.annotation.Font(size= 14)
             ))
+
+
 
 
 
         fig['layout'].update(height=nbRowsInSubplot * 400, width=nbOfColumnsInSubplot * 400, showlegend=False)
 
+        diagonalLinesAsShapes = []
         for toolIndex, tool in enumerate(self.toolsNoRaw):
-            fig['layout']['xaxis%d' % (toolIndex + 1)].update(range=[0, int(math.ceil(highestExpression*1.1))+1], title="%s coverage before"%featureAsString if toolIndex==0 else "")
+            fig['layout']['xaxis%d' % (toolIndex + 1)].update(range=[0, int(math.ceil(highestExpression*1.1))+1], title="%s coverage before - %s"%(featureAsString, tool) if toolIndex==0 else tool)
             fig['layout']['yaxis%d' % (toolIndex + 1)].update(range=[0, int(math.ceil(highestExpression*1.1))+1], title="%s coverage after"%featureAsString if toolIndex==0 else "")
-            fig['layout']['shapes'].append(dict({
+            diagonalLinesAsShapes.append(
+                plotly.graph_objs.layout.Shape(dict({
                 'xref': "x%d"%(toolIndex+1),
                 'yref': "y%d"%(toolIndex+1),
                 'type': 'line',
@@ -472,13 +473,13 @@ class Plotter:
                 'x1': highestExpression,
                 'y1': highestExpression,
                 'opacity': 0.5
-            }))
+            })))
 
-        #
-        fig['layout']['annotations'].extend(rSquaredAnnotations)
+        fig['layout']['shapes'] = diagonalLinesAsShapes
+        fig['layout']['annotations'] = rSquaredAnnotations
 
         name = "ScatterPlotCoverageOf%s"%featureAsString
-        return self.__buildPlots(fig, name)
+        return self.__buildPlots(fig, name, height=nbRowsInSubplot * 400, width=nbOfColumnsInSubplot * 400)
 
     def makeBarPlotFromStats(self, statProfiler, metric):
         name = statProfiler.getFeatureName(metric)
@@ -491,7 +492,7 @@ class Plotter:
             barmode="group"
         )
         fig = plotly.graph_objs.Figure(data=data, layout=layout)
-        return self.__buildPlots(fig, name)
+        return self.__buildPlots(fig, name, width=800)
 
     def makeReadCountPlotDividedBySize(self, statProfiler, feature, title):
         #first we get the labels
@@ -512,7 +513,7 @@ class Plotter:
 
         layout = plotly.graph_objs.Layout(
             title=title,
-            xaxis=plotly.graph_objs.XAxis(
+            xaxis=plotly.graph_objs.layout.XAxis(
                    title="Read lengths",
                    showticklabels=True,
                    tickvals=range(len(labels)),
@@ -619,7 +620,7 @@ class Plotter:
 
             layout = plotly.graph_objs.Layout(
                 title="Incorrect Splice Site Distance Distribution",
-                xaxis=plotly.graph_objs.XAxis(
+                xaxis=plotly.graph_objs.layout.XAxis(
                     title="Splice Site Distances",
                     showticklabels=True,
                     tickvals=range(len(labels)),
@@ -634,3 +635,78 @@ class Plotter:
         return buildCorrectIncorrectPlot("scalar"), buildCorrectIncorrectPlot("percentage"), \
                buildDetailedIncorrectPlot("scalar"), buildDetailedIncorrectPlot("percentage"), \
                buildSpliceSitesDistributionPlot("scalar"), buildSpliceSitesDistributionPlot("percentage")
+
+    def buildFullPartialMatchReadPlots(self, readSetProfiler, transcriptTypes):
+        pass
+
+
+    def buildNbOfIdentifiedExonsLinePlot(self, readSetProfiler, inPercentage=False):
+        """
+        :param readSetProfiler: the readSetProfiler
+        :return:
+        """
+        return self.__buildIdentifiedExonsLinePlot(readSetProfiler.tool2NbOfMatchingExons, inPercentage, \
+                                                       "Number of identified exons per read in each tool",\
+                                                       "Number of identified exons", "Read count", "NbOfIdentifiedExonsLinePlot" + ("Percentage" if inPercentage else "Scalar"))
+
+
+    def buildHighestNbOfConsecutiveExonsLinePlot(self, readSetProfiler, inPercentage=False):
+        """
+        :param readSetProfiler: the readSetProfiler
+        :return:
+        """
+        return self.__buildIdentifiedExonsLinePlot(readSetProfiler.tool2HighestNbOfConsecutiveExons, inPercentage, \
+                                                       "Highest number of consecutive exons per read in each tool",\
+                                                       "Highest number of consecutive exons", "Read count", "HighestNbOfConsecutiveExonsLinePlot" + ("Percentage" if inPercentage else "Scalar"))
+
+
+
+    def __buildIdentifiedExonsLinePlot(self, tool2Feature, inPercentage, title, xLabel, yLabel, plotId):
+        """
+        :param tool2Feature: either  readSetProfiler.tool2NbOfMatchingExons or readSetProfiler.tool2HighestNbOfConsecutiveExons
+        :param title:
+        :param xLabel:
+        :param yLabel:
+        :return:
+        """
+        # first we get the labels
+        labels = tool2Feature["raw.bam"].getCategoriesAsString(displayPlusOnLastItem=True, displaySignal=False)
+
+        # produce the plot data
+        data = []
+        for tool in self.tools:
+            data.append(plotly.graph_objs.Scatter(
+                x=range(len(labels)),
+                y=tool2Feature[tool].getIntervalCount(inPercentage=inPercentage),
+                mode='lines+markers',
+                fill='tozeroy' if tool == "raw.bam" else "none",
+                name="%s" % (tool)
+            ))
+
+        layout = plotly.graph_objs.Layout(
+            title=title,
+            xaxis=plotly.graph_objs.layout.XAxis(
+                title=xLabel,
+                showticklabels=True,
+                tickvals=range(len(labels)),
+                ticktext=labels
+            ),
+            yaxis={"title": yLabel}
+        )
+
+        fig = plotly.graph_objs.Figure(data=data, layout=layout)
+        return self.__buildPlots(fig, plotId)
+
+    def buildFullPartialReadsPlot(self, readSetProfiler, inPercentage=False):
+        # produce the plot
+        data = [
+            #full is always the first category
+            plotly.graph_objs.Bar(x=self.tools, y=[readSetProfiler.tool2MatchType[tool].getIntervalCount(inPercentage=inPercentage)[0] for tool in self.tools], name="Full match"), \
+            plotly.graph_objs.Bar(x=self.tools, y=[readSetProfiler.tool2MatchType[tool].getIntervalCount(inPercentage=inPercentage)[1] for tool in self.tools], name="Partial match")]
+        layout = plotly.graph_objs.Layout(
+            title='Full and partial read mapping BarPlot',
+            yaxis={"title": "Read count"},
+            barmode="group",
+        )
+        fig = plotly.graph_objs.Figure(data=data, layout=layout)
+        return self.__buildPlots(fig, "FullPartialReadsPlot" + ("Percentage" if inPercentage else "Scalar"))

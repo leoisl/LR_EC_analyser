@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#TODO: we should add more data here...
 class Profile:
     """
     Represents the profile of a Feature for all tools - nb of reads mapped to it, quality of the reads, etc...
     """
     def __init__(self, tools):
-        # TODO: we should add more data here...
         self.toolsOrder = tools #will remember the tools' order
         self.tool2NbOfMappedReads = {tool: 0 for tool in tools}
 

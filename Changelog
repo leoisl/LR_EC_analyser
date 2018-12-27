@@ -1,3 +1,12 @@
+v0.0.10:
+    -Added long reads connectivity plots;
+    -Created a simple report which has plots as static images and has no Gene/Transcript read alignment viewer, making it easily shareable;
+        -Full interactive report: 138.5 Mb
+        -Simple report: 27 Kb
+
+v0.0.9:
+    -Added Splicing Sites plots
+
 v0.0.8:
     -Improved "Does a tool cut reads?" plot;
     -Added "Does error-correction perturb the number of reads mapping to the genes and transcripts?" plots;
