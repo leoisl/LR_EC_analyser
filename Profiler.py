@@ -45,24 +45,6 @@ class FeatureProfiler:
 
         Example:
         5	m150117_043342_42142_c100769800150000001823165407071580_s1_p0/144819/ccs	ENSG00000274276.4	ENST00000624934.3	partial	15	11	16	18	1747	3884	1992	chr21:6446736-6467516	chr21:6445433-6467532	2454
-
-
-        From seqtools/cli/utilities/gpd_annotate.py:
-           1. read line number - x
-		   2. read name - x
-		   3. gene name - x
-		   4. transcript name - x
-		   5. match type - use only to have # and % of full and partial transcript coverage for *multi-exonic reads*
-		   6. number of matching exons - use for stats - # of identified exons as a distribution (also %, when dividing by the # of exons in reference transcript)
-		   7. highst number of consecutive_exons - use for stats - long reads keep or destroy exon connectivity - distribution of highest number of consecutive exons
-		   8. number of exons in read - used to check if a read is multi-exonic
-		   9. number of exons in reference transcript - used to check if a transcript is multi-exonic
-		   10. number of bp overlapping
-		   11. read length
-		   12. transcript length
-		   13. read range
-		   14. transcript range
-		   15. reference line number
         """
         dataFolder = outputFolder+"/alignqc_out_on_%s/data"%tool
         with gzip.open(dataFolder+"/annotbest.txt.gz") as file:
