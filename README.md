@@ -6,7 +6,7 @@ v0.0.10 released. Changes:
 
 Software currently under development and testing. The latest version, found in this main branch, should be stable and working, but some bugs might be expected.
 
-If you find one, please create an issue in the (https://gitlab.com/leoisl/LR_EC_analyser/issues)[Issues page].
+If you find one, please create an issue in the [https://gitlab.com/leoisl/LR_EC_analyser/issues](Issues page).
 
 A pre-print with application of this method can be found at https://www.biorxiv.org/content/early/2018/11/23/476622 .
 
@@ -31,7 +31,7 @@ An application of this method to cDNA Nanopore reads can be found at https://www
 
 # Example on a real dataset
 To know if LR_EC_analyser is useful for you, you can check the latest tool report on a Mouse RNA ONT 1D reads evaluating the following correctors:
-LoRDEC, NaS, PBcR, proovread, canu, daccord, LoRMA, MECAT, pbdagcon here: http://leoisl.gitlab.io/LR_EC_analyser_support/
+LoRDEC, NaS, PBcR, proovread, canu, daccord, LoRMA, MECAT, pbdagcon here: http://leoisl.gitlab.io/LR_EC_analyser_support
 
 # Installing
 
