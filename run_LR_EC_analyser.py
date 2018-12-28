@@ -9,8 +9,22 @@ from Parsers import *
 from Plotter import *
 from Paralogous import *
 import os
+import plotly
+import sys
+
+def testOrca():
+    try:
+        plotly.io.write_image(plotly.graph_objs.Figure(), "/dev/null", format="png")
+    except ValueError:
+        print "[FATAL ERROR] It seems orca is not working. If you are in a headless server configuration, try:"
+        print "1. sudo apt-get install xvfb"
+        print "2. cd <LR_EC_analyser_home>"
+        print "3. bash fix_orca_headless.sh"
+        print "And rerunning LR_EC_analyser. If this does not work, please fill an issue in the gitlab page"
+        sys.exit(1)
 
 def main():
+    testOrca()
     parser = argparse.ArgumentParser(description='Long reads error corrector analyser.')
     parser.add_argument("--raw", dest="rawBam", help="The BAM file of the raw reads (i.e. the uncorrected long reads) mapped to the genome (preferably using gmap -n 10 -f samse).", required=True)
     parser.add_argument('--self', metavar='<self.bam>', type=str, nargs='+',
