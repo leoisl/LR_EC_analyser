@@ -14,7 +14,9 @@ rm ${OUTPUT_PREFIX}.gmap.sam
 
 #Running minimap2:
 GENOME_PATH=/data2/ASTER/nanopore_mouse/genomic_data/Mus_musculus.GRCm38.dna.primary_assembly.fa
-minimap2 -ax splice $GENOME_PATH $RAW_READS_FILE > ${OUTPUT_PREFIX}.minimap2.sam
+/data2/ASTER/tools/Minimap2-2.14/minimap2-2.14_x64-linux/minimap2 -ax splice $GENOME_PATH $RAW_READS_FILE > ${OUTPUT_PREFIX}.minimap2.sam
+
+/data2/ASTER/tools/Minimap2-2.14/minimap2-2.14_x64-linux/minimap2 -ax splice -t 2 $GENOME_PATH /data2/ASTER/error_correction/NaS/NaS_correction_mouse_brain_1Donly.fasta > NaS.minimap2.sam
 
 #from sam to bam
 samtools view -S -o ${OUTPUT_PREFIX}.minimap2.bam ${OUTPUT_PREFIX}.minimap2.sam
@@ -26,7 +28,5 @@ rm ${OUTPUT_PREFIX}.minimap2.sam
 
 #command-line to run LR_EC_analyser and compare both mappers:
 source venv/bin/activate
-python /data2/ASTER/error_correction/LR_EC_analyser/run_LR_EC_analyser.py --genome /data2/ASTER/nanopore_mouse/genomic_data/Mus_musculus.GRCm38.dna.primary_assembly.fa --gtf /data2/ASTER/nanopore_mouse/transcriptomic_data/Mus_musculus.GRCm38.87.gtf -o gmap_vs_minimap2/output -t 8 --paralogous /data2/ASTER/nanopore_mouse/transcriptomic_data/Mus_musculus.GRCm38.87.paralog_genes.80_percent_plus_identity.txt --raw /data2/ASTER/error_correction/raw_1D_only_data_no_mito_no_rDNA/gmap_bam/raw.gmap.bam --self /data2/ASTER/error_correction/raw_1D_only_data_no_mito_no_rDNA/minimap2_bam/raw.minimap2.bam
-#if needed to re-run, add the skips:
-python /data2/ASTER/error_correction/LR_EC_analyser/run_LR_EC_analyser.py --genome /data2/ASTER/nanopore_mouse/genomic_data/Mus_musculus.GRCm38.dna.primary_assembly.fa --gtf /data2/ASTER/nanopore_mouse/transcriptomic_data/Mus_musculus.GRCm38.87.gtf -o gmap_vs_minimap2/output -t 8 --paralogous /data2/ASTER/nanopore_mouse/transcriptomic_data/Mus_musculus.GRCm38.87.paralog_genes.80_percent_plus_identity.txt --raw /data2/ASTER/error_correction/raw_1D_only_data_no_mito_no_rDNA/gmap_bam/raw.gmap.bam --self /data2/ASTER/error_correction/raw_1D_only_data_no_mito_no_rDNA/minimap2_bam/raw.minimap2.bam --skip_bam_process --skip_alignqc --skip_copying
+python /data2/ASTER/error_correction/LR_EC_analyser/run_LR_EC_analyser.py --genome /data2/ASTER/nanopore_mouse/genomic_data/Mus_musculus.GRCm38.dna.primary_assembly.fa --gtf /data2/ASTER/nanopore_mouse/transcriptomic_data/Mus_musculus.GRCm38.87.gtf -o gmap_vs_minimap2/output -t 2 --paralogous /data2/ASTER/nanopore_mouse/transcriptomic_data/Mus_musculus.GRCm38.87.paralog_genes.80_percent_plus_identity.txt --raw /data2/ASTER/error_correction/raw_1D_only_data_no_mito_no_rDNA/gmap_bam/raw.gmap.bam --hybrid /data2/ASTER/error_correction/NaS/gmap_bam/NaS.gmap.bam /data2/ASTER/error_correction/NaS/minimap2_bam/NaS.minimap2.bam --self /data2/ASTER/error_correction/raw_1D_only_data_no_mito_no_rDNA/minimap2_bam/raw.minimap2.bam /data2/ASTER/error_correction/daccord/gmap_bam/daccord.gmap.bam /data2/ASTER/error_correction/daccord/minimap_bam/daccord.minimap2.bam
 deactivate
