@@ -29,3 +29,14 @@ PBCR = WHERE TO PUT???? ("The consensus module may trim/split/discard sequences 
 
 
 deactivate
+
+
+
+
+
+#DIRECT RNA COMMAND-MINE
+source venv/bin/activate
+python /data2/ASTER/error_correction/LR_EC_analyser/run_LR_EC_analyser.py --genome /data2/ASTER/error_correction/Direct_RNA_human/reference/Homo_sapiens.GRCh38.dna.primary_assembly.fa --gtf /data2/ASTER/error_correction/Direct_RNA_human/reference/Homo_sapiens.GRCh38.94.gtf --paralogous /data2/ASTER/error_correction/Direct_RNA_human/reference/Homo_sapiens.GRCh38.p12.94.paralog_genes.80_percent_plus_identity.txt -o output_RNA_direct -t 4 --raw /data2/ASTER/error_correction/Direct_RNA_human/raw.bam --self /data2/ASTER/error_correction/Direct_RNA_human/daccord/daccord.bam /data2/ASTER/error_correction/Direct_RNA_human/daccord_trimmed/daccord_trimmed.bam /data2/ASTER/error_correction/Direct_RNA_human/LoRMA/LoRMA.bam /data2/ASTER/error_correction/Direct_RNA_human/MECAT/MECAT.bam /data2/ASTER/error_correction/Direct_RNA_human/pbdagcon/pbdagcon.bam /data2/ASTER/error_correction/Direct_RNA_human/pbdagcon_trimmed/pbdagcon_trimmed.bam
+#if you need just to recompute the plots, use the --skips:
+python /data2/ASTER/error_correction/LR_EC_analyser/run_LR_EC_analyser.py --genome /data2/ASTER/error_correction/Direct_RNA_human/reference/Homo_sapiens.GRCh38.dna.primary_assembly.fa --gtf /data2/ASTER/error_correction/Direct_RNA_human/reference/Homo_sapiens.GRCh38.94.gtf --paralogous /data2/ASTER/error_correction/Direct_RNA_human/reference/Homo_sapiens.GRCh38.p12.94.paralog_genes.80_percent_plus_identity.txt -o output_RNA_direct -t 4 --raw /data2/ASTER/error_correction/Direct_RNA_human/raw.bam --self /data2/ASTER/error_correction/Direct_RNA_human/daccord/daccord.bam /data2/ASTER/error_correction/Direct_RNA_human/daccord_trimmed/daccord_trimmed.bam /data2/ASTER/error_correction/Direct_RNA_human/LoRMA/LoRMA.bam /data2/ASTER/error_correction/Direct_RNA_human/MECAT/MECAT.bam /data2/ASTER/error_correction/Direct_RNA_human/pbdagcon/pbdagcon.bam /data2/ASTER/error_correction/Direct_RNA_human/pbdagcon_trimmed/pbdagcon_trimmed.bam --skip_bam_process --skip_alignqc --skip_copying
+deactivate
