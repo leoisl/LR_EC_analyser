@@ -48,7 +48,7 @@ class Plotter:
         match = re.search(divIdCapturePattern, htmlPlotCode)
         divId = match.group(1)
         htmlPlotCode = htmlPlotCode.replace("</script>", "; myPlot = document.getElementById('%s'); myPlot.on('plotly_click', function(data){ \
-            showDataOnModal('%s', data);}); plotInfo['%s']=jQuery.parseJSON(%s);</script>" % (divId, name, name, json.dumps(json.dumps(label2ToolIndex2Data)))) #json.dumps 2 times to encode
+            showDataOnNewPage('%s', data);}); plotInfo['%s']=jQuery.parseJSON(%s);</script>" % (divId, name, name, json.dumps(json.dumps(label2ToolIndex2Data)))) #json.dumps 2 times to encode
 
 
         return {
@@ -81,7 +81,7 @@ class Plotter:
             for intervalIndex, xLabel in enumerate(xLabels):
                 label2ToolIndex2Data[xLabel]={}
                 for toolIndex, tool in enumerate(self.toolsNoRaw):
-                    label2ToolIndex2Data[xLabel][toolIndex]="\n".join(tool2Categories[tool].intervals[intervalIndex]["data"])
+                    label2ToolIndex2Data[xLabel][toolIndex]="<br>".join(tool2Categories[tool].intervals[intervalIndex]["data"])
 
         return self.__buildPlots(fig, name, label2ToolIndex2Data)
 
