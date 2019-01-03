@@ -38,7 +38,11 @@ def main():
     parser.add_argument("-o", dest="output", help="Output folder", default="output/")
     parser.add_argument("-t", dest="threads", type=int, help="Number of threads to use", default=1)
     parser.add_argument('--colours', metavar='<self.colours>', type=str, nargs='+',
-                        help='A list of colours in hex encoding to use in the plots.')
+                        help='A list of colours in hex encoding to use in the plots. Colour shading is nice to show related corrections (e.g. full-length, trimmed and split outputs from a same tool),'
+                             'but unless the analysis is on few tools, it is hard to find a nice automated choice of colour shading. Hand-picking is more laborious but produces better results.'
+                             'This parameter allows you to control the colors of each tool. The order of the tools are: raw -> hybrid -> self.'
+                             'The hybrid and self ordering are given by parameter --hybrid and --self.'
+                             'See an example of this parameter in https://gitlab.com/leoisl/LR_EC_analyser/blob/master/scripts/command_line_paper.sh .')
     parser.add_argument("--skip_bam_process", dest="skip_bam", action="store_true", help="Skips BAM processing (i.e. sorting and indexing BAM files) - assume we had already done this.")
     parser.add_argument("--skip_alignqc", dest="skip_alignqc", action="store_true",
                         help="Skips AlignQC calls - assume we had already done this.")

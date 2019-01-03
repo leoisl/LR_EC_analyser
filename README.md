@@ -1,5 +1,9 @@
 # NEWS
 
+v0.0.11 released. Changes:
+* Added `--colours` parameter;
+* Fixed a bug in the interactive plot.
+
 v0.0.10 released. Changes:
 * Added long reads connectivity plots;
 * Created a simple report which has plots as static images and has no Gene/Transcript read alignment viewer, making it easily shareable;
@@ -74,8 +78,10 @@ usage: run_LR_EC_analyser.py [-h] --raw RAWBAM
                              [--hybrid <hybrid.bam> [<hybrid.bam> ...]]
                              --genome GENOME --gtf GTF
                              [--paralogous PARALOGOUS] [-o OUTPUT]
-                             [-t THREADS] [--skip_bam_process]
-                             [--skip_alignqc] [--skip_copying]
+                             [-t THREADS]
+                             [--colours <self.colours> [<self.colours> ...]]
+                             [--skip_bam_process] [--skip_alignqc]
+                             [--skip_copying]
 
 Long reads error corrector analyser.
 
@@ -100,6 +106,19 @@ optional arguments:
                         can get this file).
   -o OUTPUT             Output folder
   -t THREADS            Number of threads to use
+  --colours <self.colours> [<self.colours> ...]
+                        A list of colours in hex encoding to use in the plots.
+                        Colour shading is nice to show related corrections
+                        (e.g. full-length, trimmed and split outputs from a
+                        same tool),but unless the analysis is on few tools, it
+                        is hard to find a nice automated choice of colour
+                        shading. Hand-picking is more laborious but produces
+                        better results.This parameter allows you to control
+                        the colors of each tool. The order of the tools are:
+                        raw -> hybrid -> self.The hybrid and self ordering are
+                        given by parameter --hybrid and --self.See an example
+                        of this parameter in https://gitlab.com/leoisl/LR_EC_a
+                        nalyser/blob/master/scripts/command_line_paper.sh .
   --skip_bam_process    Skips BAM processing (i.e. sorting and indexing BAM
                         files) - assume we had already done this.
   --skip_alignqc        Skips AlignQC calls - assume we had already done this.
