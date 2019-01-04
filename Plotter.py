@@ -487,7 +487,7 @@ class Plotter:
         fig['layout']['annotations'] = rSquaredAnnotations
 
         name = "ScatterPlotCoverageOf%s"%featureAsString
-        return self.__buildPlots(fig, name, height=nbRowsInSubplot * 400, width=nbOfColumnsInSubplot * 400)
+        return self.__buildPlots(fig, name, height=nbRowsInSubplot * 400, width=nbOfColumnsInSubplot * 400, lockHeight=True)
 
     def makeBarPlotFromStats(self, statProfiler, metric):
         name = statProfiler.getFeatureName(metric)
