@@ -14,13 +14,14 @@ class Plotter:
     """
     Makes several plots
     """
-    def __init__(self, tools, hybridTools, selfTools, plotsOutput):
+    def __init__(self, tools, hybridTools, selfTools, plotsOutput, colours):
         self.tools=tools
         self.toolsNoRaw=list(tools)
         self.toolsNoRaw.remove("raw.bam")
         self.hybridTools = hybridTools
         self.selfTools = selfTools
         self.plotsOutput=plotsOutput
+        self.colours = colours
 
     def __getToolCategory(self, tool):
         if tool=="raw.bam":
@@ -32,10 +33,14 @@ class Plotter:
         else:
             raise Exception("Unknown category for tool %s"%tool)
 
-    def __buildPlots(self, fig, name, label2ToolIndex2Data=None, width=1600, height=500):
+    def __buildPlots(self, fig, name, label2ToolIndex2Data=None, width=1600, height=500, lockHeight=False):
         """
         build the plots and return what needs to be returned
         """
+        #to compensate for too many tools
+        if not lockHeight and len(self.tools) > 14:
+            height=600
+
         plotly.io.write_image(fig, "%s/%s.png"%(self.plotsOutput, name), scale=2.0, width=width, height=height)
         fig["layout"]["hovermode"] = "closest"
 
@@ -47,7 +52,7 @@ class Plotter:
         match = re.search(divIdCapturePattern, htmlPlotCode)
         divId = match.group(1)
         htmlPlotCode = htmlPlotCode.replace("</script>", "; myPlot = document.getElementById('%s'); myPlot.on('plotly_click', function(data){ \
-            showDataOnModal('%s', data);}); plotInfo['%s']=jQuery.parseJSON(%s);</script>" % (divId, name, name, json.dumps(json.dumps(label2ToolIndex2Data)))) #json.dumps 2 times to encode
+            showDataOnNewPage('%s', data);}); plotInfo['%s']=jQuery.parseJSON(%s);</script>" % (divId, name, name, json.dumps(json.dumps(label2ToolIndex2Data)))) #json.dumps 2 times to encode
 
 
         return {
@@ -68,7 +73,9 @@ class Plotter:
         layout = plotly.graph_objs.Layout(
             xaxis={"title": xlabel},
             yaxis={"title": ylabel},
-            barmode='group'
+            barmode='group',
+            colorway=self.colours if "raw.bam" in xLabels else self.colours[1:],
+            autosize=True
         )
         fig = plotly.graph_objs.Figure(data=data, layout=layout)
 
@@ -79,7 +86,7 @@ class Plotter:
             for intervalIndex, xLabel in enumerate(xLabels):
                 label2ToolIndex2Data[xLabel]={}
                 for toolIndex, tool in enumerate(self.toolsNoRaw):
-                    label2ToolIndex2Data[xLabel][toolIndex]="\n".join(tool2Categories[tool].intervals[intervalIndex]["data"])
+                    label2ToolIndex2Data[xLabel][toolIndex]="<br>".join(tool2Categories[tool].intervals[intervalIndex]["data"])
 
         return self.__buildPlots(fig, name, label2ToolIndex2Data)
 
@@ -228,7 +235,8 @@ class Plotter:
         data=[plotly.graph_objs.Box(y=tool2DifferencesInRelativeExpressions[tool], name=tool, boxpoints=False) for tool in self.toolsNoRaw]
         layout = plotly.graph_objs.Layout(
             xaxis={"title": "Relative expression"},
-            yaxis={"title": "Tools"}
+            yaxis={"title": "Tools"},
+            colorway=self.colours
         )
         fig = plotly.graph_objs.Figure(data=data, layout=layout)
 
@@ -336,7 +344,7 @@ class Plotter:
 
             #build the plots for the general stats
             return self.__produceBarPlot(name + "General", tool2GeneralStatsCategories, "Tool's behaviour towards the gene family", "Gene family count in %", generateDataToBeShown=True, inPercentage=True), \
-                   self.__buildPlots(specificPlotFig, name+"Specific", height=nbRowsInSubplot*400, width=nbOfColumnsInSubplot*400)
+                   self.__buildPlots(specificPlotFig, name+"Specific", height=nbRowsInSubplot*400, width=nbOfColumnsInSubplot*400, lockHeight=True)
 
         except ValueError as exception:
             if exception.message == "max() arg is an empty sequence":
@@ -375,7 +383,7 @@ class Plotter:
         x = ["(%d)" % familySize if familySize < paralogousGroupSizeMax else "(%d+)" % familySize for familySize in familiesSizes]
         y=[geneFamilySize2Count[geneFamilySize] for geneFamilySize in familiesSizes]
         data = [plotly.graph_objs.Bar(x=x, y=y)]
-        layout = plotly.graph_objs.Layout(xaxis={"title": "Gene family size"}, yaxis={"title": "Count"})
+        layout = plotly.graph_objs.Layout(xaxis={"title": "Gene family size"}, yaxis={"title": "Count"}, colorway=self.colours)
         fig = plotly.graph_objs.Figure(data=data, layout=layout)
         return self.__buildPlots(fig, "GeneFamiliesSizeBarPlot")
 
@@ -479,7 +487,7 @@ class Plotter:
         fig['layout']['annotations'] = rSquaredAnnotations
 
         name = "ScatterPlotCoverageOf%s"%featureAsString
-        return self.__buildPlots(fig, name, height=nbRowsInSubplot * 400, width=nbOfColumnsInSubplot * 400)
+        return self.__buildPlots(fig, name, height=nbRowsInSubplot * 400, width=nbOfColumnsInSubplot * 400, lockHeight=True)
 
     def makeBarPlotFromStats(self, statProfiler, metric):
         name = statProfiler.getFeatureName(metric)
@@ -489,7 +497,8 @@ class Plotter:
         layout = plotly.graph_objs.Layout(
             title=name,
             yaxis={"title": statProfiler.getNiceDescriptionForFeature(metric)},
-            barmode="group"
+            barmode="group",
+            colorway=self.colours
         )
         fig = plotly.graph_objs.Figure(data=data, layout=layout)
         return self.__buildPlots(fig, name, width=800)
@@ -519,7 +528,8 @@ class Plotter:
                    tickvals=range(len(labels)),
                    ticktext=labels
                 ),
-            yaxis={"title": "Read count"}
+            yaxis={"title": "Read count"},
+            colorway=self.colours
         )
 
         fig = plotly.graph_objs.Figure(data=data, layout=layout)
@@ -575,7 +585,7 @@ class Plotter:
             layout = plotly.graph_objs.Layout(
                 title='Correct and Incorrect Splice Sites BarPlot',
                 yaxis={"title": "%s of Correct and Incorrect SSs"%descriptionsForThePlots[type]["unit"]},
-                barmode="group",
+                barmode="group"
             )
             fig = plotly.graph_objs.Figure(data=data, layout=layout)
             return self.__buildPlots(fig, name)
@@ -626,7 +636,8 @@ class Plotter:
                     tickvals=range(len(labels)),
                     ticktext=labels
                 ),
-                yaxis={"title": "%s of Splice Sites"%descriptionsForThePlots[type]["unit"]}
+                yaxis={"title": "%s of Splice Sites"%descriptionsForThePlots[type]["unit"]},
+                colorway=self.colours
             )
 
             fig = plotly.graph_objs.Figure(data=data, layout=layout)
@@ -691,7 +702,8 @@ class Plotter:
                 tickvals=range(len(labels)),
                 ticktext=labels
             ),
-            yaxis={"title": yLabel}
+            yaxis={"title": yLabel},
+            colorway=self.colours
         )
 
         fig = plotly.graph_objs.Figure(data=data, layout=layout)
@@ -707,6 +719,7 @@ class Plotter:
             title='Full and partial read mapping BarPlot',
             yaxis={"title": "Read count"},
             barmode="group",
+            extendpiecolors=True
         )
         fig = plotly.graph_objs.Figure(data=data, layout=layout)
         return self.__buildPlots(fig, "FullPartialReadsPlot" + ("Percentage" if inPercentage else "Scalar"))

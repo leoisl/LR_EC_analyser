@@ -24,7 +24,6 @@ def testOrca():
         sys.exit(1)
 
 def main():
-    testOrca()
     parser = argparse.ArgumentParser(description='Long reads error corrector analyser.')
     parser.add_argument("--raw", dest="rawBam", help="The BAM file of the raw reads (i.e. the uncorrected long reads) mapped to the genome (preferably using gmap -n 10 -f samse).", required=True)
     parser.add_argument('--self', metavar='<self.bam>', type=str, nargs='+',
@@ -38,13 +37,21 @@ def main():
 
     parser.add_argument("-o", dest="output", help="Output folder", default="output/")
     parser.add_argument("-t", dest="threads", type=int, help="Number of threads to use", default=1)
-
+    parser.add_argument('--colours', metavar='<self.colours>', type=str, nargs='+',
+                        help='A list of colours in hex encoding to use in the plots. Colour shading is nice to show related corrections (e.g. full-length, trimmed and split outputs from a same tool),'
+                             'but unless the analysis is on few tools, it is hard to find a nice automated choice of colour shading. Hand-picking is more laborious but produces better results.'
+                             'This parameter allows you to control the colors of each tool. The order of the tools are: raw -> hybrid -> self.'
+                             'The hybrid and self ordering are given by parameter --hybrid and --self.'
+                             'See an example of this parameter in https://gitlab.com/leoisl/LR_EC_analyser/blob/master/scripts/command_line_paper.sh .')
     parser.add_argument("--skip_bam_process", dest="skip_bam", action="store_true", help="Skips BAM processing (i.e. sorting and indexing BAM files) - assume we had already done this.")
     parser.add_argument("--skip_alignqc", dest="skip_alignqc", action="store_true",
                         help="Skips AlignQC calls - assume we had already done this.")
     parser.add_argument("--skip_copying", dest="skip_copying", action="store_true",
                         help="Skips copying genome and transcriptome to the output folder - assume we had already done this.")
     args=parser.parse_args()
+
+    #test if Orca works
+    testOrca()
 
     #create output dir
     if not os.path.exists(args.output):
@@ -64,6 +71,12 @@ def main():
     hybridTools = [os.path.basename(bam) for bam in hybridBams]
     selfTools = [os.path.basename(bam) for bam in selfBams]
     tools = ["raw.bam"] + hybridTools + selfTools
+
+    #fix args.colours, if it is not yet fixed
+    if args.colours != None:
+        for i, colour in enumerate(args.colours):
+            if colour[0]!="#":
+                args.colours[i] = "#"+colour
 
 
     #copy genome to output and index it
@@ -144,7 +157,7 @@ def main():
     plotsOutput = args.output+"/plots"
     if not os.path.exists(plotsOutput):
         os.makedirs(plotsOutput)
-    plotter = Plotter(tools, hybridTools, selfTools, plotsOutput)
+    plotter = Plotter(tools, hybridTools, selfTools, plotsOutput, args.colours)
 
     #make all stats plots
     allStatsPlots = {feature: plotter.makeBarPlotFromStats(statProfiler, feature) for feature in statProfiler.allFeatures}
