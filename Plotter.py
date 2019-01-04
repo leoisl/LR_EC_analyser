@@ -33,10 +33,14 @@ class Plotter:
         else:
             raise Exception("Unknown category for tool %s"%tool)
 
-    def __buildPlots(self, fig, name, label2ToolIndex2Data=None, width=1600, height=500):
+    def __buildPlots(self, fig, name, label2ToolIndex2Data=None, width=1600, height=500, lockHeight=False):
         """
         build the plots and return what needs to be returned
         """
+        #to compensate for too many tools
+        if not lockHeight and len(self.tools) > 14:
+            height=600
+
         plotly.io.write_image(fig, "%s/%s.png"%(self.plotsOutput, name), scale=2.0, width=width, height=height)
         fig["layout"]["hovermode"] = "closest"
 
@@ -70,7 +74,8 @@ class Plotter:
             xaxis={"title": xlabel},
             yaxis={"title": ylabel},
             barmode='group',
-            colorway=self.colours
+            colorway=self.colours if "raw.bam" in xLabels else self.colours[1:],
+            autosize=True
         )
         fig = plotly.graph_objs.Figure(data=data, layout=layout)
 
@@ -339,7 +344,7 @@ class Plotter:
 
             #build the plots for the general stats
             return self.__produceBarPlot(name + "General", tool2GeneralStatsCategories, "Tool's behaviour towards the gene family", "Gene family count in %", generateDataToBeShown=True, inPercentage=True), \
-                   self.__buildPlots(specificPlotFig, name+"Specific", height=nbRowsInSubplot*400, width=nbOfColumnsInSubplot*400)
+                   self.__buildPlots(specificPlotFig, name+"Specific", height=nbRowsInSubplot*400, width=nbOfColumnsInSubplot*400, lockHeight=True)
 
         except ValueError as exception:
             if exception.message == "max() arg is an empty sequence":
