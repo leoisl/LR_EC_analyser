@@ -33,9 +33,8 @@ It not only reports classical error-correction metrics but also the effect of co
 gene families, isoform diversity, bias toward the major isoform, and splice site detection.
 An application of this method to cDNA Nanopore reads can be found at https://www.biorxiv.org/content/early/2018/11/23/476622 .
 
-# Example on a real dataset
-To know if LR_EC_analyser is useful for you, you can check the latest tool report on a Mouse RNA ONT 1D reads evaluating the following correctors:
-LoRDEC, NaS, PBcR, proovread, canu, daccord, LoRMA, MECAT, pbdagcon here: http://leoisl.gitlab.io/LR_EC_analyser_support
+# Example on real datasets
+To know if LR_EC_analyser is useful for you, you can check the latest tool reports here: http://leoisl.gitlab.io/LR_EC_analyser_support .
 
 # Installing
 
