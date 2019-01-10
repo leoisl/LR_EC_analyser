@@ -15,7 +15,7 @@ class Category:
                 total = [sum( [ len(interval["data"]) for interval in self.intervals ] )] * len(self.intervals)
             else:
                 total = denominatorForEachInterval
-            return [float(len(interval["data"])) / float(total[index]) * 100.0 for index, interval in enumerate(self.intervals)]
+            return [float(len(interval["data"])) / float(total[index]) * 100.0 if total[index]>0 else 0 for index, interval in enumerate(self.intervals)]
 
     def __repr__(self):
         return self.intervals.__repr__()
