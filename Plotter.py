@@ -43,8 +43,8 @@ class Plotter:
 
         plotly.io.write_image(fig, "%s/%s.png"%(self.plotsOutput, name), scale=2.0, width=width, height=height)
 
-        #uncomment this if you want to create .eps figures required for the paper
-        plotly.io.write_image(fig, "%s/%s.eps" % (self.plotsOutput, name), width=width, height=height)
+        #uncomment this if you want to create .pdf figures required for the paper
+        #plotly.io.write_image(fig, "%s/%s.pdf" % (self.plotsOutput, name), width=width, height=height)
         fig["layout"]["hovermode"] = "closest"
 
 
