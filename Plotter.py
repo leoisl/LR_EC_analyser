@@ -141,7 +141,7 @@ class Plotter:
 
         tool2DifferenceCategories = get_tool2DifferenceCategories()
         geneOrFamily = "Gene" if paralogous==None else "Family"
-        return self.__produceBarPlot("DifferenceOnTheNumberOfIsoforms%s%sPlot"%(geneOrFamily, unionOrIntersection), tool2DifferenceCategories, "Difference on the number of isoforms", "Number of %s"%geneOrFamily, \
+        return self.__produceBarPlot("DifferenceOnTheNumberOfIsoforms%s%s%d%dPlot"%(geneOrFamily, unionOrIntersection, lowestCategory, highestCategory), tool2DifferenceCategories, "Difference on the number of isoforms", "Number of %s"%geneOrFamily, \
                                      displayPlusOnFirstItem=True, displayPlusOnLastItem=True, generateDataToBeShown=True)
 
 
