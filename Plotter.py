@@ -663,6 +663,15 @@ class Plotter:
                                                        "Number of identified exons per read in each tool",\
                                                        "Number of identified exons", "Read count", "NbOfIdentifiedExonsLinePlot" + ("Percentage" if inPercentage else "Scalar"))
 
+    def buildNbOfIdentifiedExonsBarPlot(self, readSetProfiler, inPercentage=False):
+        """
+        :param readSetProfiler: the readSetProfiler
+        :return:
+        """
+        return self.__buildIdentifiedExonsBarPlot(readSetProfiler.tool2NbOfMatchingExonsCompacted, inPercentage, \
+                                                       "Number of identified exons per read in each tool",\
+                                                       "Number of identified exons", "Read count", "NbOfIdentifiedExonsBarPlot" + ("Percentage" if inPercentage else "Scalar"))
+
 
     def buildHighestNbOfConsecutiveExonsLinePlot(self, readSetProfiler, inPercentage=False):
         """
@@ -710,6 +719,35 @@ class Plotter:
         )
 
         fig = plotly.graph_objs.Figure(data=data, layout=layout)
+        return self.__buildPlots(fig, plotId)
+
+
+    def __buildIdentifiedExonsBarPlot(self, tool2Feature, inPercentage, title, xLabel, yLabel, plotId):
+        """
+        :param tool2Feature: either  readSetProfiler.tool2NbOfMatchingExonsCompacted or readSetProfiler.tool2HighestNbOfConsecutiveExonsCompacted
+        :param title:
+        :param xLabel:
+        :param yLabel:
+        :return:
+        """
+        #produce the plot
+        xLabels = tool2Feature.values()[0].getCategoriesAsString(True, False, True)
+        data = [plotly.graph_objs.Bar(
+                x=xLabels,
+                y=tool2Feature[tool].getIntervalCount(inPercentage),
+                name=tool)
+                for tool in self.tools]
+
+        layout = plotly.graph_objs.Layout(
+            xaxis={"title": xLabel},
+            yaxis={"title": yLabel},
+            title=title,
+            barmode='group',
+            colorway=self.colours,
+            autosize=True
+        )
+        fig = plotly.graph_objs.Figure(data=data, layout=layout)
+
         return self.__buildPlots(fig, plotId)
 
     def buildFullPartialReadsPlot(self, readSetProfiler, inPercentage=False):

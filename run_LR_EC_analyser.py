@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import shutil
 from Profiler import *
 from ExternalTools import *
 from Parsers import *
@@ -11,9 +10,12 @@ from Paralogous import *
 import os
 import plotly
 import sys
+import time
 
 def testOrca():
     try:
+        plotly.io.orca.ensure_server()
+        time.sleep(10)
         plotly.io.write_image(plotly.graph_objs.Figure(), "/dev/null", format="png")
     except ValueError:
         print "[FATAL ERROR] It seems orca is not working. If you are in a headless server configuration, try:"
@@ -170,6 +172,8 @@ def main():
 
     htmlDifferenceOnTheNumberOfIsoformsPlotIntersection, htmlDifferenceOnTheNumberOfIsoformsGeneFamilyPlotIntersection \
         = plotter.makeDifferenceOnTheNumberOfIsoformsPlot(geneID2gene, -3, 3, 1, paralogous)
+    htmlDifferenceOnTheNumberOfIsoformsPlotIntersectionNoDetails, htmlDifferenceOnTheNumberOfIsoformsGeneFamilyPlotIntersectionNoDetails \
+        = plotter.makeDifferenceOnTheNumberOfIsoformsPlot(geneID2gene, -1, 1, 1, paralogous)
     htmlLostTranscriptInGenesWSP2Plot, htmlLostTranscriptInGenesWSP2NormalizedPlot = plotter.makeLostTranscriptInGenesWSP2Plot(geneID2gene)
     htmlDifferencesInRelativeExpressionsBoxPlot = plotter.makeDifferencesInRelativeExpressionsBoxPlot(geneID2gene)
 
@@ -194,6 +198,7 @@ def main():
     htmlNbOfIdentifiedExonsLinePlotScalar, htmlNbOfIdentifiedExonsLinePlotPercentage = \
         plotter.buildNbOfIdentifiedExonsLinePlot(readSetProfiler, False), \
         plotter.buildNbOfIdentifiedExonsLinePlot(readSetProfiler, True)
+    htmlNbOfIdentifiedExonsBarPlotScalar = plotter.buildNbOfIdentifiedExonsBarPlot(readSetProfiler, False)
     htmlHighestNbOfConsecutiveExonsLinePlotScalar, htmlHighestNbOfConsecutiveExonsLinePlotPercentage =\
         plotter.buildHighestNbOfConsecutiveExonsLinePlot(readSetProfiler, False), \
         plotter.buildHighestNbOfConsecutiveExonsLinePlot(readSetProfiler, True)
@@ -250,8 +255,12 @@ def main():
                                           geneProfiler, "transcriptProfileToJSArrayForHOT")
         callFunctionAndPopulateTheReports(i, "<htmlDifferenceOnTheNumberOfIsoformsPlotIntersection>", linesHTMLReport, linesHighResHTMLReport, \
                                           htmlDifferenceOnTheNumberOfIsoformsPlotIntersection)
+        callFunctionAndPopulateTheReports(i, "<htmlDifferenceOnTheNumberOfIsoformsPlotIntersectionNoDetails>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlDifferenceOnTheNumberOfIsoformsPlotIntersectionNoDetails)
         callFunctionAndPopulateTheReports(i, "<htmlDifferenceOnTheNumberOfIsoformsGeneFamilyPlotIntersection>", linesHTMLReport, linesHighResHTMLReport, \
                                           htmlDifferenceOnTheNumberOfIsoformsGeneFamilyPlotIntersection)
+        callFunctionAndPopulateTheReports(i, "<htmlDifferenceOnTheNumberOfIsoformsGeneFamilyPlotIntersectionNoDetails>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlDifferenceOnTheNumberOfIsoformsGeneFamilyPlotIntersectionNoDetails)
         callFunctionAndPopulateTheReports(i, "<htmlLostTranscriptInGenesWSP2Plot>", linesHTMLReport, linesHighResHTMLReport, \
                                           htmlLostTranscriptInGenesWSP2Plot)
         callFunctionAndPopulateTheReports(i, "<htmlLostTranscriptInGenesWSP2NormalizedPlot>", linesHTMLReport, linesHighResHTMLReport, \
@@ -300,6 +309,8 @@ def main():
                                           htmlSpliceSitesDistributionSSPlotPercentage)
         callFunctionAndPopulateTheReports(i, "<htmlNbOfIdentifiedExonsLinePlotScalar>", linesHTMLReport, linesHighResHTMLReport, \
                                           htmlNbOfIdentifiedExonsLinePlotScalar)
+        callFunctionAndPopulateTheReports(i, "<htmlNbOfIdentifiedExonsBarPlotScalar>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlNbOfIdentifiedExonsBarPlotScalar)
         callFunctionAndPopulateTheReports(i, "<htmlNbOfIdentifiedExonsLinePlotPercentage>", linesHTMLReport, linesHighResHTMLReport, \
                                           htmlNbOfIdentifiedExonsLinePlotPercentage)
         callFunctionAndPopulateTheReports(i, "<htmlHighestNbOfConsecutiveExonsLinePlotScalar>", linesHTMLReport, linesHighResHTMLReport, \
