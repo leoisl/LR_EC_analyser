@@ -93,6 +93,18 @@ class Gene(Feature):
             if transcript.profile.tool2NbOfMappedReads["raw.bam"] == mainIsoformExpression:
                 return transcript
 
+    def getMinorIsoforms(self):
+        """
+        Returns a list of the minor isoforms, i.e. isoforms having expression < than the mainIsoformExpression
+        :return: list of minor isoforms
+        """
+        mainIsoformExpression = max([transcript.profile.tool2NbOfMappedReads["raw.bam"] for transcript in self.transcriptId2Transcript.values()])
+        minorIsoforms=[]
+        for transcript in self.transcriptId2Transcript.values():
+            if transcript.profile.tool2NbOfMappedReads["raw.bam"] < mainIsoformExpression:
+                minorIsoforms.append(transcript)
+        return minorIsoforms
+
     def getNbOfIsoformsExpressedInTool(self, tool):
         nbOfIsoformsPresent = 0
         for transcript in self.transcriptId2Transcript.values():

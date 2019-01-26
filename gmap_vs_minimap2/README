@@ -16,7 +16,12 @@ rm ${OUTPUT_PREFIX}.gmap.sam
 GENOME_PATH=/data2/ASTER/nanopore_mouse/genomic_data/Mus_musculus.GRCm38.dna.primary_assembly.fa
 /data2/ASTER/tools/Minimap2-2.14/minimap2-2.14_x64-linux/minimap2 -ax splice $GENOME_PATH $RAW_READS_FILE > ${OUTPUT_PREFIX}.minimap2.sam
 
-/data2/ASTER/tools/Minimap2-2.14/minimap2-2.14_x64-linux/minimap2 -ax splice -t 2 $GENOME_PATH /data2/ASTER/error_correction/NaS/NaS_correction_mouse_brain_1Donly.fasta > NaS.minimap2.sam
+#running on all tools
+GENOME_PATH=/data2/ASTER/nanopore_mouse/genomic_data/Mus_musculus.GRCm38.dna.primary_assembly.fa
+/data2/ASTER/tools/Minimap2-2.14/minimap2-2.14_x64-linux/minimap2 -ax splice -t 8 $GENOME_PATH /data2/ASTER/error_correction/LoRDEC/minimap2_bam/BYK_CB_ONT_1_FAF04998_A_1Donly.no_mito.no_rDNA.lordec.fasta > /data2/ASTER/error_correction/LoRDEC/minimap2_bam/LoRDEC.minimap2.sam
+/data2/ASTER/tools/Minimap2-2.14/minimap2-2.14_x64-linux/minimap2 -ax splice -t 8 $GENOME_PATH /data2/ASTER/error_correction/LoRMA/minimap2_bam/BYK_CB_ONT_1_FAF04998_A_1Donly.no_mito.no_rDNA.lorma.fasta > /data2/ASTER/error_correction/LoRMA/minimap2_bam/LoRMA.minimap2.sam
+/data2/ASTER/tools/Minimap2-2.14/minimap2-2.14_x64-linux/minimap2 -ax splice -t 8 $GENOME_PATH /data2/ASTER/error_correction/proovread_trimmed/minimap2_bam/proovread.trimmed.fa > /data2/ASTER/error_correction/proovread_trimmed/minimap2_bam/proovread.minimap2.sam
+/data2/ASTER/tools/Minimap2-2.14/minimap2-2.14_x64-linux/minimap2 -ax splice -t 8 $GENOME_PATH /data2/ASTER/error_correction/canu/minimap2_bam/BYK_CB_ONT_1_FAF04998_A_1Donly.no_mito.no_rDNA.canu.correctedReads.fasta > /data2/ASTER/error_correction/canu/minimap2_bam/canu.minimap2.sam
 
 #from sam to bam
 samtools view -S -o ${OUTPUT_PREFIX}.minimap2.bam ${OUTPUT_PREFIX}.minimap2.sam

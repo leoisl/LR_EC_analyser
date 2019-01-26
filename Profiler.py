@@ -504,7 +504,7 @@ class ReadSetProfiler:
         self.tool2MatchType={tool: TextCategory(["full", "partial"]) for tool in tools}
         # create the tool2NbOfMatchingExons and tool2HighestNbOfConsecutiveExons structures
         self.tool2NbOfMatchingExons = {tool:NumberCategory(1, 16, 1) for tool in tools}
-        self.tool2NbOfMatchingExonsCompacted = {tool: NumberCategory(1, 10, 4) for tool in tools}
+        self.tool2NbOfMatchingExonsCompacted = {tool: NumberCategory(1, 8, 3) for tool in tools}
         self.tool2HighestNbOfConsecutiveExons = {tool: NumberCategory(1, 16, 1) for tool in tools}
 
         #populate

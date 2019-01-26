@@ -14,7 +14,7 @@ class Plotter:
     """
     Makes several plots
     """
-    def __init__(self, tools, hybridTools, selfTools, plotsOutput, colours):
+    def __init__(self, tools, hybridTools, selfTools, plotsOutput, colours, pdf):
         self.tools=tools
         self.toolsNoRaw=list(tools)
         self.toolsNoRaw.remove("raw.bam")
@@ -22,6 +22,7 @@ class Plotter:
         self.selfTools = selfTools
         self.plotsOutput=plotsOutput
         self.colours = colours
+        self.pdf = pdf
 
     def __getToolCategory(self, tool):
         if tool=="raw.bam":
@@ -44,7 +45,8 @@ class Plotter:
         plotly.io.write_image(fig, "%s/%s.png"%(self.plotsOutput, name), scale=2.0, width=width, height=height)
 
         #uncomment this if you want to create .pdf figures required for the paper
-        #plotly.io.write_image(fig, "%s/%s.pdf" % (self.plotsOutput, name), width=width, height=height)
+        if self.pdf:
+            plotly.io.write_image(fig, "%s/%s.pdf" % (self.plotsOutput, name), width=width, height=height)
         fig["layout"]["hovermode"] = "closest"
 
 
@@ -395,7 +397,7 @@ class Plotter:
         """
         Make the scatter plot of the coverage of the feature
         :param geneID2gene:
-        :param featureAsString: "MainIsoforms", "Genes", or "Isoforms"
+        :param featureAsString: "MainIsoforms", "Genes", "Isoforms", or "MinorIsoforms"
         :return:
         """
         # get all the data to plot it
@@ -413,6 +415,8 @@ class Plotter:
                     features = [gene]
                 elif featureAsString=="Isoforms":
                     features = gene.transcriptId2Transcript.values()
+                elif featureAsString=="MinorIsoforms":
+                    features = gene.getMinorIsoforms()
                 else:
                     raise Exception("Error: featureAsString = %s not valid in function makeScatterPlotCoverage()"%featureAsString)
 

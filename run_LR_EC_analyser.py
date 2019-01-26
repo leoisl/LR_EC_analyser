@@ -45,6 +45,8 @@ def main():
                              'This parameter allows you to control the colors of each tool. The order of the tools are: raw -> hybrid -> self.'
                              'The hybrid and self ordering are given by parameter --hybrid and --self.'
                              'See an example of this parameter in https://gitlab.com/leoisl/LR_EC_analyser/blob/master/scripts/command_line_paper.sh .')
+    parser.add_argument('--pdf', action="store_true",
+                        help='Produce .pdf files of the plots in the <output_folder>/plots directory.')
     parser.add_argument("--skip_bam_process", dest="skip_bam", action="store_true", help="Skips BAM processing (i.e. sorting and indexing BAM files) - assume we had already done this.")
     parser.add_argument("--skip_alignqc", dest="skip_alignqc", action="store_true",
                         help="Skips AlignQC calls - assume we had already done this.")
@@ -160,7 +162,7 @@ def main():
     plotsOutput = args.output+"/plots"
     if not os.path.exists(plotsOutput):
         os.makedirs(plotsOutput)
-    plotter = Plotter(tools, hybridTools, selfTools, plotsOutput, args.colours)
+    plotter = Plotter(tools, hybridTools, selfTools, plotsOutput, args.colours, args.pdf)
 
     #make all stats plots
     allStatsPlots = {feature: plotter.makeBarPlotFromStats(statProfiler, feature) for feature in statProfiler.allFeatures}
@@ -179,6 +181,7 @@ def main():
 
     #build the coverage scatterplots
     htmlScatterPlotCoverageOfMainIsoforms = plotter.makeScatterPlotCoverage(geneID2gene, "MainIsoforms")
+    htmlScatterPlotCoverageOfMinorIsoforms = plotter.makeScatterPlotCoverage(geneID2gene, "MinorIsoforms")
     htmlScatterPlotCoverageOfGenes = plotter.makeScatterPlotCoverage(geneID2gene, "Genes")
     htmlScatterPlotCoverageOfIsoforms = plotter.makeScatterPlotCoverage(geneID2gene, "Isoforms")
 
@@ -271,6 +274,8 @@ def main():
                                           tools)
         callFunctionAndPopulateTheReports(i, "<htmlScatterPlotCoverageOfMainIsoforms>", linesHTMLReport, linesHighResHTMLReport, \
                                           htmlScatterPlotCoverageOfMainIsoforms)
+        callFunctionAndPopulateTheReports(i, "<htmlScatterPlotCoverageOfMinorIsoforms>", linesHTMLReport, linesHighResHTMLReport, \
+                                          htmlScatterPlotCoverageOfMinorIsoforms)
         callFunctionAndPopulateTheReports(i, "<htmlScatterPlotCoverageOfGenes>", linesHTMLReport, linesHighResHTMLReport, \
                                           htmlScatterPlotCoverageOfGenes)
         callFunctionAndPopulateTheReports(i, "<htmlScatterPlotCoverageOfIsoforms>", linesHTMLReport, linesHighResHTMLReport, \
