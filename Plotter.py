@@ -7,6 +7,7 @@ from decimal import Decimal
 from scipy import stats
 from Paralogous import Paralogous
 from Category import *
+import collections
 
 divIdCapturePattern = re.compile("id=\"(.*?)\"")
 
@@ -189,9 +190,35 @@ class Plotter:
                             isoformsInRawInEachCategory.addDataPoint(transcript.computeRelativeExpression("raw.bam"), None)
             return isoformsInRawInEachCategory.getIntervalCount()
 
+        def getNbOfGenesMissedInTools():
+            nbOfToolsWithoutTheGene2GeneSet=collections.defaultdict(set)
+            for gene in geneID2gene.values():
+                if gene.profile.isExpressedInTool("raw.bam"):  # the gene must be expressed in the raw
+                    nbOfToolsWithoutThisGene = len([tool for tool in self.toolsNoRaw if not gene.profile.isExpressedInTool(tool)])
+                    if nbOfToolsWithoutThisGene>0: nbOfToolsWithoutTheGene2GeneSet[nbOfToolsWithoutThisGene].add(gene.id)
+
+            with open("missing_genes_debug.txt", "w") as missingGenesFile:
+                missingGenesFile.write("Lost genes (nbOfToolsWithoutTheGene, nbOfGenes):\n")
+                for nbOfToolsWithoutTheGene, geneSet in nbOfToolsWithoutTheGene2GeneSet.iteritems():
+                    missingGenesFile.write("%d %d\n"%(nbOfToolsWithoutThisGene, len(geneSet)))
+
+                if len(self.toolsNoRaw) in nbOfToolsWithoutTheGene2GeneSet:
+                    missingGenesFile.write("Genes lost by all tools: %s\n"%str(nbOfToolsWithoutTheGene2GeneSet[len(self.toolsNoRaw)]))
+
+                missingGenesFile.write("Tool GeneId Coverage:\n")
+                for tool in self.tools:
+                    for gene in geneID2gene.values():
+                        if gene.profile.isExpressedInTool(tool):
+                            missingGenesFile.write("%s %s %d\n"%(tool, gene.id, gene.profile.tool2NbOfMappedReads[tool]))
+
         '''
         Helper functions
         '''
+
+        #get the nb of genes missed in the tools
+        getNbOfGenesMissedInTools()
+
+
         tool2RelativeTranscriptOfLostTranscriptCategories = get_tool2RelativeTranscriptOfLostTranscriptCategories()
         nbIsoformsInRawInEachCategory = get_nbIsoformsInRawInEachCategory()
         return self.__produceBarPlot("LostTranscriptInGenesWSP2Plot", tool2RelativeTranscriptOfLostTranscriptCategories, "Relative transcript coverage in relation to gene coverage", "Number of transcripts", displayInterval=True, generateDataToBeShown=True), \
