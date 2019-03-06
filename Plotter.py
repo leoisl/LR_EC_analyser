@@ -490,7 +490,7 @@ class Plotter:
                 yref = "y%d"%(toolIndex + 1),
                 x = highestExpression/2,
                 y = highestExpression,
-                text="R^2 = %f"%rSquared,
+                text="R<sup>2</sup> = %f"%rSquared,
                 showarrow=False,
                 font=plotly.graph_objs.layout.annotation.Font(size= 14)
             ))
