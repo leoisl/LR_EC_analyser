@@ -1,5 +1,9 @@
 # NEWS
 
+v0.0.12 released. Changes:
+* Added `--pdf` parameter;
+* Fixed several bugs;
+
 v0.0.11 released. Changes:
 * Added `--colours` parameter;
 * Fixed a bug in the interactive plot.
@@ -79,7 +83,7 @@ usage: run_LR_EC_analyser.py [-h] --raw RAWBAM
                              [--paralogous PARALOGOUS] [-o OUTPUT]
                              [-t THREADS]
                              [--colours <self.colours> [<self.colours> ...]]
-                             [--skip_bam_process] [--skip_alignqc]
+                             [--pdf] [--skip_bam_process] [--skip_alignqc]
                              [--skip_copying]
 
 Long reads error corrector analyser.
@@ -118,6 +122,8 @@ optional arguments:
                         given by parameter --hybrid and --self.See an example
                         of this parameter in https://gitlab.com/leoisl/LR_EC_a
                         nalyser/blob/master/scripts/command_line_paper.sh .
+  --pdf                 Produce .pdf files of the plots in the
+                        <output_folder>/plots directory.
   --skip_bam_process    Skips BAM processing (i.e. sorting and indexing BAM
                         files) - assume we had already done this.
   --skip_alignqc        Skips AlignQC calls - assume we had already done this.
