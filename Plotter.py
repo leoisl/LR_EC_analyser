@@ -217,7 +217,8 @@ class Plotter:
         '''
 
         #get the nb of genes missed in the tools
-        getNbOfGenesMissedInTools()
+        #skip this call for the moment
+        #getNbOfGenesMissedInTools()
 
 
         tool2RelativeTranscriptOfLostTranscriptCategories = get_tool2RelativeTranscriptOfLostTranscriptCategories()
