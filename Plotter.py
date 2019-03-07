@@ -35,13 +35,13 @@ class Plotter:
         else:
             raise Exception("Unknown category for tool %s"%tool)
 
-    def __buildPlots(self, fig, name, label2ToolIndex2Data=None, width=1600, height=500, lockHeight=False):
+    def __buildPlots(self, fig, name, label2ToolIndex2Data=None, width=1600, height=550, lockHeight=False):
         """
         build the plots and return what needs to be returned
         """
         #to compensate for too many tools
         if not lockHeight and len(self.tools) > 14:
-            height=600
+            height=650
 
         plotly.io.write_image(fig, "%s/%s.png"%(self.plotsOutput, name), scale=2.0, width=width, height=height)
 
@@ -81,7 +81,8 @@ class Plotter:
             yaxis={"title": ylabel},
             barmode='group',
             colorway=self.colours if "raw.bam" in xLabels else self.colours[1:],
-            autosize=True
+            autosize=True,
+            font={"size": 15}
         )
         fig = plotly.graph_objs.Figure(data=data, layout=layout)
 
@@ -268,7 +269,8 @@ class Plotter:
         layout = plotly.graph_objs.Layout(
             xaxis={"title": "Relative expression"},
             yaxis={"title": "Tools"},
-            colorway=self.colours
+            colorway=self.colours,
+            font={"size": 15}
         )
         fig = plotly.graph_objs.Figure(data=data, layout=layout)
 
@@ -415,7 +417,10 @@ class Plotter:
         x = ["(%d)" % familySize if familySize < paralogousGroupSizeMax else "(%d+)" % familySize for familySize in familiesSizes]
         y=[geneFamilySize2Count[geneFamilySize] for geneFamilySize in familiesSizes]
         data = [plotly.graph_objs.Bar(x=x, y=y)]
-        layout = plotly.graph_objs.Layout(xaxis={"title": "Gene family size"}, yaxis={"title": "Count"}, colorway=self.colours)
+        layout = plotly.graph_objs.Layout(xaxis={"title": "Gene family size"},
+                                          yaxis={"title": "Count"},
+                                          colorway=self.colours,
+                                          font={"size": 15})
         fig = plotly.graph_objs.Figure(data=data, layout=layout)
         return self.__buildPlots(fig, "GeneFamiliesSizeBarPlot")
 
@@ -532,7 +537,8 @@ class Plotter:
             title=name,
             yaxis={"title": statProfiler.getNiceDescriptionForFeature(metric)},
             barmode="group",
-            colorway=self.colours
+            colorway=self.colours,
+            font={"size": 15}
         )
         fig = plotly.graph_objs.Figure(data=data, layout=layout)
         return self.__buildPlots(fig, name, width=800)
@@ -563,7 +569,8 @@ class Plotter:
                    ticktext=labels
                 ),
             yaxis={"title": "Read count"},
-            colorway=self.colours
+            colorway=self.colours,
+            font={"size": 15}
         )
 
         fig = plotly.graph_objs.Figure(data=data, layout=layout)
@@ -619,7 +626,8 @@ class Plotter:
             layout = plotly.graph_objs.Layout(
                 title='Correct and Incorrect Splice Sites BarPlot',
                 yaxis={"title": "%s of Correct and Incorrect SSs"%descriptionsForThePlots[type]["unit"]},
-                barmode="group"
+                barmode="group",
+                font={"size": 15}
             )
             fig = plotly.graph_objs.Figure(data=data, layout=layout)
             return self.__buildPlots(fig, name)
@@ -635,7 +643,8 @@ class Plotter:
             layout = plotly.graph_objs.Layout(
                 title='Detailed Incorrect Splice Sites BarPlots',
                 yaxis={"title": "%s of Incorrect SSs"%descriptionsForThePlots[type]["unit"]},
-                barmode="group"
+                barmode="group",
+                font={"size": 15}
             )
             fig = plotly.graph_objs.Figure(data=data, layout=layout)
             return self.__buildPlots(fig, name)
@@ -671,7 +680,8 @@ class Plotter:
                     ticktext=labels
                 ),
                 yaxis={"title": "%s of Splice Sites"%descriptionsForThePlots[type]["unit"]},
-                colorway=self.colours
+                colorway=self.colours,
+                font={"size": 15}
             )
 
             fig = plotly.graph_objs.Figure(data=data, layout=layout)
@@ -746,7 +756,8 @@ class Plotter:
                 ticktext=labels
             ),
             yaxis={"title": yLabel},
-            colorway=self.colours
+            colorway=self.colours,
+            font={"size": 15}
         )
 
         fig = plotly.graph_objs.Figure(data=data, layout=layout)
@@ -775,7 +786,8 @@ class Plotter:
             title=title,
             barmode='group',
             colorway=self.colours,
-            autosize=True
+            autosize=True,
+            font={"size": 15}
         )
         fig = plotly.graph_objs.Figure(data=data, layout=layout)
 
@@ -791,7 +803,8 @@ class Plotter:
             title='Full and partial read mapping BarPlot',
             yaxis={"title": "Read count"},
             barmode="group",
-            extendpiecolors=True
+            extendpiecolors=True,
+            font={"size": 15}
         )
         fig = plotly.graph_objs.Figure(data=data, layout=layout)
         return self.__buildPlots(fig, "FullPartialReadsPlot" + ("Percentage" if inPercentage else "Scalar"))
