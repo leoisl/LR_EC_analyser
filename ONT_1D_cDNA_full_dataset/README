@@ -4,7 +4,7 @@
 #zip -r processed_data_on_mouse_nanopore_cDNA.zip alignqc_out_on_*.bam/data/ *.sorted.bam *.sorted.bam.bai Mus_musculus.GRCm38.87.gtf Mus_musculus.GRCm38.87.gtf.idx Mus_musculus.GRCm38.dna.primary_assembly.fa Mus_musculus.GRCm38.dna.primary_assembly.fa.fai Mus_musculus.GRCm38.87.paralog_genes.80_percent_plus_identity.txt
 cd <path_to_this_project_root>
 cd ONT_1D_cDNA_full_dataset
-wget https://www.dropbox.com/s/t10bj4nofxthdpd/processed_data_on_mouse_nanopore_cDNA.zip?dl=1 -O processed_data_on_mouse_nanopore_cDNA.zip
+wget https://www.dropbox.com/s/0u43x34i5ndw0qm/processed_data_on_mouse_nanopore_cDNA.zip?dl=1 -O processed_data_on_mouse_nanopore_cDNA.zip
 unzip processed_data_on_mouse_nanopore_cDNA.zip
 cd ..
 
